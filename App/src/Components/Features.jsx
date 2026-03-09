@@ -31,7 +31,7 @@ const Features = () => {
     ];
 
     return (
-        <section className="bg-slate-900 text-white relative py-20">
+        <section className="bg-slate-900 text-white relative py-16 md:py-20">
             <div className="absolute top-0 -translate-x-1/2 left-1/2 w-[800px] h-[800px] bg-cyan-500/10 blur-3xl rounded-full -z-0"></div>
 
             <div className="max-w-7xl mx-auto px-6 relative">

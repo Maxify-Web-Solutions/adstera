@@ -55,7 +55,7 @@ const FAQ = () => {
     ];
 
     return (
-        <section className="bg-slate-900 text-white relative py-20">
+        <section className="bg-slate-900 text-white relative py-16 md:py-20">
             <div className="absolute -bottom-20 -translate-x-1/2 left-1/2 w-[800px] h-[800px] bg-indigo-500/10 blur-3xl rounded-full -z-0"></div>
 
             <div className="max-w-4xl mx-auto px-6 relative">
@@ -85,6 +85,7 @@ const FAQ = () => {
             </div>
         </section>
     );
+    
 };
 
 export default FAQ;
