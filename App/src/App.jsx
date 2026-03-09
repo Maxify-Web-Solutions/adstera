@@ -1,27 +1,38 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
-import { AuthProvider } from './Pages/AuthContext'   
-import ProtectedRoute from './Components/ProtectedRoute' 
-import Login from './Pages/Login'
-import Register from './Pages/Register'
-import HomePage from './Pages/HomePage'
-import './App.css'
+import { Routes, Route } from "react-router-dom";
+import Login from "./Pages/Login";
+import Register from "./Pages/Register";
+import ProtectedRoute from "./components/ProtectedRoute";
+import HomePage from "./Pages/HomePage";
+import { useEffect } from "react";
+import { getUser } from "./redux/slice/authSlice";
+import { useDispatch } from "react-redux";
+import Dashboard from "./Pages/Dashboard";
+import Profile from "./Pages/Profile";
 
 function App() {
+
+
+  const dispatch = useDispatch();
+
+    useEffect(() => {
+        dispatch(getUser());
+    }, [dispatch]);
+
+
   return (
-    <AuthProvider>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          
-          {/* Protected Routes */}
-          {/* <Route element={<ProtectedRoute />}> */}
-            <Route path="/" element={<HomePage />} />
-          {/* </Route> */}
-        </Routes>
-      </BrowserRouter>
-    </AuthProvider>
-  )
+    <Routes>
+
+      <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<Register />} />
+
+      <Route element={<ProtectedRoute />}>
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/profile" element={<Profile />} />
+      </Route>
+        <Route path="/" element={<HomePage />} />
+
+    </Routes>
+  );
 }
 
-export default App
+export default App;
