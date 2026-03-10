@@ -9,6 +9,8 @@ import Testimonials from '../Components/Testimonials'
 import Contact from '../Components/Contact'
 import Footer from '../Components/Footer'
 import BackToTop from '../Components/BackToTop'
+import PlatformStats from '../Components/PlatformStats'
+import AudienceSection from '../Components/AudienceSection'
 
 const HomePage = () => {
     return (
@@ -18,6 +20,8 @@ const HomePage = () => {
             <Features />
             <Pricing />
             <HowItWorks/>
+            <PlatformStats />
+            <AudienceSection />
             <Testimonials />
             <Contact />
             <FAQ />

@@ -6,7 +6,7 @@ import HomePage from "./Pages/HomePage";
 import { useEffect } from "react";
 import { getUser } from "./redux/slice/authSlice";
 import { useDispatch } from "react-redux";
-import Dashboard from "./Pages/Dashboard";
+// import Dashboard from "./Pages/Dashboard";
 import Profile from "./Pages/Profile";
 
 function App() {
@@ -26,7 +26,7 @@ function App() {
       <Route path="/register" element={<Register />} />
 
       <Route element={<ProtectedRoute />}>
-        <Route path="/dashboard" element={<Dashboard />} />
+        {/* <Route path="/dashboard" element={<Dashboard />} /> */}
         <Route path="/profile" element={<Profile />} />
       </Route>
         <Route path="/" element={<HomePage />} />

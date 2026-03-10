@@ -1,62 +1,85 @@
-import React from 'react';
-import { FiUserPlus, FiSettings, FiTrendingUp } from 'react-icons/fi';
+import React from "react";
+import { FiUserPlus, FiSettings, FiTrendingUp } from "react-icons/fi";
 
 const HowItWorks = () => {
     const stepsData = [
         {
-            icon: <FiUserPlus size={40} />,
-            title: 'Create Account',
-            description: 'Sign up in minutes as an advertiser or publisher. It\'s free and easy to get started.',
+            icon: <FiUserPlus size={28} />,
+            title: "Create Account",
+            description:
+                "Sign up in minutes as an advertiser or publisher. It's free and easy to get started.",
         },
         {
-            icon: <FiSettings size={40} />,
-            title: 'Configure',
-            description: 'Advertisers: create your campaign and define your audience. Publishers: place our ad code on your site.',
+            icon: <FiSettings size={28} />,
+            title: "Configure",
+            description:
+                "Advertisers create campaigns and target audiences. Publishers place our ad code on their site.",
         },
         {
-            icon: <FiTrendingUp size={40} />,
-            title: 'Launch & Grow',
-            description: 'Launch campaigns or start monetizing traffic. Use our real-time analytics to optimize for the best results.',
+            icon: <FiTrendingUp size={28} />,
+            title: "Launch & Grow",
+            description:
+                "Launch campaigns or start monetizing traffic while using analytics to improve performance.",
         },
     ];
 
     return (
-        <section className="bg-slate-900 text-white relative py-16 md:py-20">
-            {/* Decorative blur */}
-            <div className="absolute top-1/2 -translate-y-1/2 left-1/2 w-[800px] h-[800px] bg-cyan-500/10 blur-3xl rounded-full -z-0"></div>
+        <section className="bg-slate-900 text-white py-20 relative overflow-hidden">
 
-            <div className="max-w-7xl mx-auto px-6 relative">
-                <div className="text-center mb-20">
-                    <h2 className="text-4xl md:text-5xl font-bold leading-tight">
-                        How It Works
-                    </h2>
-                    <p className="mt-4 text-gray-400 text-lg max-w-2xl mx-auto">
-                        Start your journey with Adstera in just a few simple steps.
+            {/* background glow */}
+            <div className="absolute top-1/2 left-1/2 w-[700px] h-[700px] -translate-x-1/2 -translate-y-1/2 bg-cyan-500/10 blur-3xl"></div>
+
+            <div className="max-w-6xl mx-auto px-6 relative">
+
+                {/* heading */}
+                <div className="text-center mb-16">
+                    <h2 className="text-3xl md:text-5xl font-bold">How It Works</h2>
+                    <p className="mt-4 text-gray-400 max-w-xl mx-auto">
+                        Start using Adstera in just a few simple steps.
                     </p>
                 </div>
 
+                {/* steps container */}
                 <div className="relative">
-                    {/* Connecting line for desktop */}
-                    <div className="hidden md:block absolute top-10 left-0 w-full h-0.5 bg-slate-700" aria-hidden="true"></div>
-                    
-                    <div className="relative grid md:grid-cols-3 gap-x-8 gap-y-16">
+
+                    {/* vertical line for mobile */}
+                    <div className="absolute left-4 top-0 bottom-0 w-[2px] bg-slate-700 md:hidden"></div>
+
+                    {/* desktop horizontal line */}
+                    <div className="hidden md:block absolute top-10 left-0 w-full h-[2px] bg-slate-700"></div>
+
+                    <div className="space-y-12 md:space-y-0 md:grid md:grid-cols-3 md:gap-10">
+
                         {stepsData.map((step, index) => (
-                            <div key={index} className="relative text-center">
-                                <div className="flex flex-col items-center">
-                                    {/* Step Circle */}
-                                    <div className="relative flex items-center justify-center w-20 h-20 bg-slate-900 border-2 border-slate-700 rounded-full text-2xl font-bold text-white z-10">
-                                        <span className="bg-gradient-to-r from-indigo-400 to-cyan-400 bg-clip-text text-transparent">{index + 1}</span>
-                                    </div>
-                                    <div className="mt-8 text-indigo-400">
+                            <div key={index} className="relative flex md:block">
+
+                                {/* number */}
+                                <div className="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-full bg-indigo-500 text-white text-sm font-bold md:mx-auto md:w-16 md:h-16 md:text-lg">
+                                    {index + 1}
+                                </div>
+
+                                {/* content */}
+                                <div className="ml-6 md:ml-0 md:text-center md:mt-8">
+
+                                    <div className="text-indigo-400 mb-2 flex md:justify-center">
                                         {step.icon}
                                     </div>
-                                    <h3 className="mt-4 text-xl font-bold text-white">{step.title}</h3>
-                                    <p className="mt-2 text-slate-400 max-w-xs mx-auto">{step.description}</p>
+
+                                    <h3 className="text-lg md:text-xl font-semibold">
+                                        {step.title}
+                                    </h3>
+
+                                    <p className="text-slate-400 mt-2 max-w-sm md:mx-auto">
+                                        {step.description}
+                                    </p>
+
                                 </div>
                             </div>
                         ))}
+
                     </div>
                 </div>
+
             </div>
         </section>
     );
