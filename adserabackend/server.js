@@ -5,6 +5,8 @@ const cors = require("cors");
 const cookieParser = require("cookie-parser");
 
 const authRoutes = require("./routes/authRoutes");
+const smartLinkRoutes = require("./routes/smartLinkRoutes");
+
 const connectDB = require("./config/connectdb");
 
 const app = express();
@@ -18,6 +20,8 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 app.use("/api/auth", authRoutes);
+
+app.use("/api/smartlink", smartLinkRoutes);
 
 connectDB();
 
