@@ -1,13 +1,15 @@
-import React from "react";
+import React, { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+// import { getOverviewData } from "../../redux/slice/overviewSlice";
 
-const stats = [
+const defaultStats = [
     { title: "Active Package", value: "Pro Plan" },
     { title: "Scrapes Used", value: "1,250 / 5,000" },
     { title: "Leads Collected", value: "8,320" },
     { title: "Account Status", value: "Active" },
 ];
 
-const activities = [
+const defaultActivities = [
     {
         title: "Scraping started",
         description: "Location: New York | Category: Restaurants",
@@ -26,6 +28,16 @@ const activities = [
 ];
 
 const Overview = () => {
+    // const dispatch = useDispatch();
+    // const { stats, activities } = useSelector((state) => state.overview);
+
+    // useEffect(() => {
+    //     dispatch(getOverviewData());
+    // }, [dispatch]);
+
+    const displayStats = defaultStats; // stats || defaultStats;
+    const displayActivities = defaultActivities; // activities || defaultActivities;
+
     return (
         <div>
 
@@ -41,7 +53,7 @@ const Overview = () => {
 
             {/* Stats */}
             <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-                {stats.map((stat, index) => (
+                {displayStats.map((stat, index) => (
                     <div
                         key={index}
                         className="bg-white dark:bg-slate-800 p-6 rounded-xl border border-gray-200 dark:border-slate-700"
@@ -93,7 +105,7 @@ const Overview = () => {
 
                     <div className="space-y-6">
 
-                        {activities.map((item, index) => (
+                        {displayActivities.map((item, index) => (
                             <div key={index} className="border-b border-gray-200 dark:border-slate-700 pb-4 last:border-b-0">
 
                                 <h4 className="text-gray-900 dark:text-white font-medium">

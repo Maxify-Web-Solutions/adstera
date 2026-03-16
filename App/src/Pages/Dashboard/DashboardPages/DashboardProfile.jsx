@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import { FiSave, FiX, FiCopy } from "react-icons/fi";
+import { updateUser } from "../../../redux/slice/authSlice";
 
 
 const initialSessions = [
@@ -22,7 +23,8 @@ const initialSessions = [
 
 const Profile = () => {
 
-  const { user } = useSelector((state) => state.auth);
+  const { user, loading } = useSelector((state) => state.auth);
+  const dispatch = useDispatch();
 
   const [sessions, setSessions] = useState(initialSessions);
 
@@ -50,7 +52,7 @@ const Profile = () => {
 
   const handleSave = (e) => {
     e.preventDefault();
-    alert("Profile Updated!");
+    dispatch(updateUser(formData));
   };
 
   const removeSession = (id) => {
@@ -182,7 +184,8 @@ const Profile = () => {
               <div className="md:col-span-2">
                 <button
                   type="submit"
-                  className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 px-6 py-3 rounded-lg text-white font-semibold"
+                  className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 px-6 py-3 rounded-lg text-white font-semibold disabled:opacity-50"
+                  disabled={loading}
                 >
                   <FiSave /> Save Changes
                 </button>

@@ -14,7 +14,7 @@ import CookiePolicy from "./Pages/CookiePollicy";
 import ContactUs from "./Pages/ContactUs";
 import AboutUs from "./Pages/AboutUs";
 import MagicCursor from "./Components/MagicCursor";
-import Dashboard from "./Pages/Dashboard/DashboardPages/Dashboard";
+// import Dashboard from "./Pages/Dashboard/DashboardPages/Dashboard";
 import Websites from "./Pages/Dashboard/DashboardPages/Websites";
 import Layout from "./Pages/Dashboard/Layout";
 import Overview from "./Pages/Dashboard/Overview";
@@ -57,7 +57,7 @@ function App() {
        <Route path="/profile" element={<Profile />} />
 
     <Route path="/dashboard" element={<Layout />}>
-    <Route path="dash-board" element={<Dashboard />} />
+    {/* <Route path="dash-board" element={<Dashboard />} /> */}
       <Route index element={<Overview />} />
       <Route path="websites" element={<Websites />} />
       <Route path="statistics" element={<Statistics />} />
