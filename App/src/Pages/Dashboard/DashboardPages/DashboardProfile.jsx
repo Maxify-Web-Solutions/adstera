@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { FiSave, FiX, FiCopy } from "react-icons/fi";
-import { updateUser } from "../../../redux/slice/authSlice";
+// import { updateUser } from "../../../redux/slice/authSlice";
 
 
 const initialSessions = [
@@ -52,7 +52,7 @@ const Profile = () => {
 
   const handleSave = (e) => {
     e.preventDefault();
-    dispatch(updateUser(formData));
+    // dispatch(updateUser(formData));
   };
 
   const removeSession = (id) => {

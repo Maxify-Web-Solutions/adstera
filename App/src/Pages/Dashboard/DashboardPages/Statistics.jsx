@@ -1,6 +1,23 @@
-import React from "react";
+import React, { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  getSmartLinkStats,
+  trackImpression,
+} from "../../../redux/slice/smartLinkStatsSlice";
 
-const Statistics = () => {
+const Statistics = ({ linkId }) => {
+  const dispatch = useDispatch();
+
+  const { stats, total, loading } = useSelector((state) => state.stats);
+
+  // ✅ Load data
+  useEffect(() => {
+    if (linkId) {
+      dispatch(trackImpression(linkId)); // impression hit
+      dispatch(getSmartLinkStats(linkId)); // fetch stats
+    }
+  }, [dispatch, linkId]);
+
   return (
     <div className="space-y-10">
 
@@ -53,7 +70,7 @@ const Statistics = () => {
 
         <div className="flex gap-4 mt-6">
 
-          <button className="bg-slate-700 hover:bg-slate-600 px-6 py-2 rounded-lg text-white dark:bg-slate-700 dark:hover:bg-slate-600">
+          <button className="bg-slate-700 hover:bg-slate-600 px-6 py-2 rounded-lg text-white">
             APPLY
           </button>
 
@@ -71,20 +88,10 @@ const Statistics = () => {
         <h2 className="text-gray-900 dark:text-white font-semibold mb-4">Group by</h2>
 
         <div className="flex flex-wrap gap-2">
-
-          {[
-            "DATE",
-            "DOMAIN",
-            "PLACEMENT",
-            "COUNTRY",
-            "DEVICE FORMAT",
-            "OPERATING SYSTEM",
-            "BROWSER",
-          ].map((item, index) => (
-
+          {["DATE","DOMAIN","PLACEMENT","COUNTRY","DEVICE FORMAT","OPERATING SYSTEM","BROWSER"].map((item, index) => (
             <button
               key={index}
-              className={`px-4 py-2 rounded-lg border border-gray-300 dark:border-slate-700 text-sm ${
+              className={`px-4 py-2 rounded-lg border text-sm ${
                 index === 0
                   ? "bg-green-600 text-white border-green-600"
                   : "bg-white dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700"
@@ -92,9 +99,7 @@ const Statistics = () => {
             >
               {item}
             </button>
-
           ))}
-
         </div>
 
       </div>
@@ -104,55 +109,71 @@ const Statistics = () => {
 
         {/* Export */}
         <div className="flex justify-between items-center p-4 border-b border-gray-200 dark:border-slate-700">
-
           <button className="text-green-400 text-sm hover:text-green-300">
             EXPORT CSV
           </button>
-
         </div>
 
         <div className="overflow-x-auto">
-          {/* Table */}
+
           <table className="w-full text-left min-w-[640px]">
 
             <thead className="bg-gray-50 dark:bg-slate-900 text-gray-500 dark:text-gray-400 text-sm">
-
               <tr>
-
                 <th className="p-4">Date</th>
                 <th className="p-4">Impressions</th>
                 <th className="p-4">Clicks</th>
                 <th className="p-4">CTR</th>
                 <th className="p-4">CPM</th>
                 <th className="p-4">Revenue</th>
-
               </tr>
-
             </thead>
 
             <tbody>
 
-              <tr className="border-t border-gray-200 dark:border-slate-700">
+              {/* ✅ Loading */}
+              {loading && (
+                <tr>
+                  <td className="p-4" colSpan="6">
+                    Loading...
+                  </td>
+                </tr>
+              )}
 
-                <td className="p-4">2026/03/13</td>
-                <td className="p-4">0</td>
-                <td className="p-4">0</td>
-                <td className="p-4">0%</td>
-                <td className="p-4">$0</td>
-                <td className="p-4">$0</td>
+              {/* ✅ Data */}
+              {!loading && stats?.length > 0 &&
+                stats.map((item, index) => (
+                  <tr key={index} className="border-t border-gray-200 dark:border-slate-700">
+                    <td className="p-4">{item.date}</td>
+                    <td className="p-4">{item.impressions}</td>
+                    <td className="p-4">{item.clicks}</td>
+                    <td className="p-4">{item.ctr}</td>
+                    <td className="p-4">{item.cpm}</td>
+                    <td className="p-4">{item.revenue}</td>
+                  </tr>
+                ))
+              }
 
-              </tr>
+              {/* ❌ No Data */}
+              {!loading && stats?.length === 0 && (
+                <tr>
+                  <td className="p-4" colSpan="6">
+                    No Data Found
+                  </td>
+                </tr>
+              )}
 
-              <tr className="border-t border-gray-200 dark:border-slate-700 font-semibold">
-
-                <td className="p-4">Total:</td>
-                <td className="p-4">0</td>
-                <td className="p-4">0</td>
-                <td className="p-4">0%</td>
-                <td className="p-4">$0</td>
-                <td className="p-4">$0</td>
-
-              </tr>
+              {/* ✅ TOTAL */}
+              {total && (
+                <tr className="border-t border-gray-200 dark:border-slate-700 font-semibold">
+                  <td className="p-4">Total:</td>
+                  <td className="p-4">{total.impressions}</td>
+                  <td className="p-4">{total.clicks}</td>
+                  <td className="p-4">{total.ctr}</td>
+                  <td className="p-4">{total.cpm}</td>
+                  <td className="p-4">{total.revenue}</td>
+                </tr>
+              )}
 
             </tbody>
 
@@ -161,15 +182,12 @@ const Statistics = () => {
 
         {/* Pagination */}
         <div className="flex justify-end items-center gap-6 p-4 border-t border-gray-200 dark:border-slate-700 text-sm text-gray-500 dark:text-gray-400">
-
           <span>Rows per page: 10</span>
-          <span>1–1 of 1</span>
-
+          <span>{stats?.length || 0} rows</span>
         </div>
 
       </div>
 
-      {/* Footer note */}
       <p className="text-center text-sm text-gray-400 dark:text-gray-500">
         For more information about how to use statistics see our Help Center
       </p>
