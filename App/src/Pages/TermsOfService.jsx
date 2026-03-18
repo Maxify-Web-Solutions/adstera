@@ -73,7 +73,7 @@ const TermsOfService = () => {
                 <h2 className="text-xl md:text-2xl font-semibold text-white mt-10 mb-4">Contact</h2>
                 <p>
                     If you have any questions about these Terms of Service, please contact
-                    us through the contact page on our website.
+                    us through the contact page on our websitee.
                 </p>
             </div>
 
