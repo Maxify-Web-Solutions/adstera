@@ -7,24 +7,17 @@ exports.fetchAndStoreAdsterraStats = async (req, res) => {
   try {
     const userId = req.user?.id; // ✅ FIX
 
-    const { smartCode, country, start_date, finish_date, group_by } = req.query;
+    const { country, start_date, finish_date, group_by } = req.query;
 
-    if (!smartCode) {
-      return res.status(400).json({
-        success: false,
-        message: "smartCode is required",
-      });
-    }
+    // 🔎 Find SmartLink (ONLY USER BASED)
+    const link = await SmartLink.findOne({ userId });
 
-    // 🔎 Find SmartLink
-    const link = await SmartLink.findOne({ smartCode });
     if (!link) {
       return res.status(404).json({
         success: false,
-        message: "SmartLink not found",
+        message: "No SmartLink found for this user",
       });
     }
-
     const url = link.redirectUrl || link.targetUrl;
     if (!url) {
       return res.status(400).json({
