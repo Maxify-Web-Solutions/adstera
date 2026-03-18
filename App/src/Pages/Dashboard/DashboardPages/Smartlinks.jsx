@@ -1,26 +1,67 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { FaArrowUp, FaArrowDown } from "react-icons/fa";
-import { useSortableData } from "../../../Components/useSortableData"; 
-
-const linksData = [
-    { name: "Smartlink_5", id: "28806761", status: "Active" },
-    { name: "Adultlink_3", id: "28243904", status: "Inactive" },
-    { name: "Adultlink_2", id: "28243903", status: "Inactive" },
-    { name: "Adultlink_1", id: "28243894", status: "Inactive" },
-    { name: "Smartlink_1", id: "28243882", status: "Inactive" },
-];
+import { useSortableData } from "../../../Components/useSortableData";
+import { useDispatch, useSelector } from "react-redux";
+import {
+    createSmartLink,
+    getSmartLinksByUser,
+} from "../../../redux/slice/smartLinkSlice";
 
 const Smartlinks = () => {
-    const { items: sortedLinks, requestSort, sortConfig } = useSortableData(linksData, { key: 'name', direction: 'ascending' });
+    const dispatch = useDispatch();
 
+    const { smartLinks, loading, createdLink } = useSelector(
+        (state) => state.smartlink
+    );
+
+    // ✅ Fetch links
+    useEffect(() => {
+        const userId = localStorage.getItem("userId");
+        if (userId) {
+            dispatch(getSmartLinksByUser(userId));
+        }
+    }, [dispatch]);
+
+    // ✅ Sorting
+    const {
+        items: sortedLinks,
+        requestSort,
+        sortConfig,
+    } = useSortableData(smartLinks || [], {
+        key: "name",
+        direction: "ascending",
+    });
+
+    // ✅ Sort icon
     const getSortIcon = (name) => {
-        if (!sortConfig || sortConfig.key !== name) {
-            return null;
+        if (!sortConfig || sortConfig.key !== name) return null;
+
+        return sortConfig.direction === "ascending" ? (
+            <FaArrowUp className="opacity-50" size={12} />
+        ) : (
+            <FaArrowDown className="opacity-50" size={12} />
+        );
+    };
+
+    // ✅ Create Smartlink
+    const handleCreate = () => {
+        dispatch(createSmartLink());
+    };
+
+    // ✅ Auto copy
+    useEffect(() => {
+        if (createdLink?.finalUrl) {
+            navigator.clipboard.writeText(createdLink.finalUrl);
+            alert("Smartlink created & copied!");
         }
-        if (sortConfig.direction === 'ascending') {
-            return <FaArrowUp className="inline ml-1 opacity-50" size={12} />;
+    }, [createdLink]);
+
+    // ✅ Copy button
+    const handleCopy = (link) => {
+        if (link?.finalUrl) {
+            navigator.clipboard.writeText(link.finalUrl);
+            alert("Copied!");
         }
-        return <FaArrowDown className="inline ml-1 opacity-50" size={12} />;
     };
 
     return (
@@ -76,12 +117,10 @@ const Smartlinks = () => {
                     </div>
 
                 </div>
-
             </div>
 
             {/* Anti Adblock */}
             <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg p-4 flex justify-between">
-
                 <span className="text-gray-500 dark:text-gray-400">
                     Get Anti-Adblock to increase your revenue
                 </span>
@@ -89,7 +128,6 @@ const Smartlinks = () => {
                 <button className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white">
                     SHOW TIPS
                 </button>
-
             </div>
 
             {/* Buttons */}
@@ -99,8 +137,11 @@ const Smartlinks = () => {
                     EXPORT LINKS
                 </button>
 
-                <button className="bg-green-600 hover:bg-green-700 px-5 py-2 rounded-lg text-white">
-                    ADD SMARTLINK
+                <button
+                    onClick={handleCreate}
+                    className="bg-green-600 hover:bg-green-700 px-5 py-2 rounded-lg text-white"
+                >
+                    {loading ? "Creating..." : "ADD SMARTLINK"}
                 </button>
 
             </div>
@@ -110,94 +151,120 @@ const Smartlinks = () => {
 
                 <div className="overflow-x-auto">
 
-                <table className="w-full text-left min-w-[640px]">
+                    <table className="w-full text-left min-w-[640px]">
 
-                    <thead className="bg-gray-50 dark:bg-slate-900 text-gray-500 dark:text-gray-400 text-sm">
+                        {/* ✅ FIXED HEADER */}
+                        <thead className="bg-gray-50 dark:bg-slate-900 text-gray-500 dark:text-gray-400 text-sm">
+                            <tr>
 
-                        <tr>
-                            <th className="p-4">
-                                <button type="button" onClick={() => requestSort('name')} className="flex items-center gap-1 hover:text-gray-700 dark:hover:text-gray-200">
-                                    Name {getSortIcon('name')}
-                                </button>
-                            </th>
-                            <th className="p-4">
-                                <button type="button" onClick={() => requestSort('id')} className="flex items-center gap-1 hover:text-gray-700 dark:hover:text-gray-200">
-                                    ID {getSortIcon('id')}
-                                </button>
-                            </th>
-                            <th className="p-4">
-                                <button type="button" onClick={() => requestSort('status')} className="flex items-center gap-1 hover:text-gray-700 dark:hover:text-gray-200">
-                                    Status {getSortIcon('status')}
-                                </button>
-                            </th>
-                            <th className="p-4"></th>
-                        </tr>
-
-                    </thead>
-
-                    <tbody>
-                        {sortedLinks.map((link) => (
-
-                            <tr
-                                key={link.id}
-                                className="border-t border-gray-200 dark:border-slate-700 hover:bg-gray-100 dark:hover:bg-slate-700"
-                            >
-
-                                <td className="p-4">{link.name}</td>
-
-                                <td className="p-4 text-gray-500 dark:text-gray-400">{link.id}</td>
-
-                                <td className="p-4">
-
-                                    <span
-                                        className={`px-3 py-1 text-xs rounded-full ${link.status === "Active"
-                                                ? "bg-green-600/20 text-green-400"
-                                                : "bg-red-600/20 text-red-400"
-                                            }`}
+                                <th className="px-4 py-3 font-medium">
+                                    <button
+                                        onClick={() => requestSort("name")}
+                                        className="flex items-center gap-2 w-full"
                                     >
-                                        {link.status}
-                                    </span>
-
-                                </td>
-
-                                <td className="p-4 flex gap-6 text-sm">
-
-                                    <button className="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white">
-                                        STATISTICS
+                                        Name {getSortIcon("name")}
                                     </button>
+                                </th>
 
-                                    <button className="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white">
-                                        EDIT
+                                <th className="px-4 py-3 font-medium">
+                                    <button
+                                        onClick={() => requestSort("_id")}
+                                        className="flex items-center gap-2 w-full"
+                                    >
+                                        ID {getSortIcon("_id")}
                                     </button>
+                                </th>
 
-                                    <button className="text-green-400 hover:text-green-300">
-                                        COPY LINK
+                                <th className="px-4 py-3 font-medium">
+                                    <button
+                                        onClick={() => requestSort("status")}
+                                        className="flex items-center gap-2 w-full"
+                                    >
+                                        Status {getSortIcon("status")}
                                     </button>
+                                </th>
 
-                                    {link.status === "Inactive" && (
-                                        <button className="text-red-400 hover:text-red-300">
-                                            REACTIVATE
-                                        </button>
-                                    )}
-
-                                </td>
+                                <th className="px-4 py-3 font-medium text-right">
+                                    Actions
+                                </th>
 
                             </tr>
+                        </thead>
 
-                        ))}
+                        <tbody>
+                            {sortedLinks.length > 0 ? (
+                                sortedLinks.map((link) => (
+                                    <tr
+                                        key={link._id}
+                                        className="border-t border-gray-200 dark:border-slate-700 hover:bg-gray-100 dark:hover:bg-slate-700"
+                                    >
 
-                    </tbody>
+                                        <td className="px-4 py-3">{link.name}</td>
 
-                </table>
+                                        <td className="px-4 py-3 text-gray-500 dark:text-gray-400">
+                                            {link.linkId}
+                                        </td>
+
+                                        <td className="px-4 py-3">
+                                            <span
+                                                className={`px-3 py-1 text-xs rounded-full ${
+                                                    link.status === "Active"
+                                                        ? "bg-green-600/20 text-green-400"
+                                                        : "bg-red-600/20 text-red-400"
+                                                }`}
+                                            >
+                                                {link.status || "Inactive"}
+                                            </span>
+                                        </td>
+
+                                        <td className="px-4 py-3 flex gap-6 text-sm justify-end">
+
+                                            <button className="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white">
+                                                STATISTICS
+                                            </button>
+
+                                            <button className="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white">
+                                                EDIT
+                                            </button>
+
+                                            <button
+                                                onClick={() => handleCopy(link)}
+                                                className="text-green-400 hover:text-green-300"
+                                            >
+                                                COPY LINK
+                                            </button>
+
+                                            {link.status !== "Active" && (
+                                                <button className="text-red-400 hover:text-red-300">
+                                                    REACTIVATE
+                                                </button>
+                                            )}
+
+                                        </td>
+
+                                    </tr>
+                                ))
+                            ) : (
+                                <tr>
+                                    <td
+                                        colSpan="4"
+                                        className="text-center py-6 text-gray-500"
+                                    >
+                                        No Smartlinks Found
+                                    </td>
+                                </tr>
+                            )}
+                        </tbody>
+
+                    </table>
 
                 </div>
 
-                {/* Pagination */}
                 <div className="flex justify-end items-center gap-6 p-4 border-t border-gray-200 dark:border-slate-700 text-sm text-gray-500 dark:text-gray-400">
-
                     <span>Rows per page: 10</span>
-                    <span>1–5 of 5</span>
-
+                    <span>
+                        1–{sortedLinks.length} of {sortedLinks.length}
+                    </span>
                 </div>
 
             </div>

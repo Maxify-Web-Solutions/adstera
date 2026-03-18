@@ -2,38 +2,45 @@ const mongoose = require("mongoose");
 
 const smartLinkSchema = new mongoose.Schema({
 
-  userId:{
-    type:mongoose.Schema.Types.ObjectId,
-    ref:"User",
-    required:true
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "users",
+    required: true
   },
 
-  name:{
-    type:String,
-    required:true
+  linkId: {
+    type: Number,
+    unique: true
   },
 
-  targetUrl:{
-    type:String,
-    required:true
+  name: {
+    type: String,
   },
 
-  smartCode:{
-    type:String,
-    unique:true
+  targetUrl: {
+    type: String,
   },
 
-  clicks:{
-    type:Number,
-    default:0
+  smartCode: {
+    type: String,
+    unique: true
   },
 
-  status:{
-    type:String,
-    enum:["pending","approved","rejected"],
-    default:"pending"
+  finalUrl: {
+    type: String,
+  },
+
+  clicks: {
+    type: Number,
+    default: 0
+  },
+
+  status: {
+    type: String,
+    enum: ["pending", "approved", "rejected"],
+    default: "pending"
   }
 
-},{timestamps:true});
+}, { timestamps: true });
 
-module.exports = mongoose.model("SmartLink",smartLinkSchema);
+module.exports = mongoose.model("SmartLink", smartLinkSchema);

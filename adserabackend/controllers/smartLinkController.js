@@ -1,73 +1,236 @@
 const SmartLink = require("../models/SmartLink");
+const SmartLinkStats = require("../models/SmartLinkStats"); // ✅ ADD
 const crypto = require("crypto");
 
 
+// ================= CREATE =================
 exports.createSmartLink = async (req, res) => {
-
     try {
+        const totalLinks = await SmartLink.countDocuments({
+            userId: req.user.id,
+        });
 
-        const { name, targetUrl } = req.body;
+        const name = `Smartlink_${totalLinks + 1}`;
 
-        const code = crypto.randomBytes(4).toString("hex");
+        const numericId = Math.floor(10000000 + Math.random() * 90000000);
+
+        const smartCode = crypto.randomBytes(4).toString("hex");
+        const key = crypto.randomBytes(16).toString("hex");
+
+        const baseUrl = "http://localhost:5000";
+
+        const finalUrl = `${baseUrl}/s/${smartCode}?key=${key}`; // ✅ FIXED
 
         const smartLink = await SmartLink.create({
-
             userId: req.user.id,
             name,
-            targetUrl,
-            smartCode: code
-
+            linkId: numericId,
+            smartCode,
+            key,
+            finalUrl,
+            status: "pending",
         });
 
         res.status(201).json({
-
             success: true,
-            message: "Smart link created and waiting for admin approval",
-            smartLink
-
+            message: "Smart link created",
+            smartLink,
         });
 
     } catch (err) {
-
         res.status(500).json({ error: err.message });
-
     }
-
 };
-exports.approveSmartLink = async (req, res) => {
 
+
+
+// ================= GET USER LINKS =================
+exports.getSmartLinksByUser = async (req, res) => {
     try {
-
-        const { id } = req.params;
-
-        const smartLink = await SmartLink.findByIdAndUpdate(
-
-            id,
-            { status: "approved" },
-            { new: true }
-
-        );
+        const smartLinks = await SmartLink.find({
+            userId: req.user.id,
+        })
+            .populate("userId", "name email mobile")
+            .sort({ createdAt: -1 });
 
         res.json({
-
             success: true,
-            message: "Smart link approved",
-            smartLink
-
+            count: smartLinks.length,
+            data: smartLinks,
         });
 
     } catch (err) {
-
         res.status(500).json({ error: err.message });
-
     }
-
 };
 
-exports.redirectSmartLink = async (req, res) => {
 
+
+// ================= APPROVE =================
+exports.approveSmartLink = async (req, res) => {
     try {
+        const { id } = req.params;
+        const { redirectUrl } = req.body;
 
+        const updateData = {
+            status: "approved",
+        };
+
+        if (redirectUrl) {
+            updateData.redirectUrl = redirectUrl;
+        }
+
+        const smartLink = await SmartLink.findByIdAndUpdate(
+            id,
+            updateData,
+            { new: true }
+        );
+
+        if (!smartLink) {
+            return res.status(404).json({
+                success: false,
+                message: "Smart link not found",
+            });
+        }
+
+        res.json({
+            success: true,
+            message: "Approved successfully",
+            smartLink,
+        });
+
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
+
+
+
+// ================= EXTERNAL UPDATE =================
+exports.updateSmartLinkData = async (req, res) => {
+    try {
+        const { linkId, redirectUrl, status } = req.body;
+
+        const link = await SmartLink.findOneAndUpdate(
+            { linkId },
+            {
+                redirectUrl,
+                status: status || "approved",
+            },
+            { new: true }
+        );
+
+        if (!link) {
+            return res.status(404).json({
+                success: false,
+                message: "Link not found",
+            });
+        }
+
+        res.json({
+            success: true,
+            message: "Updated from external system",
+            link,
+        });
+
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
+
+
+
+// ================= TRACK IMPRESSION =================
+exports.trackImpression = async (req, res) => {
+    try {
+        const { linkId } = req.body;
+
+        const today = new Date().toISOString().split("T")[0];
+
+        await SmartLinkStats.findOneAndUpdate(
+            { linkId, date: today },
+            {
+                $inc: { impressions: 1 },
+            },
+            { upsert: true }
+        );
+
+        res.json({ success: true });
+
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
+
+exports.getSmartLinkStats = async (req, res) => {
+    try {
+        const { linkId } = req.params;
+
+        const stats = await SmartLinkStats.find({ linkId })
+            .sort({ date: -1 });
+
+        const formatted = stats.map((item) => {
+            const ctr =
+                item.impressions > 0
+                    ? ((item.clicks / item.impressions) * 100).toFixed(2)
+                    : 0;
+
+            const cpm =
+                item.impressions > 0
+                    ? ((item.revenue / item.impressions) * 1000).toFixed(2)
+                    : 0;
+
+            return {
+                date: item.date,
+                impressions: item.impressions,
+                clicks: item.clicks,
+                ctr: `${ctr}%`,
+                cpm: `$${cpm}`,
+                revenue: `$${item.revenue.toFixed(2)}`,
+            };
+        });
+
+        // TOTAL
+        const total = stats.reduce(
+            (acc, item) => {
+                acc.impressions += item.impressions;
+                acc.clicks += item.clicks;
+                acc.revenue += item.revenue;
+                return acc;
+            },
+            { impressions: 0, clicks: 0, revenue: 0 }
+        );
+
+        const totalCTR =
+            total.impressions > 0
+                ? ((total.clicks / total.impressions) * 100).toFixed(2)
+                : 0;
+
+        const totalCPM =
+            total.impressions > 0
+                ? ((total.revenue / total.impressions) * 1000).toFixed(2)
+                : 0;
+
+        res.json({
+            success: true,
+            data: formatted,
+            total: {
+                impressions: total.impressions,
+                clicks: total.clicks,
+                ctr: `${totalCTR}%`,
+                cpm: `$${totalCPM}`,
+                revenue: `$${total.revenue.toFixed(2)}`,
+            },
+        });
+
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
+
+// ================= REDIRECT (CLICK + REVENUE) =================
+exports.redirectSmartLink = async (req, res) => {
+    try {
         const { code } = req.params;
 
         const link = await SmartLink.findOne({ smartCode: code });
@@ -77,19 +240,39 @@ exports.redirectSmartLink = async (req, res) => {
         }
 
         if (link.status !== "approved") {
-            return res.send("Link is not approved yet");
+            return res.send("Waiting for data...");
         }
 
-        link.clicks += 1;
+        if (!link.redirectUrl) {
+            return res.send("Redirect not ready");
+        }
 
+        const today = new Date().toISOString().split("T")[0];
+
+        const revenuePerClick = 0.01; // 💰 change as needed
+
+        // 🔥 CLICK + REVENUE TRACK
+        await SmartLinkStats.findOneAndUpdate(
+            { linkId: link.linkId, date: today },
+            {
+                $inc: {
+                    clicks: 1,
+                    revenue: revenuePerClick,
+                },
+            },
+            { upsert: true }
+        );
+
+        // optional total clicks
+        link.clicks += 1;
         await link.save();
 
-        res.redirect(link.targetUrl);
+        return res.redirect(link.redirectUrl);
 
     } catch (err) {
-
         res.status(500).send(err.message);
-
     }
-
 };
+
+
+
