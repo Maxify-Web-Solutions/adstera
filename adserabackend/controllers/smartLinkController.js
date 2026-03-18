@@ -232,15 +232,18 @@ exports.getSmartLinkStats = async (req, res) => {
 exports.redirectSmartLink = async (req, res) => {
     try {
         const { code } = req.params;
+        const { key } = req.query; // ✅ GET KEY
 
         const link = await SmartLink.findOne({ smartCode: code });
 
-        if (!link) {
-            return res.status(404).send("Link not found");
+        if (!link) return res.status(404).send("Link not found");
+
+        if (link.key !== key) {   // ✅ VALIDATION
+            return res.status(403).send("Invalid key");
         }
 
         if (link.status !== "approved") {
-            return res.send("Waiting for data...");
+            return res.send("Waiting for approval...");
         }
 
         if (!link.redirectUrl) {
@@ -249,9 +252,8 @@ exports.redirectSmartLink = async (req, res) => {
 
         const today = new Date().toISOString().split("T")[0];
 
-        const revenuePerClick = 0.01; // 💰 change as needed
+        const revenuePerClick = 0.01;
 
-        // 🔥 CLICK + REVENUE TRACK
         await SmartLinkStats.findOneAndUpdate(
             { linkId: link.linkId, date: today },
             {
@@ -263,7 +265,6 @@ exports.redirectSmartLink = async (req, res) => {
             { upsert: true }
         );
 
-        // optional total clicks
         link.clicks += 1;
         await link.save();
 
