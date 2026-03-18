@@ -2,6 +2,11 @@ const mongoose = require("mongoose");
 
 const adsterraStatsSchema = new mongoose.Schema(
   {
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "users",
+      required: true
+    },
     domain: {
       type: String,
       required: true,

@@ -5,6 +5,8 @@ const AdsterraStats = require("../models/AdsterraStats");
 
 exports.fetchAndStoreAdsterraStats = async (req, res) => {
   try {
+    const userId = req.user?.id; // ✅ FIX
+
     const { smartCode, country, start_date, finish_date, group_by } = req.query;
 
     if (!smartCode) {
@@ -14,6 +16,7 @@ exports.fetchAndStoreAdsterraStats = async (req, res) => {
       });
     }
 
+    // 🔎 Find SmartLink
     const link = await SmartLink.findOne({ smartCode });
     if (!link) {
       return res.status(404).json({
@@ -30,6 +33,7 @@ exports.fetchAndStoreAdsterraStats = async (req, res) => {
       });
     }
 
+    // 🔎 Find Placement
     const placementData = await Placement.findOne({ directUrl: url });
     if (!placementData) {
       return res.status(404).json({
@@ -69,7 +73,6 @@ exports.fetchAndStoreAdsterraStats = async (req, res) => {
       }
     );
 
-    // ✅ FIXED DATA EXTRACTION
     let apiData = response.data?.items || [];
 
     if (!apiData.length) {
@@ -89,17 +92,22 @@ exports.fetchAndStoreAdsterraStats = async (req, res) => {
       );
     }
 
-    // 🚀 BULK WRITE (FAST)
+    // 🚀 BULK WRITE
     const bulkOps = apiData.map(item => ({
       updateOne: {
         filter: {
+          userId,
           domain,
           placement: placementId,
           country: item.country || "all",
         },
         update: {
           $set: {
-            impressions: Number(item.impression) || 0, // ✅ FIX
+            userId, // ✅ ensure stored
+            domain,
+            placement: placementId,
+            country: item.country || "all",
+            impressions: Number(item.impression) || 0,
             clicks: Number(item.clicks) || 0,
             revenue: Number(item.revenue) || 0,
           },
@@ -110,7 +118,6 @@ exports.fetchAndStoreAdsterraStats = async (req, res) => {
 
     await AdsterraStats.bulkWrite(bulkOps);
 
-    // 📊 RESPONSE
     return res.json({
       success: true,
       message: "Stats fetched & stored",
@@ -132,6 +139,8 @@ exports.fetchAndStoreAdsterraStats = async (req, res) => {
 
 exports.getAdsterraStatsFromDB = async (req, res) => {
   try {
+    const userId = req.user?.id; // ✅ USER FILTER
+
     const {
       domain,
       placement,
@@ -142,7 +151,7 @@ exports.getAdsterraStatsFromDB = async (req, res) => {
       limit = 20,
     } = req.query;
 
-    // 🔒 Required validation (optional rakh sakte ho)
+    // 🔒 Validation
     if (!domain || !placement) {
       return res.status(400).json({
         success: false,
@@ -152,6 +161,7 @@ exports.getAdsterraStatsFromDB = async (req, res) => {
 
     // 🔍 Filter build
     let filter = {
+      userId, // ✅ IMPORTANT
       domain,
       placement,
     };
@@ -165,7 +175,10 @@ exports.getAdsterraStatsFromDB = async (req, res) => {
 
     // 📅 Date filter
     if (start_date && end_date) {
-      filter.date = { $gte: start_date, $lte: end_date };
+      filter.date = {
+        $gte: new Date(start_date),
+        $lte: new Date(end_date),
+      };
     }
 
     // 📄 Pagination
@@ -180,7 +193,7 @@ exports.getAdsterraStatsFromDB = async (req, res) => {
     // 🔢 Total count
     const totalCount = await AdsterraStats.countDocuments(filter);
 
-    // 📈 Totals (important)
+    // 📈 Totals
     const totals = await AdsterraStats.aggregate([
       { $match: filter },
       {
