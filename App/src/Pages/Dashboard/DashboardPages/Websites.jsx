@@ -1,12 +1,30 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import AddWebsiteModal from "./AddWebsiteModal";
+import { useLocation, useNavigate } from "react-router-dom";
 
 const Websites = () => {
+
+    const [isOpen, setIsOpen] = useState(false);
+  const location = useLocation();
+  const navigate = useNavigate();
+
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (params.get("openModal") === "true") {
+      setIsOpen(true);
+    }
+  }, [location]);
+
+
     return (
-        <div className="min-h-screen text-gray-800 dark:text-gray-300">
+        <div className="min-h-screen bg-white dark:bg-slate-900 text-gray-800 dark:text-gray-300">
 
-            
+            <div>
+      {isOpen && <AddWebsiteModal onClose={() => setIsOpen(false)} />}
+    </div>
 
-            <div className="max-w-7xl mx-auto px-6 py-10">
+            <div className="container px-4 py-8 md:py-10">
 
                 {/* Page Title */}
                 <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-8">
@@ -15,7 +33,9 @@ const Websites = () => {
                         Websites
                     </h1>
 
-                    <button className="bg-green-600 hover:bg-green-700 px-5 py-2 rounded-lg text-white font-medium">
+                    <button className="bg-green-600 hover:bg-green-700 px-5 py-2 rounded-lg text-white font-medium"
+                    onClick={() => navigate("/dashboard/websites?openModal=true")}
+                    >
                         ADD WEBSITE
                     </button>
 
@@ -71,25 +91,25 @@ const Websites = () => {
                 </div>
 
                 {/* Tips */}
-                <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg p-4 mb-4 flex justify-between">
+                <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg p-4 mb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
 
                     <span className="text-gray-400">
                         Get Anti-Adblock to increase your revenue
                     </span>
 
-                    <button className="text-sm text-gray-400 hover:text-white">
+                    <button className="text-sm text-gray-400 hover:text-white flex-shrink-0">
                         SHOW TIPS
                     </button>
 
                 </div>
 
-                <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg p-4 mb-8 flex justify-between">
+                <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg p-4 mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
 
                     <span className="text-gray-400">
                         If you don't have a website, GO TO SMARTLINKS page to create a link.
                     </span>
 
-                    <button className="text-blue-400 hover:text-blue-300">
+                    <button className="text-blue-400 hover:text-blue-300 flex-shrink-0 text-right sm:text-left">
                         GO TO SMARTLINKS
                     </button>
 
@@ -112,7 +132,9 @@ const Websites = () => {
                                 EXPORT WEBSITES
                             </button>
 
-                            <button className="bg-green-600 hover:bg-green-700 px-4 py-2 rounded-lg text-white">
+                            <button className="bg-green-600 hover:bg-green-700 px-4 py-2 rounded-lg text-white"
+                            onClick={() => navigate("/dashboard/websites?openModal=true")}
+                            >
                                 ADD WEBSITE
                             </button>
 
@@ -124,26 +146,37 @@ const Websites = () => {
 
                         <select className="bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-700 p-2 rounded-lg text-gray-800 dark:text-gray-300">
                             <option>Statistics</option>
+                            <option>Turned on</option>
+                            <option>Turned off</option>
                         </select>
 
                         <select className="bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-700 p-2 rounded-lg text-gray-800 dark:text-gray-300">
                             <option>Visibility</option>
+                            <option>Visible</option>
+                            <option>Hidden</option>
                         </select>
 
                         <select className="bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-700 p-2 rounded-lg text-gray-800 dark:text-gray-300">
                             <option>Website status</option>
+                            <option>Approved</option>
+                            <option>Declined</option>
+                            <option>Pending</option>
                         </select>
 
                         <select className="bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-700 p-2 rounded-lg text-gray-800 dark:text-gray-300">
                             <option>Ad Unit status</option>
+                            <option>Active</option>
+                            <option>Inactive</option>
+                            <option>Pending</option>
+                            <option>Not supported</option>
                         </select>
 
                     </div>
 
                 </div>
 
-                {/* Table */}
-                <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl">
+                {/* Desktop Table */}
+                <div className="hidden md:block bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl">
 
                     <div className="overflow-x-auto">
 
@@ -177,6 +210,31 @@ const Websites = () => {
 
                     </table>
                     
+                    </div>
+
+                </div>
+
+                {/* Mobile Cards */}
+                <div className="md:hidden space-y-4">
+
+                    <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl p-4 space-y-3">
+
+                        <div className="flex justify-between items-center">
+                            <h3 className="text-gray-900 dark:text-white font-semibold">
+                                saroexstor.us.blogspot.com
+                            </h3>
+                            <span className="text-xs text-gray-400">ID: 5467803</span>
+                        </div>
+
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                            4 ad unit(s)
+                        </p>
+
+                        <div className="flex flex-wrap gap-3 text-sm pt-2">
+                            <button className="text-blue-400">Statistics</button>
+                            <button className="text-blue-400">About</button>
+                        </div>
+
                     </div>
 
                 </div>

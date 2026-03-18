@@ -22,7 +22,7 @@ const Layout = () => {
                 {/* Content */}
                 <div className="flex-1 flex flex-col">
 
-                    <main className="ml-64 flex-1 p-8 overflow-y-auto min-h-screen">
+                    <main className="md:ml-64 flex-1 p-4 md:p-8 overflow-y-auto min-h-screen transition-all duration-300">
                         <Outlet />
                     </main>
 
