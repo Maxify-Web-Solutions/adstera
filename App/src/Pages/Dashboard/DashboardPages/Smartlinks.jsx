@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { FaArrowUp, FaArrowDown } from "react-icons/fa";
 import { useSortableData } from "../../../Components/useSortableData";
 import { useDispatch, useSelector } from "react-redux";
@@ -6,6 +6,8 @@ import {
     createSmartLink,
     getSmartLinksByUser,
 } from "../../../redux/slice/smartLinkSlice";
+import AddSmartlinkModal from "../AddSmartlinkModal";
+import StatusPopup from "../StatusPopup";
 
 const Smartlinks = () => {
     const dispatch = useDispatch();
@@ -14,7 +16,19 @@ const Smartlinks = () => {
         (state) => state.smartlink
     );
 
-    // ✅ Fetch links
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isNewlyCreated, setIsNewlyCreated] = useState(false);
+
+    const [popup, setPopup] = useState({
+        show: false,
+        type: "success",
+        message: "",
+    });
+
+    const showPopup = (type, message) => {
+        setPopup({ show: true, type, message });
+    };
+
     useEffect(() => {
         const userId = localStorage.getItem("userId");
         if (userId) {
@@ -22,7 +36,6 @@ const Smartlinks = () => {
         }
     }, [dispatch]);
 
-    // ✅ Sorting
     const {
         items: sortedLinks,
         requestSort,
@@ -32,7 +45,6 @@ const Smartlinks = () => {
         direction: "ascending",
     });
 
-    // ✅ Sort icon
     const getSortIcon = (name) => {
         if (!sortConfig || sortConfig.key !== name) return null;
 
@@ -43,24 +55,21 @@ const Smartlinks = () => {
         );
     };
 
-    // ✅ Create Smartlink
-    const handleCreate = () => {
-        dispatch(createSmartLink());
-    };
-
-    // ✅ Auto copy
     useEffect(() => {
-        if (createdLink?.finalUrl) {
+        if (isNewlyCreated && createdLink?.finalUrl) {
             navigator.clipboard.writeText(createdLink.finalUrl);
-            alert("Smartlink created & copied!");
-        }
-    }, [createdLink]);
 
-    // ✅ Copy button
+            showPopup("success", "Smartlink created & copied!");
+            setIsNewlyCreated(false);
+        }
+    }, [createdLink, isNewlyCreated]);
+
     const handleCopy = (link) => {
         if (link?.finalUrl) {
             navigator.clipboard.writeText(link.finalUrl);
-            alert("Copied!");
+            showPopup("success", "Link copied!");
+        } else {
+            showPopup("error", "Failed to copy link");
         }
     };
 
@@ -70,12 +79,12 @@ const Smartlinks = () => {
             {/* Guide Section */}
             <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl p-6 md:p-8">
 
-                <div className="flex flex-col sm:flex-row justify-between gap-4 mb-6">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
                     <h2 className="text-gray-900 dark:text-white font-semibold text-lg">
                         Monetize any traffic with a Smartlink
                     </h2>
 
-                    <button className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white">
+                    <button className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white flex-shrink-0">
                         HIDE TIPS
                     </button>
                 </div>
@@ -120,12 +129,12 @@ const Smartlinks = () => {
             </div>
 
             {/* Anti Adblock */}
-            <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg p-4 flex justify-between">
-                <span className="text-gray-500 dark:text-gray-400">
+            <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                <span className="text-sm text-gray-500 dark:text-gray-400">
                     Get Anti-Adblock to increase your revenue
                 </span>
 
-                <button className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white">
+                <button className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white flex-shrink-0">
                     SHOW TIPS
                 </button>
             </div>
@@ -138,48 +147,47 @@ const Smartlinks = () => {
                 </button>
 
                 <button
-                    onClick={handleCreate}
-                    className="bg-green-600 hover:bg-green-700 px-5 py-2 rounded-lg text-white"
+                    onClick={() => setIsModalOpen(true)}
+                    className="bg-green-600 hover:bg-green-700 px-5 py-2 rounded-lg text-white w-full sm:w-auto"
                 >
-                    {loading ? "Creating..." : "ADD SMARTLINK"}
+                    ADD SMARTLINK
                 </button>
 
             </div>
 
-            {/* Table */}
-            <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl">
+            {/* MODAL */}
+            {isModalOpen && (
+                <AddSmartlinkModal
+                    onClose={() => setIsModalOpen(false)}
+                    onSubmit={(trafficType) => {
+                        dispatch(createSmartLink({ trafficType }));
+                        setIsModalOpen(false);
+                        setIsNewlyCreated(true);
+                    }}
+                />
+            )}
 
+            {/* Desktop Table */}
+            <div className="hidden md:block bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl">
                 <div className="overflow-x-auto">
 
                     <table className="w-full text-left min-w-[640px]">
-
-                        {/* ✅ FIXED HEADER */}
                         <thead className="bg-gray-50 dark:bg-slate-900 text-gray-500 dark:text-gray-400 text-sm">
                             <tr>
-
                                 <th className="px-4 py-3 font-medium">
-                                    <button
-                                        onClick={() => requestSort("name")}
-                                        className="flex items-center gap-2 w-full"
-                                    >
+                                    <button onClick={() => requestSort("name")} className="flex items-center gap-2 w-full">
                                         Name {getSortIcon("name")}
                                     </button>
                                 </th>
 
                                 <th className="px-4 py-3 font-medium">
-                                    <button
-                                        onClick={() => requestSort("_id")}
-                                        className="flex items-center gap-2 w-full"
-                                    >
+                                    <button onClick={() => requestSort("_id")} className="flex items-center gap-2 w-full">
                                         ID {getSortIcon("_id")}
                                     </button>
                                 </th>
 
                                 <th className="px-4 py-3 font-medium">
-                                    <button
-                                        onClick={() => requestSort("status")}
-                                        className="flex items-center gap-2 w-full"
-                                    >
+                                    <button onClick={() => requestSort("status")} className="flex items-center gap-2 w-full">
                                         Status {getSortIcon("status")}
                                     </button>
                                 </th>
@@ -187,17 +195,13 @@ const Smartlinks = () => {
                                 <th className="px-4 py-3 font-medium text-right">
                                     Actions
                                 </th>
-
                             </tr>
                         </thead>
 
                         <tbody>
                             {sortedLinks.length > 0 ? (
                                 sortedLinks.map((link) => (
-                                    <tr
-                                        key={link._id}
-                                        className="border-t border-gray-200 dark:border-slate-700 hover:bg-gray-100 dark:hover:bg-slate-700"
-                                    >
+                                    <tr key={link._id} className="border-t border-gray-200 dark:border-slate-700 hover:bg-gray-100 dark:hover:bg-slate-700">
 
                                         <td className="px-4 py-3">{link.name}</td>
 
@@ -206,18 +210,16 @@ const Smartlinks = () => {
                                         </td>
 
                                         <td className="px-4 py-3">
-                                            <span
-                                                className={`px-3 py-1 text-xs rounded-full ${
-                                                    link.status === "Active"
-                                                        ? "bg-green-600/20 text-green-400"
-                                                        : "bg-red-600/20 text-red-400"
-                                                }`}
-                                            >
+                                            <span className={`px-3 py-1 text-xs rounded-full ${
+                                                link.status === "Active"
+                                                    ? "bg-green-600/20 text-green-400"
+                                                    : "bg-red-600/20 text-red-400"
+                                            }`}>
                                                 {link.status || "Inactive"}
                                             </span>
                                         </td>
 
-                                        <td className="px-4 py-3 flex gap-6 text-sm justify-end">
+                                        <td className="px-4 py-3 flex flex-wrap items-center justify-end gap-x-6 gap-y-2 text-sm">
 
                                             <button className="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white">
                                                 STATISTICS
@@ -241,33 +243,85 @@ const Smartlinks = () => {
                                             )}
 
                                         </td>
-
                                     </tr>
                                 ))
                             ) : (
                                 <tr>
-                                    <td
-                                        colSpan="4"
-                                        className="text-center py-6 text-gray-500"
-                                    >
+                                    <td colSpan="4" className="text-center py-6 text-gray-500">
                                         No Smartlinks Found
                                     </td>
                                 </tr>
                             )}
                         </tbody>
-
                     </table>
 
                 </div>
-
-                <div className="flex justify-end items-center gap-6 p-4 border-t border-gray-200 dark:border-slate-700 text-sm text-gray-500 dark:text-gray-400">
-                    <span>Rows per page: 10</span>
-                    <span>
-                        1–{sortedLinks.length} of {sortedLinks.length}
-                    </span>
-                </div>
-
             </div>
+
+            {/* Mobile Card UI */}
+            <div className="md:hidden space-y-4">
+                {sortedLinks.length > 0 ? (
+                    sortedLinks.map((link) => (
+                        <div key={link._id} className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl p-4 space-y-3">
+
+                            <div className="flex justify-between items-center">
+                                <h3 className="text-gray-900 dark:text-white font-semibold">
+                                    {link.name}
+                                </h3>
+                                <span className={`px-3 py-1 text-xs rounded-full ${
+                                    link.status === "Active"
+                                        ? "bg-green-600/20 text-green-400"
+                                        : "bg-red-600/20 text-red-400"
+                                }`}>
+                                    {link.status || "Inactive"}
+                                </span>
+                            </div>
+
+                            <p className="text-sm text-gray-500 dark:text-gray-400">
+                                ID: {link.linkId}
+                            </p>
+
+                            <div className="flex flex-wrap gap-3 text-sm pt-2">
+
+                                <button className="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white">
+                                    STATISTICS
+                                </button>
+
+                                <button className="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white">
+                                    EDIT
+                                </button>
+
+                                <button
+                                    onClick={() => handleCopy(link)}
+                                    className="text-green-400 hover:text-green-300"
+                                >
+                                    COPY LINK
+                                </button>
+
+                                {link.status !== "Active" && (
+                                    <button className="text-red-400 hover:text-red-300">
+                                        REACTIVATE
+                                    </button>
+                                )}
+
+                            </div>
+
+                        </div>
+                    ))
+                ) : (
+                    <div className="text-center py-6 text-gray-500">
+                        No Smartlinks Found
+                    </div>
+                )}
+            </div>
+
+            {/* POPUP */}
+            <StatusPopup
+                show={popup.show}
+                type={popup.type}
+                message={popup.message}
+                onClose={() => setPopup((prev) => ({ ...prev, show: false }))}
+            />
 
         </div>
     );

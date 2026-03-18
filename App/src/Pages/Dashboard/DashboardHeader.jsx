@@ -3,12 +3,15 @@ import { IoIosArrowDown } from "react-icons/io";
 import { GiHamburgerMenu } from "react-icons/gi";
 import ThemeToggle from "../../Components/ThemeToggle";
 import { useSelector } from "react-redux";
+import { Link, useNavigate } from "react-router-dom";
+
 
 const DashboardHeader = ({ onMenuClick }) => {
     const { user } = useSelector((state) => state.auth);
+    const navigate = useNavigate()
 
     return (
-        <header className="sticky top-0 z-50 w-full bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-700 px-4 md:px-8 py-4 flex items-center justify-between">
+        <header className="sticky top-0 z-50 w-full h-16 bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-700 px-4 md:px-8 flex items-center justify-between">
 
             {/* Left Side */}
             <div className="flex items-center gap-4 md:gap-6">
@@ -22,14 +25,16 @@ const DashboardHeader = ({ onMenuClick }) => {
                 </button>
 
                 {/* Logo */}
-                <div className="text-orange-500 text-2xl font-bold hidden sm:block">
-                    A
-                </div>
+                <Link to={"/"} className="flex gap-3">
+                    <div className="text-orange-500 text-2xl font-bold hidden sm:block">
+                        A
+                    </div>
 
-                {/* Page Title */}
-                <h1 className="text-lg md:text-xl font-semibold text-gray-800 dark:text-white">
-                    Statistics
-                </h1>
+                    {/* Page Title */}
+                    <h1 className="text-lg md:text-xl font-semibold text-gray-800 dark:text-white">
+                        Statistics
+                    </h1>
+                </Link>
 
             </div>
 
@@ -37,7 +42,10 @@ const DashboardHeader = ({ onMenuClick }) => {
             <div className="flex items-center gap-2 md:gap-6">
 
                 {/* Add Website */}
-                <button className="hidden sm:block border border-gray-300 dark:border-slate-600 hover:border-gray-400 dark:hover:border-slate-500 px-4 py-2 rounded-lg text-sm text-gray-800 dark:text-white">
+                <button
+                    onClick={() => navigate("/dashboard/websites?openModal=true")}
+                    className="hidden sm:block border border-gray-300 dark:border-slate-600 hover:border-gray-400 dark:hover:border-slate-500 px-4 py-2 rounded-lg text-sm text-gray-800 dark:text-white"
+                >
                     ADD WEBSITE
                 </button>
 

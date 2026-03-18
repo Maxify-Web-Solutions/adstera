@@ -38,7 +38,8 @@ function App() {
 
 
   return (
-    <Routes>
+    <div className="min-h-screen w-full bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 transition-colors duration-300">
+      <Routes>
       
 
       <Route path="/login" element={<Login />} />
@@ -71,7 +72,8 @@ function App() {
     </Route>
         </Route>
 
-    </Routes>
+      </Routes>
+    </div>
   );
 }
 

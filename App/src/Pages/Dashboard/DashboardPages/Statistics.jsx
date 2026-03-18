@@ -1,11 +1,25 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   getSmartLinkStats,
   trackImpression,
 } from "../../../redux/slice/smartLinkStatsSlice";
+import { getNames } from "country-list";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 
 const Statistics = ({ linkId }) => {
+
+  const today = new Date();
+
+  const twoDaysAgo = new Date();
+  twoDaysAgo.setDate(today.getDate() - 2);
+
+  const [dateRange, setDateRange] = useState([twoDaysAgo, today]);
+  const [startDate, endDate] = dateRange;
+
+
+const countries = getNames();
   const dispatch = useDispatch();
 
   const { stats, total, loading } = useSelector((state) => state.stats);
@@ -28,24 +42,31 @@ const Statistics = ({ linkId }) => {
 
         <div className="grid md:grid-cols-4 gap-6">
 
-          <div>
-            <label className="text-sm text-gray-500 dark:text-gray-400 mb-2 block">
-              Date range
-            </label>
-            <input
-              type="text"
-              defaultValue="2026/03/09 – 2026/03/13"
-              className="w-full bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-lg px-4 py-2 text-gray-800 dark:text-gray-300"
-            />
-          </div>
+          <div className="w-full">
+      <label className="text-sm mb-2 block">Date range</label>
+
+      <DatePicker
+        selectsRange={true}
+        startDate={startDate}
+        endDate={endDate}
+        onChange={(update) => {
+          setDateRange(update);
+        }}
+        isClearable={true}
+        wrapperClassName="w-full"
+        className="w-full border px-4 py-2 rounded-lg bg-gray-50 dark:bg-slate-900 text-gray-800 dark:text-gray-300"
+      />
+    </div>
 
           <div>
             <label className="text-sm text-gray-500 dark:text-gray-400 mb-2 block">
               Country
             </label>
             <select className="w-full bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-lg px-4 py-2 text-gray-800 dark:text-gray-300">
-              <option>All countries</option>
-            </select>
+      {countries.map((country, index) => (
+        <option key={index}>{country}</option>
+      ))}
+    </select>
           </div>
 
           <div>
