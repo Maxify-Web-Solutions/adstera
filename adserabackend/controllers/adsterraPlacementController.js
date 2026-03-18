@@ -67,3 +67,6 @@ exports.fetchAndStorePlacements = async (req, res) => {
     });
   }
 };
+
+
+
