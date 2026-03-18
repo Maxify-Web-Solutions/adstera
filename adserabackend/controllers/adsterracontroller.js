@@ -132,11 +132,9 @@ exports.fetchAndStoreAdsterraStats = async (req, res) => {
 
 exports.getAdsterraStatsFromDB = async (req, res) => {
   try {
-    const userId = req.user?.id; // ✅ USER FILTER
+    const userId = req.user?.id;
 
     const {
-      domain,
-      placement,
       country,
       start_date,
       end_date,
@@ -144,19 +142,34 @@ exports.getAdsterraStatsFromDB = async (req, res) => {
       limit = 20,
     } = req.query;
 
-    // 🔒 Validation
-    if (!domain || !placement) {
-      return res.status(400).json({
+    if (!userId) {
+      return res.status(401).json({
         success: false,
-        message: "domain and placement are required",
+        message: "Unauthorized",
       });
     }
 
-    // 🔍 Filter build
+    // 🔍 Get user's domain + placement
+    const userStats = await AdsterraStats.find({ userId }).select("domain placement");
+
+    if (!userStats.length) {
+      return res.status(404).json({
+        success: false,
+        message: "No stats found for this user",
+      });
+    }
+
+    const domainPlacementPairs = [
+      ...new Set(userStats.map(item => `${item.domain}-${item.placement}`)),
+    ].map(pair => {
+      const [domain, placement] = pair.split("-");
+      return { domain, placement };
+    });
+
+    // 🔍 Base filter
     let filter = {
-      userId, // ✅ IMPORTANT
-      domain,
-      placement,
+      userId,
+      $or: domainPlacementPairs,
     };
 
     // 🌍 Country filter
@@ -177,16 +190,13 @@ exports.getAdsterraStatsFromDB = async (req, res) => {
     // 📄 Pagination
     const skip = (page - 1) * limit;
 
-    // 📊 Data fetch
     const stats = await AdsterraStats.find(filter)
-      .sort({ date: -1 })
+      .sort({ createdAt: -1 }) // ⚠️ date null hai to createdAt use karo
       .skip(skip)
       .limit(Number(limit));
 
-    // 🔢 Total count
     const totalCount = await AdsterraStats.countDocuments(filter);
 
-    // 📈 Totals
     const totals = await AdsterraStats.aggregate([
       { $match: filter },
       {
@@ -204,13 +214,11 @@ exports.getAdsterraStatsFromDB = async (req, res) => {
       page: Number(page),
       limit: Number(limit),
       totalRecords: totalCount,
-
       totals: totals[0] || {
         totalImpressions: 0,
         totalClicks: 0,
         totalRevenue: 0,
       },
-
       data: stats,
     });
 
