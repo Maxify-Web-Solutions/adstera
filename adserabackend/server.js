@@ -6,6 +6,8 @@ const cookieParser = require("cookie-parser");
 
 const authRoutes = require("./routes/authRoutes");
 const smartLinkRoutes = require("./routes/smartLinkRoutes");
+const adsterraRoutes = require("./routes/adsterraroutes");
+const adsterraPlacementRoutes = require("./routes/adsterraPlacementRoutes");
 
 const connectDB = require("./config/connectdb");
 
@@ -22,6 +24,10 @@ app.use(cookieParser());
 app.use("/api/auth", authRoutes);
 
 app.use("/api/smartlink", smartLinkRoutes);
+app.use("/api/adsterra", adsterraRoutes);
+app.use("/api", adsterraPlacementRoutes);
+
+
 
 connectDB();
 

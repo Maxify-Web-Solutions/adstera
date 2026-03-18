@@ -13,22 +13,24 @@ const smartLinkSchema = new mongoose.Schema({
     unique: true
   },
 
-  name: {
-    type: String,
-  },
+  name: String,
 
-  targetUrl: {
-    type: String,
-  },
+  targetUrl: String,
 
   smartCode: {
     type: String,
     unique: true
   },
 
-  finalUrl: {
-    type: String,
+  key: {                 // ✅ ADD THIS
+    type: String
   },
+
+  redirectUrl: {         // ✅ ADD THIS
+    type: String
+  },
+
+  finalUrl: String,
 
   clicks: {
     type: Number,
