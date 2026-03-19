@@ -2,6 +2,8 @@ const axios = require("axios");
 const SmartLink = require("../models/SmartLink");
 const Placement = require("../models/AdsterraPlacement");
 const AdsterraStats = require("../models/AdsterraStats");
+const User = require("../models/authmodel"); // path adjust karo
+
 
 exports.fetchAndStoreAdsterraStats = async (req, res) => {
   try {
@@ -130,6 +132,7 @@ exports.fetchAndStoreAdsterraStats = async (req, res) => {
 };
 
 
+
 exports.getAdsterraStatsFromDB = async (req, res) => {
   try {
     const userId = req.user?.id;
@@ -187,16 +190,16 @@ exports.getAdsterraStatsFromDB = async (req, res) => {
       };
     }
 
-    // 📄 Pagination
     const skip = (page - 1) * limit;
 
     const stats = await AdsterraStats.find(filter)
-      .sort({ createdAt: -1 }) // ⚠️ date null hai to createdAt use karo
+      .sort({ createdAt: -1 })
       .skip(skip)
       .limit(Number(limit));
 
     const totalCount = await AdsterraStats.countDocuments(filter);
 
+    // 🔥 TOTAL CALCULATION
     const totals = await AdsterraStats.aggregate([
       { $match: filter },
       {
@@ -208,6 +211,13 @@ exports.getAdsterraStatsFromDB = async (req, res) => {
         },
       },
     ]);
+
+    const totalRevenue = totals[0]?.totalRevenue || 0;
+
+    // ✅ UPDATE USER REVENUE
+    await User.findByIdAndUpdate(userId, {
+      revenue: totalRevenue,
+    });
 
     return res.json({
       success: true,
