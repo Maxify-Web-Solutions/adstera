@@ -1,119 +1,108 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { api } from "./axiosConfig";
 
-// 🔥 FETCH & STORE (API HIT)
+// 🚀 FETCH + STORE (API CALL)
 export const fetchAdsterraStats = createAsyncThunk(
     "adsterra/fetchStats",
-    async (params, { rejectWithValue }) => {
+    async (params = {}, { rejectWithValue }) => {
         try {
-            const res = await api.get("/adsterra/fetch", {
+            const { data } = await api.get("/adsterra/fetch", {
                 params,
             });
+            
 
-            return res.data;
-        } catch (err) {
+            return data;
+        } catch (error) {
             return rejectWithValue(
-                err.response?.data || { message: "Something went wrong" }
+                error.response?.data || { message: error.message }
             );
         }
     }
 );
-
-// 🔥 GET FROM DB
+ 
+// 📊 GET FROM DB
 export const getAdsterraStats = createAsyncThunk(
     "adsterra/getStats",
-    async (params, { rejectWithValue }) => {
+    async (params = {}, { rejectWithValue }) => {
         try {
-            const res = await api.get("/adsterra/stats", {
+            const { data } = await api.get("/adsterra/stats", {
                 params,
             });
+            console.log(data,"qwertyu");
 
-            return res.data;
-        } catch (err) {
+            return data;
+        } catch (error) {
             return rejectWithValue(
-                err.response?.data || { message: "Something went wrong" }
+                error.response?.data || { message: error.message }
             );
         }
     }
 );
 
+// 🎯 SLICE
 const adsterraSlice = createSlice({
     name: "adsterra",
     initialState: {
         loading: false,
-        error: null,
-
-        // API fetch data
-        apiData: [],
-        apiTotal: 0,
-
-        // DB data
-        stats: [],
-        totals: {
-            totalImpressions: 0,
-            totalClicks: 0,
-            totalRevenue: 0,
-        },
-        totalRecords: 0,
+        fetchLoading: false,
+        data: [],
+        totals: {},
         page: 1,
+        totalRecords: 0,
+        error: null,
+        success: false,
     },
-
     reducers: {
-        clearAdsterraState: (state) => {
-            state.loading = false;
+        clearAdsterraError: (state) => {
             state.error = null;
-            state.apiData = [];
-            state.stats = [];
-            state.totals = {
-                totalImpressions: 0,
-                totalClicks: 0,
-                totalRevenue: 0,
-            };
+        },
+        resetAdsterra: (state) => {
+            state.data = [];
+            state.totals = {};
+            state.page = 1;
+            state.totalRecords = 0;
+            state.error = null;
+            state.success = false;
         },
     },
-
     extraReducers: (builder) => {
         builder
 
-            // =========================
-            // 🚀 FETCH & STORE
-            // =========================
+            // 🔄 FETCH API
             .addCase(fetchAdsterraStats.pending, (state) => {
-                state.loading = true;
+                state.fetchLoading = true;
                 state.error = null;
+                state.success = false;
             })
-            .addCase(fetchAdsterraStats.fulfilled, (state, action) => {
-                state.loading = false;
-                state.apiData = action.payload.data || [];
-                state.apiTotal = action.payload.total || 0;
+            .addCase(fetchAdsterraStats.fulfilled, (state) => {
+                state.fetchLoading = false;
+                state.success = true;
             })
             .addCase(fetchAdsterraStats.rejected, (state, action) => {
-                state.loading = false;
+                state.fetchLoading = false;
                 state.error = action.payload?.message || "Fetch failed";
             })
 
-            // =========================
-            // 📊 GET FROM DB
-            // =========================
+            // 📊 GET DB DATA
             .addCase(getAdsterraStats.pending, (state) => {
                 state.loading = true;
                 state.error = null;
             })
             .addCase(getAdsterraStats.fulfilled, (state, action) => {
                 state.loading = false;
-
-                state.stats = action.payload.data || [];
-                state.totals = action.payload.totals || {};
-                state.totalRecords = action.payload.totalRecords || 0;
-                state.page = action.payload.page || 1;
+                state.data = action.payload?.data || [];
+                state.totals = action.payload?.totals || {};
+                state.page = action.payload?.page || 1;
+                state.totalRecords = action.payload?.totalRecords || 0;
             })
             .addCase(getAdsterraStats.rejected, (state, action) => {
                 state.loading = false;
-                state.error = action.payload?.message || "DB fetch failed";
+                state.error = action.payload?.message || "Failed to load stats";
             });
     },
 });
 
-export const { clearAdsterraState } = adsterraSlice.actions;
+export const { clearAdsterraError, resetAdsterra } =
+    adsterraSlice.actions;
 
 export default adsterraSlice.reducer;

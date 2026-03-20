@@ -1,218 +1,309 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
-  getSmartLinkStats,
-  trackImpression,
-} from "../../../redux/slice/smartLinkStatsSlice";
+  fetchAdsterraStats,
+  getAdsterraStats,
+} from "../../../redux/slice/adsterraStatsSlice";
 import { getNames } from "country-list";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 
-const Statistics = ({ linkId }) => {
+const Statistics = () => {
+  const dispatch = useDispatch();
+  const countries = getNames();
 
+  // 📅 Date setup
   const today = new Date();
-
   const twoDaysAgo = new Date();
   twoDaysAgo.setDate(today.getDate() - 2);
 
   const [dateRange, setDateRange] = useState([twoDaysAgo, today]);
   const [startDate, endDate] = dateRange;
+  const [groupBy, setGroupBy] = useState("country");
 
+  // 🎯 Filters
+  const [selectedCountry, setSelectedCountry] = useState("");
+  const [domain, setDomain] = useState("");
+  const [placement, setPlacement] = useState("");
 
-const countries = getNames();
-  const dispatch = useDispatch();
+  // 📊 Redux state
+  const { data, totals, loading, fetchLoading, error } = useSelector(
+    (state) => state.adsterra
+  );
 
-  const { stats, total, loading } = useSelector((state) => state.stats);
-
-  // ✅ Load data
+  console.log(data);
   useEffect(() => {
-    if (linkId) {
-      dispatch(trackImpression(linkId)); // impression hit
-      dispatch(getSmartLinkStats(linkId)); // fetch stats
+    dispatch(fetchAdsterraStats())
+    dispatch(getAdsterraStats())
+  }, [])
+
+  // 🚀 APPLY
+  const handleApply = async () => {
+    if (!domain || !placement) {
+      alert("Domain & Placement required");
+      return;
     }
-  }, [dispatch, linkId]);
+
+    const start = startDate?.toISOString().split("T")[0];
+    const end = endDate?.toISOString().split("T")[0];
+
+    try {
+      // 1️⃣ Fetch API data
+      await dispatch(
+        fetchAdsterraStats({
+          start_date: start,
+          finish_date: end,
+          country: selectedCountry,
+        })
+      );
+
+      // 2️⃣ Get DB data
+      dispatch(
+        getAdsterraStats({
+          domain,
+          placement,
+          country: selectedCountry,
+          start_date: start,
+          end_date: end,
+        })
+      );
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  // 🔄 RESET
+  const handleReset = () => {
+    setSelectedCountry("");
+    setDomain("");
+    setPlacement("");
+    setDateRange([twoDaysAgo, today]);
+  };
+
+  const groupedData = Object.values(
+    (data || []).reduce((acc, item) => {
+      let key;
+
+      switch (groupBy) {
+        case "country":
+          key = item.country;
+          break;
+
+        case "date":
+          key = item.date
+            ? new Date(item.date).toLocaleDateString()
+            : "Unknown";
+          break;
+
+        case "device":
+          key = item.device_format || "Unknown";
+          break;
+
+        case "os":
+          key = item.operating_system || "Unknown";
+          break;
+
+        case "browser":
+          key = item.browser || "Unknown";
+          break;
+
+        default:
+          key = "Unknown";
+      }
+
+      if (!key) key = "Unknown";
+
+      if (!acc[key]) {
+        acc[key] = {
+          label: key,
+          impressions: 0,
+          clicks: 0,
+          revenue: 0,
+        };
+      }
+
+      acc[key].impressions += item.impressions || 0;
+      acc[key].clicks += item.clicks || 0;
+      acc[key].revenue += item.revenue || 0;
+
+      return acc;
+    }, {})
+  );
 
   return (
     <div className="space-y-10">
-
-      {/* Filters */}
-      <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl p-6">
-
-        <h2 className="text-gray-900 dark:text-white font-semibold mb-6">Filters</h2>
+      {/* FILTERS */}
+      <div className="bg-white dark:bg-slate-800 border rounded-xl p-6">
+        <h2 className="font-semibold mb-6">Filters</h2>
 
         <div className="grid md:grid-cols-4 gap-6">
-
-          <div className="w-full">
-      <label className="text-sm mb-2 block">Date range</label>
-
-      <DatePicker
-        selectsRange={true}
-        startDate={startDate}
-        endDate={endDate}
-        onChange={(update) => {
-          setDateRange(update);
-        }}
-        isClearable={true}
-        wrapperClassName="w-full"
-        className="w-full border px-4 py-2 rounded-lg bg-gray-50 dark:bg-slate-900 text-gray-800 dark:text-gray-300"
-      />
-    </div>
-
+          {/* DATE */}
           <div>
-            <label className="text-sm text-gray-500 dark:text-gray-400 mb-2 block">
-              Country
-            </label>
-            <select className="w-full bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-lg px-4 py-2 text-gray-800 dark:text-gray-300">
-      {countries.map((country, index) => (
-        <option key={index}>{country}</option>
-      ))}
-    </select>
+            <label className="text-sm mb-2 block">Date range</label>
+            <DatePicker
+              selectsRange
+              startDate={startDate}
+              endDate={endDate}
+              onChange={(update) => setDateRange(update)}
+              className="w-full border px-4 py-2 rounded-lg bg-gray-50 dark:bg-slate-900 dark:text-gray-400"
+            />
           </div>
 
+          {/* COUNTRY */}
           <div>
-            <label className="text-sm text-gray-500 dark:text-gray-400 mb-2 block">
-              Domain
-            </label>
-            <select className="w-full bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-lg px-4 py-2 text-gray-800 dark:text-gray-300">
-              <option>All Domains</option>
+            <label className="text-sm mb-2 block">Country</label>
+            <select
+              value={selectedCountry}
+              onChange={(e) => setSelectedCountry(e.target.value)}
+              className="w-full border px-4 py-2 rounded-lg bg-gray-50 dark:bg-slate-900 dark:text-gray-400"
+            >
+              <option value="">All Countries</option>
+              {countries.map((c, i) => (
+                <option key={i} value={c}>
+                  {c}
+                </option>
+              ))}
             </select>
           </div>
 
+          {/* DOMAIN */}
           <div>
-            <label className="text-sm text-gray-500 dark:text-gray-400 mb-2 block">
-              Placement
-            </label>
-            <select className="w-full bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-lg px-4 py-2 text-gray-800 dark:text-gray-300">
-              <option>All Placements</option>
-            </select>
+            <label className="text-sm mb-2 block">Domain</label>
+            <input
+              value={domain}
+              onChange={(e) => setDomain(e.target.value)}
+              placeholder="Enter domain ID"
+              className="w-full border px-4 py-2 rounded-lg bg-gray-50 dark:bg-slate-900 dark:text-gray-400"
+            />
           </div>
 
+          {/* PLACEMENT */}
+          <div>
+            <label className="text-sm mb-2 block">Placement</label>
+            <input
+              value={placement}
+              onChange={(e) => setPlacement(e.target.value)}
+              placeholder="Enter placement ID"
+              className="w-full border px-4 py-2 rounded-lg bg-gray-50 dark:bg-slate-900 dark:text-gray-400"
+            />
+          </div>
         </div>
 
+        {/* BUTTONS */}
         <div className="flex gap-4 mt-6">
-
-          <button className="bg-slate-700 hover:bg-slate-600 px-6 py-2 rounded-lg text-white">
-            APPLY
+          <button
+            onClick={handleApply}
+            className="bg-black text-white px-6 py-2 rounded-lg"
+          >
+            {fetchLoading ? "Fetching..." : "APPLY"}
           </button>
 
-          <button className="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white">
+          <button
+            onClick={handleReset}
+            className="text-gray-500"
+          >
             RESET
           </button>
-
         </div>
-
       </div>
 
-      {/* Group By */}
-      <div>
-
-        <h2 className="text-gray-900 dark:text-white font-semibold mb-4">Group by</h2>
-
-        <div className="flex flex-wrap gap-2">
-          {["DATE","DOMAIN","PLACEMENT","COUNTRY","DEVICE FORMAT","OPERATING SYSTEM","BROWSER"].map((item, index) => (
-            <button
-              key={index}
-              className={`px-4 py-2 rounded-lg border text-sm ${
-                index === 0
-                  ? "bg-green-600 text-white border-green-600"
-                  : "bg-white dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700"
+      <div className="flex flex-wrap gap-2 p-4 border-b bg-gray-50 dark:bg-slate-700">
+        {[
+          { label: "Country", value: "country" },
+          { label: "Date", value: "date" },
+          { label: "Device", value: "device" },
+          { label: "OS", value: "os" },
+          { label: "Browser", value: "browser" },
+        ].map((tab) => (
+          <button
+            key={tab.value}
+            onClick={() => setGroupBy(tab.value)}
+            className={`px-4 py-2 rounded-lg text-sm border ${groupBy === tab.value
+              ? "bg-green-100 text-green-700"
+              : "bg-white text-gray-600"
               }`}
-            >
-              {item}
-            </button>
-          ))}
-        </div>
-
+          >
+            {tab.label}
+          </button>
+        ))}
       </div>
 
-      {/* Table Section */}
-      <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl">
-
-        {/* Export */}
-        <div className="flex justify-between items-center p-4 border-b border-gray-200 dark:border-slate-700">
-          <button className="text-green-400 text-sm hover:text-green-300">
-            EXPORT CSV
-          </button>
+      {/* TABLE */}
+      <div className="bg-white border rounded-xl">
+        <div className="p-4 border-b">
+          <button className="text-green-500">EXPORT CSV</button>
         </div>
 
         <div className="overflow-x-auto">
-
-          <table className="w-full text-left min-w-[640px]">
-
-            <thead className="bg-gray-50 dark:bg-slate-900 text-gray-500 dark:text-gray-400 text-sm">
+          <table className="w-full text-left rounded-xl">
+            <thead className="bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-gray-300 text-sm">
               <tr>
-                <th className="p-4">Date</th>
-                <th className="p-4">Impressions</th>
-                <th className="p-4">Clicks</th>
-                <th className="p-4">CTR</th>
-                <th className="p-4">CPM</th>
-                <th className="p-4">Revenue</th>
+                <th className="p-4 text-left">{groupBy}</th>
+
+                <th className="p-4 text-right border-l">Impressions</th>
+                <th className="p-4 text-right border-l">Clicks</th>
+                <th className="p-4 text-right border-l">CTR</th>
+                <th className="p-4 text-right border-l">CPM</th>
+                <th className="p-4 text-right border-l">Revenue</th>
               </tr>
             </thead>
 
             <tbody>
+              {groupedData.map((item, i) => (
+                <tr key={i} className="border-t hover:bg-gray-50 dark:hover:bg-slate-700 bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-gray-300">
 
-              {/* ✅ Loading */}
-              {loading && (
-                <tr>
-                  <td className="p-4" colSpan="6">
-                    Loading...
+                  {/* LEFT */}
+                  <td className="p-4 font-medium">
+                    {item.label}
                   </td>
-                </tr>
-              )}
 
-              {/* ✅ Data */}
-              {!loading && stats?.length > 0 &&
-                stats.map((item, index) => (
-                  <tr key={index} className="border-t border-gray-200 dark:border-slate-700">
-                    <td className="p-4">{item.date}</td>
-                    <td className="p-4">{item.impressions}</td>
-                    <td className="p-4">{item.clicks}</td>
-                    <td className="p-4">{item.ctr}</td>
-                    <td className="p-4">{item.cpm}</td>
-                    <td className="p-4">{item.revenue}</td>
-                  </tr>
-                ))
-              }
+                  {/* RIGHT SIDE (separate columns) */}
+                  <td className="p-4 text-right">{item.impressions}</td>
 
-              {/* ❌ No Data */}
-              {!loading && stats?.length === 0 && (
-                <tr>
-                  <td className="p-4" colSpan="6">
-                    No Data Found
+                  <td className="p-4 text-right">{item.clicks}</td>
+
+                  <td className="p-4 text-right">
+                    {item.clicks && item.impressions
+                      ? ((item.clicks / item.impressions) * 100).toFixed(2)
+                      : 0}%
                   </td>
-                </tr>
-              )}
 
-              {/* ✅ TOTAL */}
-              {total && (
-                <tr className="border-t border-gray-200 dark:border-slate-700 font-semibold">
-                  <td className="p-4">Total:</td>
-                  <td className="p-4">{total.impressions}</td>
-                  <td className="p-4">{total.clicks}</td>
-                  <td className="p-4">{total.ctr}</td>
-                  <td className="p-4">{total.cpm}</td>
-                  <td className="p-4">{total.revenue}</td>
-                </tr>
-              )}
+                  <td className="p-4 text-right">
+                    {item.impressions
+                      ? ((item.revenue / item.impressions) * 1000).toFixed(3)
+                      : 0}
+                  </td>
 
+                  <td className="p-4 text-right">${item.revenue}</td>
+
+                </tr>
+              ))}
             </tbody>
+            {totals && (
+              <tr className="border-t font-bold bg-gray-50 dark:bg-slate-800 overflow-hidden">
+                <td className="p-4">Total</td>
 
+                <td className="p-4 text-right">{totals.totalImpressions}</td>
+                <td className="p-4 text-right">{totals.totalClicks}</td>
+
+                <td className="p-4 text-right">
+                  {totals.totalClicks && totals.totalImpressions
+                    ? ((totals.totalClicks / totals.totalImpressions) * 100).toFixed(2)
+                    : 0}%
+                </td>
+
+                <td className="p-4 text-right">
+                  {totals.totalImpressions
+                    ? ((totals.totalRevenue / totals.totalImpressions) * 1000).toFixed(3)
+                    : 0}
+                </td>
+
+                <td className="p-4 text-right">${totals.totalRevenue}</td>
+              </tr>
+            )}
           </table>
         </div>
-
-        {/* Pagination */}
-        <div className="flex justify-end items-center gap-6 p-4 border-t border-gray-200 dark:border-slate-700 text-sm text-gray-500 dark:text-gray-400">
-          <span>Rows per page: 10</span>
-          <span>{stats?.length || 0} rows</span>
-        </div>
-
       </div>
-
-      <p className="text-center text-sm text-gray-400 dark:text-gray-500">
-        For more information about how to use statistics see our Help Center
-      </p>
-
     </div>
   );
 };

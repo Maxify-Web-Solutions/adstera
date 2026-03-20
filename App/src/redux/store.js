@@ -6,16 +6,17 @@ import smartLinkStatsReducer from "../redux/slice/smartLinkStatsSlice";
 import adsterraReducer from "../redux/slice/adsterraStatsSlice";
 
 export const store = configureStore({
-
   reducer: {
-
     auth: authReducer,
-
     smartlink: smartLinkReducer,
-    stats: smartLinkStatsReducer,
+    smartlinkStats: smartLinkStatsReducer, // 🔥 rename for clarity
     adsterra: adsterraReducer,
-
-
   },
 
+  devTools: process.env.NODE_ENV !== "production", // ✅ best practice
+
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware({
+      serializableCheck: false, // ✅ avoids date / API issues
+    }),
 });
