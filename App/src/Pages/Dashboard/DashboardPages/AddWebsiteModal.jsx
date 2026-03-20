@@ -46,7 +46,7 @@ function AddWebsiteModal({ onClose }) {
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
 
-            <div className="w-full max-w-2xl bg-white dark:bg-slate-900 rounded-2xl shadow-2xl p-6 md:p-8 relative max-h-[90vh] overflow-y-auto">
+            <div className="w-full max-w-2xl bg-white dark:bg-slate-900 rounded-3xl shadow-2xl p-6 md:p-8 relative max-h-[90vh] overflow-y-auto">
 
                 {/* Close */}
                 <button
@@ -65,11 +65,11 @@ function AddWebsiteModal({ onClose }) {
                 <input
                     type="text"
                     placeholder="Website URL (https://example.com)"
-                    className="w-full mb-5 px-4 py-3 rounded-xl border bg-gray-50 dark:bg-slate-800 border-gray-300 dark:border-slate-700 text-gray-800 dark:text-white focus:ring-2 focus:ring-green-500 outline-none"
+                    className="w-full mb-5 px-5 py-3.5 rounded-xl border bg-gray-50 dark:bg-slate-800 border-gray-300 dark:border-slate-700 text-gray-800 dark:text-white focus:ring-2 focus:ring-green-500 outline-none transition-all"
                 />
 
                 {/* Category */}
-                <select className="w-full mb-6 px-4 py-3 rounded-xl border bg-gray-50 dark:bg-slate-800 border-gray-300 dark:border-slate-700 text-gray-800 dark:text-white focus:ring-2 focus:ring-green-500 outline-none">
+                <select className="w-full mb-6 px-5 py-3.5 rounded-xl border bg-gray-50 dark:bg-slate-800 border-gray-300 dark:border-slate-700 text-gray-800 dark:text-white focus:ring-2 focus:ring-green-500 outline-none transition-all">
                     <option value="">Select category</option>
                     {categories.map((cat) => (
                         <option key={cat.value} value={cat.value}>
@@ -117,10 +117,10 @@ function AddWebsiteModal({ onClose }) {
                             <div
                                 key={item.name}
                                 onClick={() => setSelectedAd(item.name)}
-                                className={`cursor-pointer rounded-xl p-4 border flex justify-between items-center
+                                className={`cursor-pointer rounded-2xl p-4 border flex justify-between items-center transition-all
       ${selectedAd === item.name
-                                        ? "border-green-500 bg-green-50 dark:bg-green-900/20"
-                                        : "border-gray-300 dark:border-slate-700"
+                                        ? "border-green-500 bg-green-50 dark:bg-green-900/20 shadow-md ring-1 ring-green-500"
+                                        : "border-gray-300 dark:border-slate-700 hover:border-gray-400 dark:hover:border-slate-600"
                                     }`}
                             >
                                 <div className="flex items-center gap-2">
@@ -157,7 +157,7 @@ function AddWebsiteModal({ onClose }) {
                                 <div
                                     key={size}
                                     onClick={() => setBannerSize(size)}
-                                    className={`cursor-pointer rounded-lg p-3 border transition flex items-center justify-between
+                                    className={`cursor-pointer rounded-xl p-3 border transition-all flex items-center justify-between
                     ${bannerSize === size
                                             ? "border-green-500 bg-green-50 dark:bg-green-900/20"
                                             : "border-gray-300 dark:border-slate-700 hover:border-green-400"
@@ -189,12 +189,12 @@ function AddWebsiteModal({ onClose }) {
                 <div className="flex justify-end gap-3 mt-6">
                     <button
                         onClick={onClose}
-                        className="px-5 py-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800"
+                        className="px-6 py-3 rounded-xl text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors font-medium"
                     >
                         CANCEL
                     </button>
 
-                    <button className="px-6 py-2 rounded-lg bg-green-600 hover:bg-green-700 text-white font-medium shadow-md">
+                    <button className="px-8 py-3 rounded-xl bg-green-600 hover:bg-green-700 text-white font-medium shadow-lg shadow-green-600/20 transition-all hover:scale-[1.02]">
                         ADD WEBSITE
                     </button>
                 </div>

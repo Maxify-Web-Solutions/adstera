@@ -24,7 +24,7 @@ const HowItWorks = () => {
     ];
 
     return (
-        <section className="bg-slate-900 text-white py-20 relative overflow-hidden">
+        <section className="bg-gray-50 dark:bg-slate-900 text-gray-800 dark:text-white py-20 relative overflow-hidden transition-colors duration-300">
 
             {/* background glow */}
             <div className="absolute top-1/2 left-1/2 w-[700px] h-[700px] -translate-x-1/2 -translate-y-1/2 bg-cyan-500/10 blur-3xl"></div>
@@ -33,8 +33,8 @@ const HowItWorks = () => {
 
                 {/* heading */}
                 <div className="text-center mb-16">
-                    <h2 className="text-3xl md:text-5xl font-bold">How It Works</h2>
-                    <p className="mt-4 text-gray-400 max-w-xl mx-auto">
+                    <h2 className="text-3xl md:text-5xl font-bold text-gray-900 dark:text-white">How It Works</h2>
+                    <p className="mt-4 text-gray-500 dark:text-gray-400 max-w-xl mx-auto">
                         Start using Adstera in just a few simple steps.
                     </p>
                 </div>
@@ -43,10 +43,10 @@ const HowItWorks = () => {
                 <div className="relative">
 
                     {/* vertical line for mobile */}
-                    <div className="absolute left-4 top-0 bottom-0 w-[2px] bg-slate-700 md:hidden"></div>
+                    <div className="absolute left-4 top-0 bottom-0 w-[2px] bg-gray-200 dark:bg-slate-700 md:hidden"></div>
 
                     {/* desktop horizontal line */}
-                    <div className="hidden md:block absolute top-10 left-0 w-full h-[2px] bg-slate-700"></div>
+                    <div className="hidden md:block absolute top-10 left-0 w-full h-[2px] bg-gray-200 dark:bg-slate-700"></div>
 
                     <div className="space-y-12 md:space-y-0 md:grid md:grid-cols-3 md:gap-10">
 
@@ -65,11 +65,11 @@ const HowItWorks = () => {
                                         {step.icon}
                                     </div>
 
-                                    <h3 className="text-lg md:text-xl font-semibold">
+                                    <h3 className="text-lg md:text-xl font-semibold text-gray-900 dark:text-white">
                                         {step.title}
                                     </h3>
 
-                                    <p className="text-slate-400 mt-2 max-w-sm md:mx-auto">
+                                    <p className="text-gray-500 dark:text-slate-400 mt-2 max-w-sm md:mx-auto">
                                         {step.description}
                                     </p>
 

@@ -66,7 +66,7 @@ const Profile = () => {
 
     if (!user) {
         return (
-            <div className="flex min-h-screen items-center justify-center bg-slate-900 text-white">
+            <div className="flex min-h-screen items-center justify-center bg-white dark:bg-slate-900 text-gray-900 dark:text-white transition-colors duration-300">
                 Loading profile...
             </div>
         );
@@ -76,9 +76,13 @@ const Profile = () => {
         <>
             <Header />
 
-            <div className="min-h-screen bg-slate-900 text-white pt-24 md:pt-28 pb-16 px-4 sm:px-6">
+            <div className="min-h-screen bg-gray-50 dark:bg-slate-900 text-gray-900 dark:text-white pt-24 md:pt-28 pb-16 px-4 sm:px-6 relative overflow-hidden transition-colors duration-300">
 
-                <div className="max-w-5xl mx-auto">
+                {/* background glow */}
+                <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-indigo-500/10 blur-3xl rounded-full -translate-x-1/2 -translate-y-1/2 pointer-events-none"></div>
+                <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-cyan-500/10 blur-3xl rounded-full translate-x-1/2 translate-y-1/2 pointer-events-none"></div>
+
+                <div className="max-w-5xl mx-auto relative z-10">
 
                     {/* Title */}
                     <h1 className="text-3xl md:text-4xl font-bold text-center mb-12 bg-gradient-to-r from-indigo-400 to-cyan-400 bg-clip-text text-transparent">
@@ -86,18 +90,18 @@ const Profile = () => {
                     </h1>
 
                     {/* Profile Card */}
-                    <div className="bg-slate-800 border border-slate-700 rounded-2xl p-6 md:p-8 mb-10 shadow-xl">
+                    <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-2xl p-6 md:p-8 mb-10 shadow-sm transition-colors duration-300">
 
                         <div className="flex flex-col sm:flex-row items-center text-center sm:text-left gap-6">
 
-                            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-indigo-500 to-cyan-500 flex items-center justify-center text-3xl font-bold">
+                            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-indigo-500 to-cyan-500 flex items-center justify-center text-white text-3xl font-bold shadow-lg shadow-indigo-500/30">
                                 {user.name?.charAt(0).toUpperCase()}
                             </div>
 
                             <div>
-                                <h2 className="text-2xl font-semibold">{user.name}</h2>
-                                <p className="text-gray-400">{user.email}</p>
-                                <p className="text-sm text-gray-500 mt-1">
+                                <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">{user.name}</h2>
+                                <p className="text-gray-500 dark:text-gray-400">{user.email}</p>
+                                <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
                                     User ID: {user._id}
                                 </p>
                             </div>
@@ -107,22 +111,24 @@ const Profile = () => {
                     </div>
 
                     {/* Account Details */}
-                    <div className="bg-slate-800 border border-slate-700 rounded-2xl p-6 md:p-8 mb-10">
+                    <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-2xl p-6 md:p-8 mb-10 shadow-sm transition-colors duration-300">
 
-                        <h2 className="text-xl font-semibold mb-6 flex items-center gap-3">
-                            <FiUser /> Account Information
+                        <h2 className="text-xl font-semibold mb-6 flex items-center gap-3 text-gray-900 dark:text-white">
+                            <FiUser className="text-indigo-500" /> Account Information
                         </h2>
 
-                        <div className="grid md:grid-cols-2 gap-6 text-sm text-gray-400">
+                        <div className="grid md:grid-cols-2 gap-6 text-sm text-gray-600 dark:text-gray-400">
 
                             <p>
-                                <span className="text-gray-500">Account Created:</span>{" "}
+                                <span className="text-gray-500 dark:text-gray-500 font-medium">Account Created:</span>{" "}
                                 {new Date(user.createdAt).toLocaleDateString()}
                             </p>
 
                             <p>
-                                <span className="text-gray-500">Account Status:</span>{" "}
-                                <span className="text-green-400">Active</span>
+                                <span className="text-gray-500 dark:text-gray-500 font-medium">Account Status:</span>{" "}
+                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
+                                    Active
+                                </span>
                             </p>
 
                         </div>
@@ -130,10 +136,10 @@ const Profile = () => {
                     </div>
 
                     {/* Profile Information */}
-                    <div className="bg-slate-800 border border-slate-700 rounded-2xl p-6 md:p-8 mb-10">
+                    <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-2xl p-6 md:p-8 mb-10 shadow-sm transition-colors duration-300">
 
-                        <h2 className="text-xl font-semibold mb-6 flex items-center gap-3">
-                            <FiUser /> Profile Information
+                        <h2 className="text-xl font-semibold mb-6 flex items-center gap-3 text-gray-900 dark:text-white">
+                            <FiUser className="text-indigo-500" /> Profile Information
                         </h2>
 
                         <form
@@ -143,67 +149,75 @@ const Profile = () => {
 
                             {/* Name */}
                             <div className="relative">
-                                <label className="text-sm text-gray-400">Full Name</label>
+                                <label className="text-sm text-gray-500 dark:text-gray-400 font-medium mb-1.5 block">Full Name</label>
 
-                                <FiUser className="absolute left-3 top-[50px] text-gray-400" />
-
-                                <input
-                                    type="text"
-                                    name="name"
-                                    value={formData.name}
-                                    onChange={handleFormChange}
-                                    className="mt-2 w-full bg-slate-700 border border-slate-600 rounded-lg pl-10 pr-4 py-3 focus:ring-2 focus:ring-indigo-500 outline-none"
-                                />
+                                <div className="relative">
+                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <FiUser className="text-gray-400" />
+                                    </div>
+                                    <input
+                                        type="text"
+                                        name="name"
+                                        value={formData.name}
+                                        onChange={handleFormChange}
+                                        className="w-full pl-10 pr-4 py-3 bg-gray-50 dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all"
+                                    />
+                                </div>
                             </div>
 
                             {/* Email */}
                             <div className="relative">
-                                <label className="text-sm text-gray-400">Email</label>
+                                <label className="text-sm text-gray-500 dark:text-gray-400 font-medium mb-1.5 block">Email</label>
 
-                                <FiMail className="absolute left-3 top-[50px] text-gray-400" />
-
-                                <input
-                                    type="email"
-                                    name="email"
-                                    value={formData.email}
-                                    disabled
-                                    className="mt-2 w-full bg-slate-700 border border-slate-600 rounded-lg pl-10 pr-4 py-3 text-gray-400"
-                                />
+                                <div className="relative">
+                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <FiMail className="text-gray-400" />
+                                    </div>
+                                    <input
+                                        type="email"
+                                        name="email"
+                                        value={formData.email}
+                                        disabled
+                                        className="w-full pl-10 pr-4 py-3 bg-gray-100 dark:bg-slate-700/50 border border-gray-300 dark:border-slate-600 rounded-xl text-gray-500 dark:text-gray-400 cursor-not-allowed"
+                                    />
+                                </div>
                             </div>
 
                             {/* Mobile */}
                             <div className="relative">
-                                <label className="text-sm text-gray-400">Mobile</label>
+                                <label className="text-sm text-gray-500 dark:text-gray-400 font-medium mb-1.5 block">Mobile</label>
 
-                                <FiPhone className="absolute left-3 top-[50px] text-gray-400" />
-
-                                <input
-                                    type="text"
-                                    name="mobile"
-                                    value={formData.mobile}
-                                    onChange={handleFormChange}
-                                    className="mt-2 w-full bg-slate-700 border border-slate-600 rounded-lg pl-10 pr-4 py-3 focus:ring-2 focus:ring-indigo-500 outline-none"
-                                />
+                                <div className="relative">
+                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <FiPhone className="text-gray-400" />
+                                    </div>
+                                    <input
+                                        type="text"
+                                        name="mobile"
+                                        value={formData.mobile}
+                                        onChange={handleFormChange}
+                                        className="w-full pl-10 pr-4 py-3 bg-gray-50 dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all"
+                                    />
+                                </div>
                             </div>
 
                             <div className="md:col-span-2">
                                 <button
                                     type="submit"
-                                    className="bg-indigo-600 hover:bg-indigo-700 px-6 py-3 rounded-lg font-semibold transition shadow-lg"
+                                    className="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3 rounded-xl font-semibold transition-all shadow-lg shadow-indigo-600/20 hover:scale-[1.02]"
                                 >
                                     Save Profile
                                 </button>
                             </div>
-
                         </form>
 
                     </div>
 
                     {/* Change Password */}
-                    <div className="bg-slate-800 border border-slate-700 rounded-2xl p-6 md:p-8">
+                    <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-2xl p-6 md:p-8 shadow-sm transition-colors duration-300">
 
-                        <h2 className="text-xl font-semibold mb-6 flex items-center gap-3">
-                            <FiLock /> Change Password
+                        <h2 className="text-xl font-semibold mb-6 flex items-center gap-3 text-gray-900 dark:text-white">
+                            <FiLock className="text-indigo-500" /> Change Password
                         </h2>
 
                         <form
@@ -212,68 +226,76 @@ const Profile = () => {
                         >
 
                             {/* Current Password */}
-                            <div className="relative">
-                                <label className="text-sm text-gray-400">
+                            <div className="relative md:col-span-2">
+                                <label className="text-sm text-gray-500 dark:text-gray-400 font-medium mb-1.5 block">
                                     Current Password
                                 </label>
 
-                                <FiLock className="absolute left-3 top-[50px] text-gray-400" />
-
-                                <input
-                                    type={showPassword ? "text" : "password"}
-                                    name="currentPassword"
-                                    value={passwordData.currentPassword}
-                                    onChange={handlePasswordChange}
-                                    className="mt-2 w-full bg-slate-700 border border-slate-600 rounded-lg pl-10 pr-10 py-3"
-                                />
-
-                                <button
-                                    type="button"
-                                    onClick={() => setShowPassword(!showPassword)}
-                                    className="absolute right-3 top-[50px] text-gray-400"
-                                >
-                                    {showPassword ? <FiEyeOff /> : <FiEye />}
-                                </button>
+                                <div className="relative">
+                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <FiLock className="text-gray-400" />
+                                    </div>
+                                    <input
+                                        type={showPassword ? "text" : "password"}
+                                        name="currentPassword"
+                                        value={passwordData.currentPassword}
+                                        onChange={handlePasswordChange}
+                                        className="w-full pl-10 pr-12 py-3 bg-gray-50 dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-indigo-500 transition-colors"
+                                    >
+                                        {showPassword ? <FiEyeOff /> : <FiEye />}
+                                    </button>
+                                </div>
                             </div>
 
                             {/* New Password */}
                             <div className="relative">
-                                <label className="text-sm text-gray-400">
+                                <label className="text-sm text-gray-500 dark:text-gray-400 font-medium mb-1.5 block">
                                     New Password
                                 </label>
 
-                                <FiLock className="absolute left-3 top-[50px] text-gray-400" />
-
-                                <input
-                                    type="password"
-                                    name="newPassword"
-                                    value={passwordData.newPassword}
-                                    onChange={handlePasswordChange}
-                                    className="mt-2 w-full bg-slate-700 border border-slate-600 rounded-lg pl-10 pr-4 py-3"
-                                />
+                                <div className="relative">
+                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <FiLock className="text-gray-400" />
+                                    </div>
+                                    <input
+                                        type="password"
+                                        name="newPassword"
+                                        value={passwordData.newPassword}
+                                        onChange={handlePasswordChange}
+                                        className="w-full pl-10 pr-4 py-3 bg-gray-50 dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all"
+                                    />
+                                </div>
                             </div>
 
                             {/* Confirm Password */}
                             <div className="relative">
-                                <label className="text-sm text-gray-400">
+                                <label className="text-sm text-gray-500 dark:text-gray-400 font-medium mb-1.5 block">
                                     Confirm Password
                                 </label>
 
-                                <FiLock className="absolute left-3 top-[50px] text-gray-400" />
-
-                                <input
-                                    type="password"
-                                    name="confirmPassword"
-                                    value={passwordData.confirmPassword}
-                                    onChange={handlePasswordChange}
-                                    className="mt-2 w-full bg-slate-700 border border-slate-600 rounded-lg pl-10 pr-4 py-3"
-                                />
+                                <div className="relative">
+                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <FiLock className="text-gray-400" />
+                                    </div>
+                                    <input
+                                        type="password"
+                                        name="confirmPassword"
+                                        value={passwordData.confirmPassword}
+                                        onChange={handlePasswordChange}
+                                        className="w-full pl-10 pr-4 py-3 bg-gray-50 dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all"
+                                    />
+                                </div>
                             </div>
 
                             <div className="md:col-span-2">
                                 <button
                                     type="submit"
-                                    className="bg-slate-600 hover:bg-slate-500 px-6 py-3 rounded-lg font-semibold transition"
+                                    className="bg-slate-800 dark:bg-slate-600 hover:bg-slate-700 dark:hover:bg-slate-500 text-white px-8 py-3 rounded-xl font-semibold transition-all shadow-lg hover:scale-[1.02]"
                                 >
                                     Update Password
                                 </button>

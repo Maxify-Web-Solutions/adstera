@@ -11,7 +11,7 @@ const TrustedBy = () => {
   ];
 
   return (
-    <section className="bg-slate-900 text-white py-16 md:py-20 relative">
+    <section className="bg-white dark:bg-slate-900 text-gray-800 dark:text-white py-16 md:py-20 relative transition-colors duration-300">
 
       {/* glow background */}
       <div className="absolute top-1/2 left-1/2 w-[700px] h-[700px] -translate-x-1/2 -translate-y-1/2 bg-cyan-500/10 blur-3xl rounded-full"></div>
@@ -20,7 +20,7 @@ const TrustedBy = () => {
 
         {/* heading */}
         <div className="text-center mb-12">
-          <p className="text-slate-400 text-sm uppercase tracking-widest">
+          <p className="text-gray-500 dark:text-slate-400 text-sm uppercase tracking-widest">
             Trusted by companies worldwide
           </p>
         </div>
@@ -36,7 +36,7 @@ const TrustedBy = () => {
               <img
                 src={company.logo}
                 alt={company.name}
-                className="h-8 md:h-10 grayscale hover:grayscale-0 transition"
+                className="h-8 md:h-10 grayscale hover:grayscale-0 transition invert dark:invert-0"
               />
             </div>
           ))}

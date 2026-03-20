@@ -33,7 +33,7 @@ const Websites = () => {
                         Websites
                     </h1>
 
-                    <button className="bg-green-600 hover:bg-green-700 px-5 py-2 rounded-lg text-white font-medium"
+                    <button className="bg-green-600 hover:bg-green-700 px-6 py-2.5 rounded-xl text-white font-medium shadow-lg shadow-green-600/20 transition-all hover:scale-[1.02]"
                     onClick={() => navigate("/dashboard/websites?openModal=true")}
                     >
                         ADD WEBSITE
@@ -42,7 +42,7 @@ const Websites = () => {
                 </div>
 
                 {/* 3 Steps Section */}
-                <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl p-6 md:p-8 mb-8">
+                <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-2xl p-6 md:p-8 mb-8 shadow-sm">
 
                     <div className="flex flex-col sm:flex-row justify-between gap-4 mb-8">
                         <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
@@ -91,7 +91,7 @@ const Websites = () => {
                 </div>
 
                 {/* Tips */}
-                <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg p-4 mb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-2xl p-6 mb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 shadow-sm">
 
                     <span className="text-gray-400">
                         Get Anti-Adblock to increase your revenue
@@ -103,7 +103,7 @@ const Websites = () => {
 
                 </div>
 
-                <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg p-4 mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-2xl p-6 mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 shadow-sm">
 
                     <span className="text-gray-400">
                         If you don't have a website, GO TO SMARTLINKS page to create a link.
@@ -116,23 +116,23 @@ const Websites = () => {
                 </div>
 
                 {/* Filters */}
-                <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl p-4 md:p-6 mb-6">
+                <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-2xl p-6 md:p-8 mb-6 shadow-sm">
 
                     <div className="flex flex-col md:flex-row justify-between gap-4 mb-6">
 
                         <input
                             type="text"
                             placeholder="Website search"
-                            className="bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-lg px-4 py-2 w-full md:w-72 text-gray-800 dark:text-gray-300"
+                            className="bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-xl px-4 py-2.5 w-full md:w-72 text-gray-800 dark:text-gray-300 focus:ring-2 focus:ring-green-500 outline-none"
                         />
 
                         <div className="space-x-3">
 
-                            <button className="border border-gray-300 dark:border-slate-700 px-4 py-2 rounded-lg text-gray-800 dark:text-gray-300">
+                            <button className="border border-gray-300 dark:border-slate-700 px-6 py-2.5 rounded-xl text-gray-800 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors">
                                 EXPORT WEBSITES
                             </button>
 
-                            <button className="bg-green-600 hover:bg-green-700 px-4 py-2 rounded-lg text-white"
+                            <button className="bg-green-600 hover:bg-green-700 px-6 py-2.5 rounded-xl text-white font-medium shadow-lg shadow-green-600/20 transition-all hover:scale-[1.02]"
                             onClick={() => navigate("/dashboard/websites?openModal=true")}
                             >
                                 ADD WEBSITE
@@ -144,26 +144,26 @@ const Websites = () => {
 
                     <div className="grid md:grid-cols-4 gap-4">
 
-                        <select className="bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-700 p-2 rounded-lg text-gray-800 dark:text-gray-300">
+                        <select className="bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-700 px-4 py-2.5 rounded-xl text-gray-800 dark:text-gray-300 focus:ring-2 focus:ring-green-500 outline-none">
                             <option>Statistics</option>
                             <option>Turned on</option>
                             <option>Turned off</option>
                         </select>
 
-                        <select className="bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-700 p-2 rounded-lg text-gray-800 dark:text-gray-300">
+                        <select className="bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-700 px-4 py-2.5 rounded-xl text-gray-800 dark:text-gray-300 focus:ring-2 focus:ring-green-500 outline-none">
                             <option>Visibility</option>
                             <option>Visible</option>
                             <option>Hidden</option>
                         </select>
 
-                        <select className="bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-700 p-2 rounded-lg text-gray-800 dark:text-gray-300">
+                        <select className="bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-700 px-4 py-2.5 rounded-xl text-gray-800 dark:text-gray-300 focus:ring-2 focus:ring-green-500 outline-none">
                             <option>Website status</option>
                             <option>Approved</option>
                             <option>Declined</option>
                             <option>Pending</option>
                         </select>
 
-                        <select className="bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-700 p-2 rounded-lg text-gray-800 dark:text-gray-300">
+                        <select className="bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-700 px-4 py-2.5 rounded-xl text-gray-800 dark:text-gray-300 focus:ring-2 focus:ring-green-500 outline-none">
                             <option>Ad Unit status</option>
                             <option>Active</option>
                             <option>Inactive</option>
@@ -176,7 +176,7 @@ const Websites = () => {
                 </div>
 
                 {/* Desktop Table */}
-                <div className="hidden md:block bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl">
+                <div className="hidden md:block bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-2xl shadow-sm overflow-hidden">
 
                     <div className="overflow-x-auto">
 
@@ -217,7 +217,7 @@ const Websites = () => {
                 {/* Mobile Cards */}
                 <div className="md:hidden space-y-4">
 
-                    <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl p-4 space-y-3">
+                    <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-2xl p-5 shadow-sm space-y-3">
 
                         <div className="flex justify-between items-center">
                             <h3 className="text-gray-900 dark:text-white font-semibold">

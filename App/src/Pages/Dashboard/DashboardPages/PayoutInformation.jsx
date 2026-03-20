@@ -56,7 +56,7 @@ const PayoutInformation = () => {
           Your Method
         </h2>
 
-        <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl shadow-sm">
+        <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-2xl shadow-sm overflow-hidden">
 
           {/* Top Info */}
           <div className="grid md:grid-cols-5 gap-6 p-6 border-b border-gray-200 dark:border-slate-700 text-sm">
@@ -123,7 +123,7 @@ const PayoutInformation = () => {
                 <b>Wallet #</b>
               </p>
 
-              <div className="bg-gray-100 dark:bg-slate-700 px-4 py-3 rounded-lg text-sm break-all">
+              <div className="bg-gray-100 dark:bg-slate-900 border border-gray-200 dark:border-slate-600 px-4 py-3 rounded-xl text-sm break-all font-mono text-gray-700 dark:text-gray-300">
                 TJbrTfootkpaWHiKv2A6tneFJ4J2mX4pm1
               </div>
 
@@ -156,7 +156,7 @@ const PayoutInformation = () => {
           {methods.map((method, i) => (
             <div
               key={i}
-              className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl p-6 shadow-sm"
+              className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow"
             >
 
               <div className="grid md:grid-cols-5 gap-6 text-sm">

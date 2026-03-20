@@ -35,7 +35,7 @@ const ApiPage = () => {
       </div>
 
       {/* API Card */}
-      <div className="p-6 rounded-xl border bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700">
+      <div className="p-6 md:p-8 rounded-2xl border bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 shadow-sm">
 
         <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
           API Token
@@ -44,7 +44,7 @@ const ApiPage = () => {
         {!token ? (
           <button
             onClick={generateToken}
-            className="px-5 py-2 rounded-lg bg-green-600 hover:bg-green-700 text-white font-medium"
+            className="px-6 py-3 rounded-xl bg-green-600 hover:bg-green-700 text-white font-medium shadow-lg shadow-green-600/20 transition-all hover:scale-[1.02]"
           >
             Generate API Token
           </button>
@@ -59,19 +59,19 @@ const ApiPage = () => {
                 type={showToken ? "text" : "password"}
                 value={token}
                 readOnly
-                className="flex-1 px-4 py-2 rounded-lg border bg-gray-50 dark:bg-slate-900 border-gray-300 dark:border-slate-700 text-sm"
+                className="flex-1 px-4 py-3 rounded-xl border bg-gray-50 dark:bg-slate-900 border-gray-300 dark:border-slate-700 text-gray-700 dark:text-gray-300 font-mono text-sm focus:ring-2 focus:ring-blue-500 outline-none"
               />
 
               <button
                 onClick={() => setShowToken(!showToken)}
-                className="px-4 py-2 rounded-lg border border-gray-300 dark:border-slate-600 hover:bg-gray-100 dark:hover:bg-slate-700"
+                className="px-5 py-3 rounded-xl border border-gray-300 dark:border-slate-600 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors"
               >
                 {showToken ? "Hide" : "Show"}
               </button>
 
               <button
                 onClick={copyToken}
-                className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white"
+                className="px-5 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-600/20 transition-all"
               >
                 Copy
               </button>
@@ -93,7 +93,7 @@ const ApiPage = () => {
       </div>
 
       {/* API Usage Guide */}
-      <div className="p-6 rounded-xl border bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700">
+      <div className="p-6 md:p-8 rounded-2xl border bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 shadow-sm">
 
         <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
           API Usage
@@ -103,7 +103,7 @@ const ApiPage = () => {
           Use your API token to authenticate requests to our API.
         </p>
 
-        <pre className="bg-gray-100 dark:bg-slate-900 p-4 rounded-lg text-sm overflow-x-auto">
+        <pre className="bg-gray-900 text-gray-300 p-6 rounded-xl text-sm overflow-x-auto font-mono">
 {`curl https://api.yoursite.com/leads
   -H "Authorization: Bearer YOUR_API_TOKEN"`}
         </pre>

@@ -50,7 +50,7 @@ const Refrels = () => {
             </div>
 
             {/* Referral Link */}
-            <div className="p-6 rounded-xl border bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700">
+            <div className="p-6 md:p-8 rounded-2xl border bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 shadow-sm">
 
                 <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
                     Your Referral Link
@@ -62,12 +62,12 @@ const Refrels = () => {
                         type="text"
                         readOnly
                         value={referralLink}
-                        className="flex-1 px-4 py-2 rounded-lg border bg-gray-50 dark:bg-slate-900 border-gray-300 dark:border-slate-700 text-sm"
+                        className="flex-1 px-4 py-3 rounded-xl border bg-gray-50 dark:bg-slate-900 border-gray-300 dark:border-slate-700 text-gray-600 dark:text-gray-300 focus:ring-2 focus:ring-green-500 outline-none"
                     />
 
                     <button
                         onClick={copyLink}
-                        className="px-5 py-2 rounded-lg bg-green-600 hover:bg-green-700 text-white font-medium"
+                        className="px-6 py-3 rounded-xl bg-green-600 hover:bg-green-700 text-white font-medium shadow-lg shadow-green-600/20 transition-all hover:scale-[1.02]"
                     >
                         Copy Link
                     </button>
@@ -79,29 +79,29 @@ const Refrels = () => {
             {/* Stats */}
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
 
-                <div className="p-6 rounded-xl border bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700">
+                <div className="p-6 rounded-2xl border bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 shadow-sm">
                     <p className="text-gray-500 dark:text-gray-400 text-sm">
                         Total Referrals
                     </p>
-                    <h3 className="text-2xl font-semibold text-gray-900 dark:text-white mt-2">
+                    <h3 className="text-3xl font-bold text-gray-900 dark:text-white mt-2">
                         24
                     </h3>
                 </div>
 
-                <div className="p-6 rounded-xl border bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700">
+                <div className="p-6 rounded-2xl border bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 shadow-sm">
                     <p className="text-gray-500 dark:text-gray-400 text-sm">
                         Total Earnings
                     </p>
-                    <h3 className="text-2xl font-semibold text-gray-900 dark:text-white mt-2">
+                    <h3 className="text-3xl font-bold text-gray-900 dark:text-white mt-2">
                         $184.00
                     </h3>
                 </div>
 
-                <div className="p-6 rounded-xl border bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700">
+                <div className="p-6 rounded-2xl border bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 shadow-sm">
                     <p className="text-gray-500 dark:text-gray-400 text-sm">
                         Conversion Rate
                     </p>
-                    <h3 className="text-2xl font-semibold text-gray-900 dark:text-white mt-2">
+                    <h3 className="text-3xl font-bold text-gray-900 dark:text-white mt-2">
                         18%
                     </h3>
                 </div>
@@ -109,7 +109,7 @@ const Refrels = () => {
             </div>
 
             {/* Referral Table */}
-            <div className="rounded-xl border bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700">
+            <div className="rounded-2xl border bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 shadow-sm overflow-hidden">
 
                 <div className="p-4 border-b border-gray-200 dark:border-slate-700">
                     <h2 className="font-semibold text-gray-900 dark:text-white">
