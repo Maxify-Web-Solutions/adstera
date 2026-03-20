@@ -55,7 +55,7 @@ const DashboardHeader = ({ onMenuClick }) => {
                 {/* Balance */}
                 <div className="hidden md:flex items-center text-gray-500 dark:text-gray-400 text-sm gap-2">
                     Balance:
-                    <span className="text-gray-800 dark:text-white">$ {user?.balance ? user.balance.toFixed(2) : "0.00"}</span>
+                    <span className="text-gray-800 dark:text-white">$ {user?.revenue ? user.revenue.toFixed(2) : "0.00"}</span>
                     <IoIosArrowDown size={16} />
                 </div>
 

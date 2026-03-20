@@ -7,6 +7,7 @@ import {
 import { getNames } from "country-list";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import lookup from "country-code-lookup";
 
 const Statistics = () => {
   const dispatch = useDispatch();
@@ -85,10 +86,12 @@ const Statistics = () => {
       let key;
 
       switch (groupBy) {
-        case "country":
-          key = item.country;
-          break;
 
+        case "country":
+          key = item.country
+            ? lookup.byIso(item.country)?.country || item.country
+            : "Unknown";
+          break;
         case "date":
           key = item.date
             ? new Date(item.date).toLocaleDateString()

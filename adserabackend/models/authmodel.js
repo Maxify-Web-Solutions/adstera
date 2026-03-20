@@ -25,7 +25,7 @@ const userschema = new mongoose.Schema({
 
     },
 
-        revenue: {
+    revenue: {
         type: Number,
         default: 0,
     },

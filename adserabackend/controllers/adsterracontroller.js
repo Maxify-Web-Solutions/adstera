@@ -2,6 +2,10 @@ const axios = require("axios");
 const SmartLink = require("../models/SmartLink");
 const Placement = require("../models/AdsterraPlacement");
 const AdsterraStats = require("../models/AdsterraStats");
+const User = require("../models/authmodel");
+
+
+
 
 exports.fetchAndStoreAdsterraStats = async (req, res) => {
   try {
@@ -37,6 +41,7 @@ exports.fetchAndStoreAdsterraStats = async (req, res) => {
 
     const domain = placementData.domainId;
     const placementId = placementData.placementId;
+    const todayDate = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
 
     // 📅 Default dates
     const today = new Date();
@@ -93,13 +98,15 @@ exports.fetchAndStoreAdsterraStats = async (req, res) => {
           domain,
           placement: placementId,
           country: item.country || "all",
+          date: todayDate, // ✅ ADD THIS
         },
         update: {
           $set: {
-            userId, // ✅ ensure stored
+            userId,
             domain,
             placement: placementId,
             country: item.country || "all",
+            date: todayDate, // ✅ SAVE DATE
             impressions: Number(item.impression) || 0,
             clicks: Number(item.clicks) || 0,
             revenue: Number(item.revenue) || 0,
@@ -108,6 +115,17 @@ exports.fetchAndStoreAdsterraStats = async (req, res) => {
         upsert: true,
       },
     }));
+    // 🔥 TOTAL REVENUE CALCULATE FROM API DATA
+    const totalRevenue = apiData.reduce((sum, item) => {
+      return sum + (Number(item.revenue) || 0);
+    }, 0);
+
+    // 🔥 ADD TO USER REVENUE (NO DUPLICATE ISSUE)
+    await User.findByIdAndUpdate(
+      userId,
+      { $inc: { revenue: totalRevenue } },
+      { returnDocument: "after" }
+    );
 
     await AdsterraStats.bulkWrite(bulkOps);
 
@@ -128,6 +146,7 @@ exports.fetchAndStoreAdsterraStats = async (req, res) => {
     });
   }
 };
+
 
 
 exports.getAdsterraStatsFromDB = async (req, res) => {
@@ -168,22 +187,12 @@ exports.getAdsterraStatsFromDB = async (req, res) => {
 
     // 🔍 Base filter
     let filter = {
-  userId,
-  $or: domainPlacementPairs.map(p => ({
-    domain: p.domain,
-    placement: p.placement,
-  })),
-};
-
-// country filter
-if (country) {
-  filter.country = {
-    $in: country.split(",").map(c => c.trim()),
-  };
-}
-
-// ❌ REMOVE date filter for now
-// (ye hi data tod raha hai)
+      userId,
+      $or: domainPlacementPairs.map(p => ({
+        domain: p.domain,
+        placement: p.placement,
+      })),
+    };
 
     // 🌍 Country filter
     if (country) {
@@ -204,12 +213,13 @@ if (country) {
     const skip = (page - 1) * limit;
 
     const stats = await AdsterraStats.find(filter)
-      .sort({ createdAt: -1 }) // ⚠️ date null hai to createdAt use karo
+      .sort({ createdAt: -1 })
       .skip(skip)
       .limit(Number(limit));
 
     const totalCount = await AdsterraStats.countDocuments(filter);
 
+    // 🔥 TOTALS CALCULATION
     const totals = await AdsterraStats.aggregate([
       { $match: filter },
       {
@@ -221,6 +231,15 @@ if (country) {
         },
       },
     ]);
+
+    const totalRevenue = totals[0]?.totalRevenue || 0;
+
+    // 🔥🔥 USER REVENUE UPDATE
+    await User.findByIdAndUpdate(
+      userId,
+      { $set: { revenue: totalRevenue } },
+      { new: true }
+    );
 
     return res.json({
       success: true,
