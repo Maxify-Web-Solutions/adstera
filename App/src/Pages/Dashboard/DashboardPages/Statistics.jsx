@@ -133,7 +133,7 @@ const Statistics = () => {
   return (
     <div className="space-y-10">
       {/* FILTERS */}
-      <div className="bg-white dark:bg-slate-800 border rounded-xl p-6">
+      <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-2xl p-6 md:p-8 shadow-sm">
         <h2 className="font-semibold mb-6">Filters</h2>
 
         <div className="grid md:grid-cols-4 gap-6">
@@ -145,7 +145,7 @@ const Statistics = () => {
               startDate={startDate}
               endDate={endDate}
               onChange={(update) => setDateRange(update)}
-              className="w-full border px-4 py-2 rounded-lg bg-gray-50 dark:bg-slate-900 dark:text-gray-400"
+              className="w-full border border-gray-200 dark:border-slate-700 px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-slate-900 dark:text-gray-300 focus:ring-2 focus:ring-green-500 outline-none transition-all"
             />
           </div>
 
@@ -155,7 +155,7 @@ const Statistics = () => {
             <select
               value={selectedCountry}
               onChange={(e) => setSelectedCountry(e.target.value)}
-              className="w-full border px-4 py-2 rounded-lg bg-gray-50 dark:bg-slate-900 dark:text-gray-400"
+              className="w-full border border-gray-200 dark:border-slate-700 px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-slate-900 dark:text-gray-300 focus:ring-2 focus:ring-green-500 outline-none transition-all"
             >
               <option value="">All Countries</option>
               {countries.map((c, i) => (
@@ -173,7 +173,7 @@ const Statistics = () => {
               value={domain}
               onChange={(e) => setDomain(e.target.value)}
               placeholder="Enter domain ID"
-              className="w-full border px-4 py-2 rounded-lg bg-gray-50 dark:bg-slate-900 dark:text-gray-400"
+              className="w-full border border-gray-200 dark:border-slate-700 px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-slate-900 dark:text-gray-300 focus:ring-2 focus:ring-green-500 outline-none transition-all"
             />
           </div>
 
@@ -184,7 +184,7 @@ const Statistics = () => {
               value={placement}
               onChange={(e) => setPlacement(e.target.value)}
               placeholder="Enter placement ID"
-              className="w-full border px-4 py-2 rounded-lg bg-gray-50 dark:bg-slate-900 dark:text-gray-400"
+              className="w-full border border-gray-200 dark:border-slate-700 px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-slate-900 dark:text-gray-300 focus:ring-2 focus:ring-green-500 outline-none transition-all"
             />
           </div>
         </div>
@@ -193,21 +193,21 @@ const Statistics = () => {
         <div className="flex gap-4 mt-6">
           <button
             onClick={handleApply}
-            className="bg-black text-white px-6 py-2 rounded-lg"
+            className="bg-gray-900 dark:bg-white text-white dark:text-gray-900 px-8 py-2.5 rounded-xl font-medium shadow-lg hover:shadow-xl transition-all hover:scale-[1.02]"
           >
             {fetchLoading ? "Fetching..." : "APPLY"}
           </button>
 
           <button
             onClick={handleReset}
-            className="text-gray-500"
+            className="text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 px-4 py-2.5 font-medium transition-colors"
           >
             RESET
           </button>
         </div>
       </div>
 
-      <div className="flex flex-wrap gap-2 p-4 border-b bg-gray-50 dark:bg-slate-700">
+      <div className="flex flex-wrap gap-2 py-4">
         {[
           { label: "Country", value: "country" },
           { label: "Date", value: "date" },
@@ -218,9 +218,9 @@ const Statistics = () => {
           <button
             key={tab.value}
             onClick={() => setGroupBy(tab.value)}
-            className={`px-4 py-2 rounded-lg text-sm border ${groupBy === tab.value
-              ? "bg-green-100 text-green-700"
-              : "bg-white text-gray-600"
+            className={`px-5 py-2 rounded-full text-sm font-medium transition-all ${groupBy === tab.value
+              ? "bg-green-600 text-white shadow-md shadow-green-600/20"
+              : "bg-white dark:bg-slate-800 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-700 border border-gray-200 dark:border-slate-700"
               }`}
           >
             {tab.label}
@@ -229,13 +229,13 @@ const Statistics = () => {
       </div>
 
       {/* TABLE */}
-      <div className="bg-white border rounded-xl">
-        <div className="p-4 border-b">
+      <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-2xl shadow-sm overflow-hidden">
+        <div className="p-4 border-b border-gray-200 dark:border-slate-700">
           <button className="text-green-500">EXPORT CSV</button>
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-left rounded-xl">
+          <table className="w-full text-left">
             <thead className="bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-gray-300 text-sm">
               <tr>
                 <th className="p-4 text-left">{groupBy}</th>
@@ -250,7 +250,7 @@ const Statistics = () => {
 
             <tbody>
               {groupedData.map((item, i) => (
-                <tr key={i} className="border-t hover:bg-gray-50 dark:hover:bg-slate-700 bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-gray-300">
+                <tr key={i} className="border-t border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700/50 bg-white dark:bg-slate-800 text-gray-600 dark:text-gray-300 transition-colors">
 
                   {/* LEFT */}
                   <td className="p-4 font-medium">
@@ -280,7 +280,7 @@ const Statistics = () => {
               ))}
             </tbody>
             {totals && (
-              <tr className="border-t font-bold bg-gray-50 dark:bg-slate-800 overflow-hidden">
+              <tr className="border-t border-gray-200 dark:border-slate-700 font-bold bg-gray-50 dark:bg-slate-900/50 overflow-hidden">
                 <td className="p-4">Total</td>
 
                 <td className="p-4 text-right">{totals.totalImpressions}</td>

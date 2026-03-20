@@ -1,32 +1,24 @@
 import React, { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { FiSave, FiX, FiCopy } from "react-icons/fi";
+import {
+  FiSave,
+  FiX,
+  FiCopy,
+  FiUser,
+  FiMail,
+  FiMessageCircle,
+  FiSmartphone,
+  FiMonitor,
+  FiMapPin,
+  FiClock
+} from "react-icons/fi";
 // import { updateUser } from "../../../redux/slice/authSlice";
 
-
-const initialSessions = [
-  {
-    id: 1,
-    date: "2026-03-13 13:05:40",
-    browser: "Chrome / macOS",
-    ip: "2409:4090:8047:8201:7d26:19f5:d5a1:8270",
-    location: "India / New Delhi",
-  },
-  {
-    id: 2,
-    date: "2025-12-14 14:51:07",
-    browser: "Chrome / macOS",
-    ip: "103.83.148.252",
-    location: "India / Delhi",
-  },
-];
-
 const Profile = () => {
-
   const { user, loading } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
 
-  const [sessions, setSessions] = useState(initialSessions);
+  const [sessions, setSessions] = useState([]);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -45,6 +37,31 @@ const Profile = () => {
       });
     }
   }, [user]);
+
+  // 🌍 FETCH REAL SESSION DATA
+  useEffect(() => {
+    const fetchSessionData = async () => {
+      try {
+        const res = await fetch("https://api.ipify.org?format=json");
+        const data = await res.json();
+        
+        const newSession = {
+          id: Date.now(),
+          date: new Date().toLocaleString(),
+          browser: `${navigator.userAgent.includes("Chrome") ? "Chrome" : "Browser"} / ${navigator.platform}`,
+          ip: data.ip,
+          location: "Current Session",
+          isCurrent: true,
+        };
+        
+        setSessions([newSession]);
+      } catch (error) {
+        console.error("Failed to fetch IP", error);
+      }
+    };
+
+    fetchSessionData();
+  }, []);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -115,12 +132,17 @@ const Profile = () => {
                   Login
                 </label>
 
-                <input
-                  type="text"
-                  value={user.name}
-                  disabled
-                  className="mt-2 w-full bg-gray-100 dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded-lg px-4 py-3"
-                />
+                <div className="relative mt-2">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <FiUser className="text-gray-400" />
+                  </div>
+                  <input
+                    type="text"
+                    value={user.name}
+                    disabled
+                    className="w-full pl-10 bg-gray-100 dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded-lg px-4 py-3 text-gray-500 cursor-not-allowed"
+                  />
+                </div>
               </div>
 
               <div>
@@ -128,12 +150,17 @@ const Profile = () => {
                   Email
                 </label>
 
-                <input
-                  type="email"
-                  value={formData.email}
-                  disabled
-                  className="mt-2 w-full bg-gray-100 dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded-lg px-4 py-3"
-                />
+                <div className="relative mt-2">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <FiMail className="text-gray-400" />
+                  </div>
+                  <input
+                    type="email"
+                    value={formData.email}
+                    disabled
+                    className="w-full pl-10 bg-gray-100 dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded-lg px-4 py-3 text-gray-500 cursor-not-allowed"
+                  />
+                </div>
               </div>
 
               <div>
@@ -141,13 +168,18 @@ const Profile = () => {
                   Name
                 </label>
 
-                <input
-                  type="text"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  className="mt-2 w-full bg-white dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded-lg px-4 py-3"
-                />
+                <div className="relative mt-2">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <FiUser className="text-gray-400" />
+                  </div>
+                  <input
+                    type="text"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleChange}
+                    className="w-full pl-10 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-600 rounded-lg px-4 py-3 focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all"
+                  />
+                </div>
               </div>
 
               <div>
@@ -155,16 +187,21 @@ const Profile = () => {
                   Messenger
                 </label>
 
-                <select
-                  name="messenger"
-                  value={formData.messenger}
-                  onChange={handleChange}
-                  className="mt-2 w-full bg-white dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded-lg px-4 py-3"
-                >
-                  <option>WhatsApp</option>
-                  <option>Telegram</option>
-                  <option>Skype</option>
-                </select>
+                <div className="relative mt-2">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <FiMessageCircle className="text-gray-400" />
+                  </div>
+                  <select
+                    name="messenger"
+                    value={formData.messenger}
+                    onChange={handleChange}
+                    className="w-full pl-10 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-600 rounded-lg px-4 py-3 focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all appearance-none"
+                  >
+                    <option>WhatsApp</option>
+                    <option>Telegram</option>
+                    <option>Skype</option>
+                  </select>
+                </div>
               </div>
 
               <div className="md:col-span-2">
@@ -172,13 +209,19 @@ const Profile = () => {
                   Messenger Account
                 </label>
 
-                <input
-                  type="text"
-                  name="messengerAccount"
-                  value={formData.messengerAccount}
-                  onChange={handleChange}
-                  className="mt-2 w-full bg-white dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded-lg px-4 py-3"
-                />
+                <div className="relative mt-2">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <FiSmartphone className="text-gray-400" />
+                  </div>
+                  <input
+                    type="text"
+                    name="messengerAccount"
+                    value={formData.messengerAccount}
+                    onChange={handleChange}
+                    placeholder="Phone number or username"
+                    className="w-full pl-10 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-600 rounded-lg px-4 py-3 focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all"
+                  />
+                </div>
               </div>
 
               <div className="md:col-span-2">
@@ -209,11 +252,11 @@ const Profile = () => {
                 <thead className="border-b border-gray-200 dark:border-slate-700 text-gray-500 dark:text-gray-400">
 
                   <tr>
-                    <th className="py-3">Date</th>
-                    <th>Browser</th>
-                    <th>IP</th>
-                    <th>Copy</th>
-                    <th>Location</th>
+                    <th className="py-3 font-medium"><div className="flex items-center gap-2"><FiClock size={14} /> Date</div></th>
+                    <th className="font-medium"><div className="flex items-center gap-2"><FiMonitor size={14} /> Browser</div></th>
+                    <th className="font-medium">IP</th>
+                    <th className="font-medium"></th>
+                    <th className="font-medium"><div className="flex items-center gap-2"><FiMapPin size={14} /> Location</div></th>
                     <th>Action</th>
                   </tr>
 
@@ -228,10 +271,17 @@ const Profile = () => {
                       className="border-b border-gray-200 dark:border-slate-700"
                     >
 
-                      <td className="py-4">{s.date}</td>
+                      <td className="py-4 text-sm text-gray-600 dark:text-gray-300">
+                        {s.date}
+                        {s.isCurrent && (
+                          <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300">
+                            Current
+                          </span>
+                        )}
+                      </td>
                       <td>{s.browser}</td>
 
-                      <td className="flex items-center gap-2">
+                      <td className="font-mono text-sm">
                         {s.ip}
                         </td>
 
@@ -243,7 +293,7 @@ const Profile = () => {
 
                       </td>
 
-                      <td>{s.location}</td>
+                      <td className="text-sm text-gray-500">{s.location}</td>
 
                       <td>
                         <button

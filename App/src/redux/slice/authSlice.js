@@ -127,10 +127,13 @@ const authSlice = createSlice({
                 state.error = null;
             })
             .addCase(loginUser.fulfilled, (state, action) => {
-                state.loading = false;
-                state.user = action.payload;
-                state.isAuthChecked = true;
-            })
+    state.loading = false;
+    state.user = action.payload;
+    state.isAuthChecked = true;
+
+    // 🔥 IMPORTANT FIX
+    localStorage.setItem("user", JSON.stringify(action.payload));
+})
             .addCase(loginUser.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload;

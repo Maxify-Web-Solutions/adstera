@@ -77,7 +77,7 @@ const Smartlinks = () => {
         <div className="space-y-8">
 
             {/* Guide Section */}
-            <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl p-6 md:p-8">
+            <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-2xl p-6 md:p-8 shadow-sm">
 
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
                     <h2 className="text-gray-900 dark:text-white font-semibold text-lg">
@@ -129,7 +129,7 @@ const Smartlinks = () => {
             </div>
 
             {/* Anti Adblock */}
-            <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+            <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-2xl p-6 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
                 <span className="text-sm text-gray-500 dark:text-gray-400">
                     Get Anti-Adblock to increase your revenue
                 </span>
@@ -142,13 +142,13 @@ const Smartlinks = () => {
             {/* Buttons */}
             <div className="flex flex-col sm:flex-row justify-end gap-4">
 
-                <button className="border border-gray-300 dark:border-slate-700 px-4 py-2 rounded-lg text-gray-800 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 w-full sm:w-auto">
+                <button className="border border-gray-300 dark:border-slate-700 px-6 py-2.5 rounded-xl text-gray-800 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700 w-full sm:w-auto font-medium transition-colors">
                     EXPORT LINKS
                 </button>
 
                 <button
                     onClick={() => setIsModalOpen(true)}
-                    className="bg-green-600 hover:bg-green-700 px-5 py-2 rounded-lg text-white w-full sm:w-auto"
+                    className="bg-green-600 hover:bg-green-700 px-6 py-2.5 rounded-xl text-white w-full sm:w-auto font-medium shadow-lg shadow-green-600/20 transition-all hover:scale-[1.02]"
                 >
                     ADD SMARTLINK
                 </button>
@@ -168,7 +168,7 @@ const Smartlinks = () => {
             )}
 
             {/* Desktop Table */}
-            <div className="hidden md:block bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl">
+            <div className="hidden md:block bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-2xl shadow-sm overflow-hidden">
                 <div className="overflow-x-auto">
 
                     <table className="w-full text-left min-w-[640px]">
@@ -262,7 +262,7 @@ const Smartlinks = () => {
             <div className="md:hidden space-y-4">
                 {sortedLinks.length > 0 ? (
                     sortedLinks.map((link) => (
-                        <div key={link._id} className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl p-4 space-y-3">
+                        <div key={link._id} className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-2xl p-5 shadow-sm space-y-3">
 
                             <div className="flex justify-between items-center">
                                 <h3 className="text-gray-900 dark:text-white font-semibold">

@@ -95,7 +95,7 @@ const FAQCaseStudies = () => {
                     {faqCategories.map((cat, i) => (
                         <div
                             key={i}
-                            className="p-6 rounded-xl border bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 hover:shadow-md transition cursor-pointer"
+                            className="p-6 rounded-2xl border bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 hover:shadow-lg hover:border-gray-300 dark:hover:border-slate-600 transition-all cursor-pointer shadow-sm group"
                         >
 
                             <div className="flex items-center gap-4 mb-4">
@@ -147,7 +147,7 @@ const FAQCaseStudies = () => {
                     {guides.map((guide, i) => (
                         <div
                             key={i}
-                            className="h-48 flex flex-col justify-end p-6 rounded-xl border bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 hover:shadow-md transition"
+                            className="h-48 flex flex-col justify-end p-6 rounded-2xl border bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 hover:shadow-lg hover:scale-[1.02] transition-all shadow-sm cursor-pointer"
                         >
 
                             <h3 className="font-semibold text-gray-900 dark:text-white mb-2">
@@ -185,7 +185,7 @@ const FAQCaseStudies = () => {
                     {stories.map((story, i) => (
                         <div
                             key={i}
-                            className="p-6 rounded-xl border bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 hover:shadow-md transition"
+                            className="p-6 rounded-2xl border bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 hover:shadow-lg hover:scale-[1.02] transition-all shadow-sm cursor-pointer"
                         >
 
                             <h3 className="font-semibold text-gray-900 dark:text-white mb-2">

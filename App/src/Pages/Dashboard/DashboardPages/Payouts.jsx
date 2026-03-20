@@ -32,7 +32,7 @@ const Payouts = () => {
             <div className="grid lg:grid-cols-2 gap-6">
 
                 {/* HOW TO GET PAID */}
-                <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl p-6">
+                <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-2xl p-6 md:p-8 shadow-sm">
 
                     <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">
                         How to get a payout
@@ -54,7 +54,7 @@ const Payouts = () => {
                 </div>
 
                 {/* YOUR METHOD */}
-                <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl p-6">
+                <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-2xl p-6 md:p-8 shadow-sm">
 
                     <div className="flex justify-between items-center mb-6">
 
@@ -109,7 +109,7 @@ const Payouts = () => {
             </div>
 
             {/* DOCUMENTS TABLE */}
-            <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl">
+            <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-2xl shadow-sm overflow-hidden">
 
                 <div className="p-6 border-b border-gray-200 dark:border-slate-700">
 
@@ -165,7 +165,7 @@ const Payouts = () => {
             </div>
 
             {/* PAYOUT HISTORY */}
-            <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl">
+            <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-2xl shadow-sm overflow-hidden">
 
                 <div className="p-6 border-b border-gray-200 dark:border-slate-700 flex justify-between items-center">
 

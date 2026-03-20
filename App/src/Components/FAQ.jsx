@@ -8,7 +8,7 @@ const AccordionItem = ({ question, answer, isOpen, onClick }) => {
                 onClick={onClick}
                 className="w-full flex justify-between items-center text-left gap-4"
             >
-                <h3 className="text-lg font-semibold text-white">{question}</h3>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{question}</h3>
                 <span className="text-indigo-400 flex-shrink-0">
                     {isOpen ? <FiMinus size={24} /> : <FiPlus size={24} />}
                 </span>
@@ -19,7 +19,7 @@ const AccordionItem = ({ question, answer, isOpen, onClick }) => {
                 }`}
             >
                 <div className="overflow-hidden">
-                    <p className="text-slate-400">
+                    <p className="text-gray-600 dark:text-slate-400">
                         {answer}
                     </p>
                 </div>
@@ -55,23 +55,23 @@ const FAQ = () => {
     ];
 
     return (
-        <section className="bg-slate-900 text-white relative py-16 md:py-20">
+        <section className="bg-white dark:bg-slate-900 text-gray-800 dark:text-white relative py-16 md:py-20 transition-colors duration-300">
             <div className="absolute -bottom-20 -translate-x-1/2 left-1/2 w-[800px] h-[800px] bg-indigo-500/10 blur-3xl rounded-full -z-0"></div>
 
             <div className="max-w-4xl mx-auto px-6 relative">
                 <div className="text-center mb-16">
-                    <h2 className="text-4xl md:text-5xl font-bold leading-tight">
+                    <h2 className="text-4xl md:text-5xl font-bold leading-tight text-gray-900 dark:text-white">
                         Frequently Asked
                         <span className="block bg-gradient-to-r from-indigo-400 to-cyan-400 bg-clip-text text-transparent">
                             Questions
                         </span>
                     </h2>
-                    <p className="mt-4 text-gray-400 text-lg max-w-2xl mx-auto">
+                    <p className="mt-4 text-gray-500 dark:text-gray-400 text-lg max-w-2xl mx-auto">
                         Have questions? We've got answers. If you can't find what you're looking for, feel free to contact our support team.
                     </p>
                 </div>
 
-                <div className="divide-y divide-slate-700">
+                <div className="divide-y divide-gray-200 dark:divide-slate-700">
                     {faqData.map((item, index) => (
                         <AccordionItem
                             key={index}
