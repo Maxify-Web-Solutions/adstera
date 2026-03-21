@@ -1,6 +1,8 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/authmodel");
+const UAParser = require("ua-parser-js");
+
 
 // generate token
 const generateToken = (id) => {
@@ -56,25 +58,50 @@ const register = async (req, res) => {
 
 
 // LOGIN
+
 const login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    if (!email || !password) {
-      return res.status(400).json({ message: "Email and password required" });
-    }
-
     const user = await User.findOne({ email });
 
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(404).json({
+        message: "User not found"
+      });
     }
 
-    const ismatch = await bcrypt.compare(password, user.password);
+    const isMatch = await bcrypt.compare(password, user.password);
 
-    if (!ismatch) {
-      return res.status(400).json({ message: "Invalid credentials" });
+    if (!isMatch) {
+      return res.status(400).json({
+        message: "Invalid credentials"
+      });
     }
+
+    if (user.role !== "admin") {
+      return res.status(403).json({
+        message: "Access denied. Only admin can login."
+      });
+    }
+
+    // ✅ USER-AGENT PARSE
+    const ua = req.headers["user-agent"];
+    const parser = new UAParser(ua);
+    const device = parser.getDevice();
+    const os = parser.getOS();
+    const browser = parser.getBrowser();
+
+    // ✅ UPDATE LAST LOGIN
+    user.lastLogin = {
+      date: new Date(),
+      ip: req.ip || req.headers["x-forwarded-for"],
+      device: device.model || "Desktop",
+      os: os.name + " " + os.version,
+      browser: browser.name + " " + browser.version
+    };
+
+    await user.save();
 
     const token = generateToken(user._id);
 
@@ -82,17 +109,21 @@ const login = async (req, res) => {
       httpOnly: true,
       secure: false,
       sameSite: "strict",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
+      maxAge: 7 * 24 * 60 * 60 * 1000
     });
+
+    const { password: pass, ...userData } = user._doc;
 
     res.json({
       success: true,
       message: "Login successful",
-      user,
+      user: userData
     });
 
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({
+      message: error.message
+    });
   }
 };
 

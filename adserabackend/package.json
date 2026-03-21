@@ -20,6 +20,7 @@
     "express-router": "^0.0.1",
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.2.4",
-    "nodemon": "^3.1.14"
+    "nodemon": "^3.1.14",
+    "ua-parser-js": "^2.0.9"
   }
 }
