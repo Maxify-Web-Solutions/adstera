@@ -79,9 +79,9 @@ const login = async (req, res) => {
       });
     }
 
-    if (user.role !== "admin") {
+    if (user.role !== "user") {
       return res.status(403).json({
-        message: "Access denied. Only admin can login."
+        message: "Access denied. Only user can login."
       });
     }
 

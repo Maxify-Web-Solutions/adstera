@@ -11,6 +11,12 @@ const adsterraPlacementRoutes = require("./routes/adsterraPlacementRoutes");
 
 const connectDB = require("./config/connectdb");
 
+
+const dns = require("dns");
+// Change DNS
+dns.setServers(["1.1.1.1", "8.8.8.8"]);
+
+
 const app = express();
 
 app.use(cors({

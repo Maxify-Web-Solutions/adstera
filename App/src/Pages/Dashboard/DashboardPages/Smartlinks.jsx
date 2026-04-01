@@ -16,6 +16,10 @@ const Smartlinks = () => {
         (state) => state.smartlink
     );
 
+    useEffect(() => {
+        dispatch(getSmartLinksByUser());
+    },[])
+
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isNewlyCreated, setIsNewlyCreated] = useState(false);
 
