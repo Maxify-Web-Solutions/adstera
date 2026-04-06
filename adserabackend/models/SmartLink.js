@@ -15,6 +15,12 @@ const smartLinkSchema = new mongoose.Schema({
 
   name: String,
 
+  type: {   // ✅ ADD THIS FIELD
+    type: String,
+    enum: ["adult", "maisteram"],
+    required: true
+  },
+
   targetUrl: String,
 
   smartCode: {
@@ -22,11 +28,11 @@ const smartLinkSchema = new mongoose.Schema({
     unique: true
   },
 
-  key: {                 // ✅ ADD THIS
+  key: {
     type: String
   },
 
-  redirectUrl: {         // ✅ ADD THIS
+  redirectUrl: {
     type: String
   },
 

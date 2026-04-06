@@ -16,7 +16,10 @@ const userschema = new mongoose.Schema(
       type: String,
       required: true,
     },
-
+    revenue: {
+      type: Number,
+      default: 0,
+    },
     role: {
       enum: ['admin', 'user'],
       default: 'user',

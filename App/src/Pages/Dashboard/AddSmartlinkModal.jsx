@@ -4,53 +4,47 @@ function AddSmartlinkModal({ onClose, onSubmit }) {
     const [trafficType, setTrafficType] = useState("adult");
 
     const options = [
-        { label: "Adult", value: "adult" },
-        { label: "Mainstream", value: "mainstream" },
+        { label: "Adult Traffic", value: "adult" },
+        { label: "Maisteram Traffic", value: "maisteram" }, // ✅ FIXED
     ];
 
     return (
         <div
             className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
-            onClick={onClose} // ✅ outside click close
+            onClick={onClose}
         >
             <div
                 className="w-full max-w-md bg-white dark:bg-slate-900 rounded-2xl shadow-2xl p-6 relative"
-                onClick={(e) => e.stopPropagation()} // ✅ IMPORTANT FIX
+                onClick={(e) => e.stopPropagation()}
             >
-                {/* Close */}
                 <button
                     type="button"
                     onClick={onClose}
-                    className="absolute top-3 right-3 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                    className="absolute top-3 right-3 text-gray-400 hover:text-gray-600"
                 >
                     ✕
                 </button>
 
-                {/* Title */}
-                <h2 className="text-xl font-semibold text-gray-800 dark:text-white mb-6">
+                <h2 className="text-xl font-semibold mb-6">
                     Add new Smartlink
                 </h2>
 
-                {/* Traffic Type */}
                 <div className="space-y-4">
-                    <h3 className="text-gray-700 dark:text-gray-300 font-medium">
-                        Traffic type
-                    </h3>
+                    <h3 className="font-medium">Traffic type</h3>
 
                     {options.map((item) => (
                         <div
                             key={item.value}
                             onClick={() => setTrafficType(item.value)}
-                            className={`flex items-center gap-3 cursor-pointer p-3 rounded-xl border transition
-                ${trafficType === item.value
-                                    ? "border-green-500 bg-green-50 dark:bg-green-900/20"
-                                    : "border-gray-300 dark:border-slate-700 hover:border-green-400"
+                            className={`flex items-center gap-3 cursor-pointer p-3 rounded-xl border
+                            ${trafficType === item.value
+                                    ? "border-green-500 bg-green-50"
+                                    : "border-gray-300"
                                 }`}
                         >
-                            {/* Radio */}
                             <div
                                 className={`w-5 h-5 rounded-full border-2 flex items-center justify-center
-                  ${trafficType === item.value
+                                ${trafficType === item.value
                                         ? "border-green-500"
                                         : "border-gray-400"
                                     }`}
@@ -60,27 +54,19 @@ function AddSmartlinkModal({ onClose, onSubmit }) {
                                 )}
                             </div>
 
-                            <span className="text-gray-800 dark:text-white">
-                                {item.label}
-                            </span>
+                            <span>{item.label}</span>
                         </div>
                     ))}
                 </div>
 
-                {/* Actions */}
                 <div className="flex justify-end gap-3 mt-8">
-                    <button
-                        type="button"
-                        onClick={onClose}
-                        className="px-4 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg"
-                    >
+                    <button onClick={onClose} className="px-4 py-2">
                         CANCEL
                     </button>
 
                     <button
-                        type="button"
-                        onClick={() => onSubmit(trafficType)}
-                        className="px-5 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium"
+                        onClick={() => onSubmit(trafficType)} // ✅ correct value
+                        className="px-5 py-2 bg-green-600 text-white rounded-lg"
                     >
                         ADD
                     </button>

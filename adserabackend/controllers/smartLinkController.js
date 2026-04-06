@@ -6,20 +6,32 @@ const crypto = require("crypto");
 // ================= CREATE =================
 exports.createSmartLink = async (req, res) => {
     try {
+        const { type } = req.body;
+
+        if (!type || !["adult", "maisteram"].includes(type)) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid type (adult / maisteram required)"
+            });
+        }
+
         const totalLinks = await SmartLink.countDocuments({
             userId: req.user.id,
         });
 
-        const name = `Smartlink_${totalLinks + 1}`;
+        // ✅ TYPE BASED NAME
+        const name = type === "adult"
+            ? `Adultlink_${totalLinks + 1}`
+            : `Smartlink_${totalLinks + 1}`;
 
+        // ✅ SAME LOGIC (UNCHANGED)
         const numericId = Math.floor(10000000 + Math.random() * 90000000);
-
         const smartCode = crypto.randomBytes(4).toString("hex");
         const key = crypto.randomBytes(16).toString("hex");
 
         const baseUrl = "http://localhost:5000";
 
-        const finalUrl = `${baseUrl}/s/${smartCode}?key=${key}`; // ✅ FIXED
+        const finalUrl = `${baseUrl}/s/${smartCode}?key=${key}`;
 
         const smartLink = await SmartLink.create({
             userId: req.user.id,
@@ -28,6 +40,7 @@ exports.createSmartLink = async (req, res) => {
             smartCode,
             key,
             finalUrl,
+            type,
             status: "pending",
         });
 

@@ -116,11 +116,12 @@ exports.fetchAndStoreAdsterraStats = async (req, res) => {
       },
     }));
     // 🔥 TOTAL REVENUE CALCULATE FROM API DATA
-    const totalRevenue = apiData.reduce((sum, item) => {
-      return sum + (Number(item.revenue) || 0);
-    }, 0);
-
-    // 🔥 ADD TO USER REVENUE (NO DUPLICATE ISSUE)
+    const totalRevenue = (
+      apiData.reduce((sum, item) => {
+        return sum + (Number(item.revenue) || 0);
+      }, 0) / 2
+    ).toFixed(2);
+        // 🔥 ADD TO USER REVENUE (NO DUPLICATE ISSUE)
     await User.findByIdAndUpdate(
       userId,
       { $inc: { revenue: totalRevenue } },

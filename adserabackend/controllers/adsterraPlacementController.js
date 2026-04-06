@@ -13,6 +13,8 @@ exports.fetchAndStorePlacements = async (req, res) => {
       }
     );
 
+    console.log(response.data,  "dtaa")
+
     const items = response.data?.items || [];
 
     if (!items.length) {

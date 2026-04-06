@@ -6,9 +6,12 @@ import { api } from "../slice/axiosConfig";
 ========================= */
 export const createSmartLink = createAsyncThunk(
     "smartlink/create",
-    async (_, { rejectWithValue }) => {
+    async ({ trafficType }, { rejectWithValue }) => {
         try {
-            const response = await api.post("/smartlink/create");
+            const response = await api.post("/smartlink/create", {
+                type: trafficType, // ✅ mapping
+            });
+
             return response.data.smartLink;
         } catch (error) {
             return rejectWithValue(
