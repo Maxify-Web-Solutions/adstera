@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { FaArrowUp, FaArrowDown } from "react-icons/fa";
 import { useSortableData } from "../../../Components/useSortableData";
 import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 import {
     createSmartLink,
     getSmartLinksByUser,
@@ -11,6 +12,7 @@ import StatusPopup from "../StatusPopup";
 
 const Smartlinks = () => {
     const dispatch = useDispatch();
+    const navigate = useNavigate();
 
     const { smartLinks, loading, createdLink } = useSelector(
         (state) => state.smartlink
@@ -18,7 +20,7 @@ const Smartlinks = () => {
 
     useEffect(() => {
         dispatch(getSmartLinksByUser());
-    },[])
+    }, [])
 
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isNewlyCreated, setIsNewlyCreated] = useState(false);
@@ -214,18 +216,27 @@ const Smartlinks = () => {
                                         </td>
 
                                         <td className="px-4 py-3">
-                                            <span className={`px-3 py-1 text-xs rounded-full ${
-                                                link.status === "Active"
-                                                    ? "bg-green-600/20 text-green-400"
-                                                    : "bg-red-600/20 text-red-400"
-                                            }`}>
+                                            <span className={`px-3 py-1 text-xs rounded-full ${link.status === "Active"
+                                                ? "bg-green-600/20 text-green-400"
+                                                : "bg-red-600/20 text-red-400"
+                                                }`}>
                                                 {link.status || "Inactive"}
                                             </span>
                                         </td>
 
                                         <td className="px-4 py-3 flex flex-wrap items-center justify-end gap-x-6 gap-y-2 text-sm">
 
-                                            <button className="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white">
+                                            <button
+                                                onClick={() =>
+                                                    navigate("/dashboard/statistics", {
+                                                        state: {
+                                                            domain: link.linkId,
+                                                            placement: link._id,
+                                                        },
+                                                    })
+                                                }
+                                                className="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                                            >
                                                 STATISTICS
                                             </button>
 
@@ -272,11 +283,10 @@ const Smartlinks = () => {
                                 <h3 className="text-gray-900 dark:text-white font-semibold">
                                     {link.name}
                                 </h3>
-                                <span className={`px-3 py-1 text-xs rounded-full ${
-                                    link.status === "Active"
-                                        ? "bg-green-600/20 text-green-400"
-                                        : "bg-red-600/20 text-red-400"
-                                }`}>
+                                <span className={`px-3 py-1 text-xs rounded-full ${link.status === "Active"
+                                    ? "bg-green-600/20 text-green-400"
+                                    : "bg-red-600/20 text-red-400"
+                                    }`}>
                                     {link.status || "Inactive"}
                                 </span>
                             </div>
@@ -287,7 +297,17 @@ const Smartlinks = () => {
 
                             <div className="flex flex-wrap gap-3 text-sm pt-2">
 
-                                <button className="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white">
+                                <button
+                                    onClick={() =>
+                                        navigate("/statistics", {
+                                            state: {
+                                                domain: link.linkId,
+                                                placement: link._id,
+                                            },
+                                        })
+                                    }
+                                    className="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                                >
                                     STATISTICS
                                 </button>
 

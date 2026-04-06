@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { useLocation } from "react-router-dom";
 import {
   fetchAdsterraStats,
   getAdsterraStats,
@@ -12,6 +13,7 @@ import lookup from "country-code-lookup";
 const Statistics = () => {
   const dispatch = useDispatch();
   const countries = getNames();
+  const location = useLocation();
 
   // 📅 Date setup
   const today = new Date();
@@ -37,6 +39,39 @@ const Statistics = () => {
     dispatch(fetchAdsterraStats())
     dispatch(getAdsterraStats())
   }, [])
+
+  useEffect(() => {
+  if (location.state) {
+    setDomain(location.state.domain || "");
+    setPlacement(location.state.placement || "");
+  }
+}, [location.state]);
+
+
+useEffect(() => {
+  if (location.state?.domain && location.state?.placement) {
+    const start = startDate?.toISOString().split("T")[0];
+    const end = endDate?.toISOString().split("T")[0];
+
+    dispatch(
+      fetchAdsterraStats({
+        start_date: start,
+        finish_date: end,
+        country: selectedCountry,
+      })
+    );
+
+    dispatch(
+      getAdsterraStats({
+        domain: location.state.domain,
+        placement: location.state.placement,
+        country: selectedCountry,
+        start_date: start,
+        end_date: end,
+      })
+    );
+  }
+}, [location.state]);
 
   // 🚀 APPLY
   const handleApply = async () => {
