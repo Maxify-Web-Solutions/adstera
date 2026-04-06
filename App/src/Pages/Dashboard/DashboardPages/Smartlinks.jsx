@@ -5,14 +5,19 @@ import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import {
     createSmartLink,
+    updateSmartLink,
     getSmartLinksByUser,
 } from "../../../redux/slice/smartLinkSlice";
 import AddSmartlinkModal from "../AddSmartlinkModal";
 import StatusPopup from "../StatusPopup";
+import EditSmartlinkModal from "../EditSmartlinkModal";
 
 const Smartlinks = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
+
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [editingLink, setEditingLink] = useState(null);
 
     const { smartLinks, loading, createdLink } = useSelector(
         (state) => state.smartlink
@@ -78,6 +83,35 @@ const Smartlinks = () => {
             showPopup("error", "Failed to copy link");
         }
     };
+
+    const handleReactivate = async (link) => {
+        try {
+            await dispatch(updateSmartLink({ id: link._id, status: "Active" })).unwrap();
+            showPopup("success", "Smartlink reactivated!");
+        } catch (error) {
+            showPopup("error", "Failed to reactivate link");
+        }
+    };
+
+    const getStatusColor = (status) => {
+    const s = status?.toLowerCase();
+
+    switch (s) {
+        case "active":
+        case "approved":
+            return "bg-green-600/20 text-green-400";
+
+        case "pending":
+            return "bg-yellow-600/20 text-yellow-400";
+
+        case "rejected":
+        case "declined":
+            return "bg-red-600/20 text-red-400";
+
+        default:
+            return "bg-gray-600/20 text-gray-400";
+    }
+};
 
     return (
         <div className="space-y-8">
@@ -173,6 +207,24 @@ const Smartlinks = () => {
                 />
             )}
 
+            {isEditModalOpen && (
+    <EditSmartlinkModal
+        link={editingLink}
+        onClose={() => setIsEditModalOpen(false)}
+        onSubmit={async (newName) => {
+            await dispatch(
+                updateSmartLink({
+                    id: editingLink._id,
+                    name: newName,
+                })
+            ).unwrap();
+
+            setIsEditModalOpen(false);
+            showPopup("success", "Smartlink name updated!");
+        }}
+    />
+)}
+
             {/* Desktop Table */}
             <div className="hidden md:block bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-2xl shadow-sm overflow-hidden">
                 <div className="overflow-x-auto">
@@ -216,10 +268,7 @@ const Smartlinks = () => {
                                         </td>
 
                                         <td className="px-4 py-3">
-                                            <span className={`px-3 py-1 text-xs rounded-full ${link.status === "Active"
-                                                ? "bg-green-600/20 text-green-400"
-                                                : "bg-red-600/20 text-red-400"
-                                                }`}>
+                                            <span className={`px-3 py-1 text-xs rounded-full ${getStatusColor(link.status)}`}>
                                                 {link.status || "Inactive"}
                                             </span>
                                         </td>
@@ -240,7 +289,13 @@ const Smartlinks = () => {
                                                 STATISTICS
                                             </button>
 
-                                            <button className="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white">
+                                            <button
+                                                onClick={() => {
+                                                    setEditingLink(link);
+                                                    setIsEditModalOpen(true);
+                                                }}
+                                                className="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                                            >
                                                 EDIT
                                             </button>
 
@@ -252,7 +307,10 @@ const Smartlinks = () => {
                                             </button>
 
                                             {link.status !== "Active" && (
-                                                <button className="text-red-400 hover:text-red-300">
+                                                <button
+                                                    onClick={() => handleReactivate(link)}
+                                                    className="text-red-400 hover:text-red-300"
+                                                >
                                                     REACTIVATE
                                                 </button>
                                             )}
@@ -283,10 +341,7 @@ const Smartlinks = () => {
                                 <h3 className="text-gray-900 dark:text-white font-semibold">
                                     {link.name}
                                 </h3>
-                                <span className={`px-3 py-1 text-xs rounded-full ${link.status === "Active"
-                                    ? "bg-green-600/20 text-green-400"
-                                    : "bg-red-600/20 text-red-400"
-                                    }`}>
+                                <span className={`px-3 py-1 text-xs rounded-full ${getStatusColor(link.status)}`}>
                                     {link.status || "Inactive"}
                                 </span>
                             </div>
@@ -323,7 +378,10 @@ const Smartlinks = () => {
                                 </button>
 
                                 {link.status !== "Active" && (
-                                    <button className="text-red-400 hover:text-red-300">
+                                    <button
+                                        onClick={() => handleReactivate(link)}
+                                        className="text-red-400 hover:text-red-300"
+                                    >
                                         REACTIVATE
                                     </button>
                                 )}
