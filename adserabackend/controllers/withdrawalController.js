@@ -10,12 +10,21 @@ exports.createWithdrawal = async (req, res) => {
 
     const {
       amount,
+      paymentMethod,
+
+      // bank
       accountHolderName,
       bankName,
       accountNumber,
       ifscCode,
+
+      // crypto
+      cryptoType,
+      walletAddress,
+      network,
     } = req.body;
 
+    // ✅ Amount validation
     if (!amount || amount <= 0) {
       return res.status(400).json({
         success: false,
@@ -23,6 +32,15 @@ exports.createWithdrawal = async (req, res) => {
       });
     }
 
+    // ✅ Payment method validation
+    if (!paymentMethod || !["bank", "crypto"].includes(paymentMethod)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid payment method (bank / crypto required)",
+      });
+    }
+
+    // ✅ User check
     const user = await User.findById(userId);
 
     if (!user) {
@@ -32,6 +50,7 @@ exports.createWithdrawal = async (req, res) => {
       });
     }
 
+    // ✅ Balance check
     if (user.revenue < amount) {
       return res.status(400).json({
         success: false,
@@ -39,19 +58,51 @@ exports.createWithdrawal = async (req, res) => {
       });
     }
 
-    // ✅ Deduct revenue
+    // ================= VALIDATIONS =================
+
+    if (paymentMethod === "bank") {
+      if (!accountHolderName || !bankName || !accountNumber || !ifscCode) {
+        return res.status(400).json({
+          success: false,
+          message: "All bank details are required",
+        });
+      }
+    }
+
+    if (paymentMethod === "crypto") {
+      if (!cryptoType || !walletAddress || !network) {
+        return res.status(400).json({
+          success: false,
+          message: "All crypto details are required",
+        });
+      }
+    }
+
+    // ✅ Deduct balance
     user.revenue -= amount;
     await user.save();
 
-    // ✅ Create withdrawal
-    const withdrawal = await Withdrawal.create({
+    // ================= CREATE DATA =================
+    const withdrawalData = {
       userId,
       amount,
-      accountHolderName,
-      bankName,
-      accountNumber,
-      ifscCode,
-    });
+      paymentMethod,
+    };
+
+    if (paymentMethod === "bank") {
+      withdrawalData.accountHolderName = accountHolderName;
+      withdrawalData.bankName = bankName;
+      withdrawalData.accountNumber = accountNumber;
+      withdrawalData.ifscCode = ifscCode;
+    }
+
+    if (paymentMethod === "crypto") {
+      withdrawalData.cryptoType = cryptoType;
+      withdrawalData.walletAddress = walletAddress;
+      withdrawalData.network = network;
+    }
+
+    const withdrawal = await Withdrawal.create(withdrawalData);
 
     res.status(200).json({
       success: true,
