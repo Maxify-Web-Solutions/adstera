@@ -8,6 +8,7 @@ const authRoutes = require("./routes/authRoutes");
 const smartLinkRoutes = require("./routes/smartLinkRoutes");
 const adsterraRoutes = require("./routes/adsterraroutes");
 const adsterraPlacementRoutes = require("./routes/adsterraPlacementRoutes");
+const withdrawalRoutes = require("./routes/withdrawalRoutes");
 
 const connectDB = require("./config/connectdb");
 
@@ -37,6 +38,7 @@ app.use("/api/smartlink", smartLinkRoutes);
 app.use("/api/adsterra", adsterraRoutes);
 app.use("/api", adsterraPlacementRoutes);
 
+app.use("/api/withdrawal", withdrawalRoutes);
 
 
 connectDB();
