@@ -31,6 +31,14 @@ const adsterraStatsSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    ctr: {                 // ✅ ADD
+      type: Number,
+      default: 0,
+    },
+    cpm: {                 // ✅ ADD
+      type: Number,
+      default: 0,
+    },
     revenue: {
       type: Number,
       default: 0,

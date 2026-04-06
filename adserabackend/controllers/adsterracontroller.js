@@ -73,6 +73,7 @@ exports.fetchAndStoreAdsterraStats = async (req, res) => {
 
     let apiData = response.data?.items || [];
 
+
     if (!apiData.length) {
       return res.json({
         success: true,
@@ -91,37 +92,52 @@ exports.fetchAndStoreAdsterraStats = async (req, res) => {
     }
 
     // 🚀 BULK WRITE
-    const bulkOps = apiData.map(item => ({
-      updateOne: {
-        filter: {
-          userId,
-          domain,
-          placement: placementId,
-          country: item.country || "all",
-          date: todayDate, // ✅ ADD THIS
-        },
-        update: {
-          $set: {
+    const bulkOps = apiData.map(item => {
+      const impressions = Number(item.impression) || 0;
+      const clicks = Number(item.clicks) || 0;
+      const revenue = (Number(item.revenue) || 0) / 2;
+
+      // ✅ Safe calculations
+      const ctr = impressions > 0 ? (clicks / impressions) * 100 : 0;
+      const cpm = impressions > 0 ? (revenue / impressions) * 1000 : 0;
+
+      return {
+        updateOne: {
+          filter: {
             userId,
             domain,
             placement: placementId,
             country: item.country || "all",
-            date: todayDate, // ✅ SAVE DATE
-            impressions: Number(item.impression) || 0,
-            clicks: Number(item.clicks) || 0,
-            revenue: Number(item.revenue) || 0,
+            date: todayDate,
           },
+          update: {
+            $set: {
+              userId,
+              domain,
+              placement: placementId,
+              country: item.country || "all",
+              date: todayDate,
+
+              impressions,
+              clicks,
+              revenue,
+
+              ctr,   // ✅ ADD
+              cpm,   // ✅ ADD
+            },
+          },
+          upsert: true,
         },
-        upsert: true,
-      },
-    }));
+      };
+    });
+
     // 🔥 TOTAL REVENUE CALCULATE FROM API DATA
     const totalRevenue = (
       apiData.reduce((sum, item) => {
         return sum + (Number(item.revenue) || 0);
       }, 0) / 2
     ).toFixed(2);
-        // 🔥 ADD TO USER REVENUE (NO DUPLICATE ISSUE)
+    // 🔥 ADD TO USER REVENUE (NO DUPLICATE ISSUE)
     await User.findByIdAndUpdate(
       userId,
       { $inc: { revenue: totalRevenue } },
