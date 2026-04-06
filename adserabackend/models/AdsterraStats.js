@@ -7,38 +7,83 @@ const adsterraStatsSchema = new mongoose.Schema(
       ref: "users",
       required: true
     },
+
     domain: {
       type: String,
       required: true,
       index: true,
     },
+
     placement: {
       type: String,
       required: true,
       index: true,
     },
+
     country: {
       type: String,
       default: "all",
       index: true,
     },
 
+    // ✅ DEVICE INFO
+    device: {
+      type: String, // mobile / desktop / tablet
+      default: "desktop",
+      index: true,
+    },
+    deviceModel: {
+      type: String,
+      default: "",
+    },
+    deviceVendor: {
+      type: String,
+      default: "",
+    },
+
+    // ✅ OS INFO
+    osName: {
+      type: String,
+      default: "",
+      index: true,
+    },
+    osVersion: {
+      type: String,
+      default: "",
+    },
+
+    // ✅ BROWSER INFO
+    browserName: {
+      type: String,
+      default: "",
+      index: true,
+    },
+    browserVersion: {
+      type: String,
+      default: "",
+    },
+
+    // 📊 STATS
     impressions: {
       type: Number,
       default: 0,
     },
+
     clicks: {
       type: Number,
       default: 0,
     },
-    ctr: {                 // ✅ ADD
+
+    ctr: {
       type: Number,
       default: 0,
     },
-    cpm: {                 // ✅ ADD
+
+    cpm: {
       type: Number,
       default: 0,
     },
+
     revenue: {
       type: Number,
       default: 0,

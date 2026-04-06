@@ -3,7 +3,7 @@ const SmartLink = require("../models/SmartLink");
 const Placement = require("../models/AdsterraPlacement");
 const AdsterraStats = require("../models/AdsterraStats");
 const User = require("../models/authmodel");
-
+const UAParser = require("ua-parser-js");
 
 
 
@@ -92,6 +92,13 @@ exports.fetchAndStoreAdsterraStats = async (req, res) => {
     }
 
     // 🚀 BULK WRITE
+    const ua = req.headers["user-agent"];
+    const parser = new UAParser(ua);
+
+    const device = parser.getDevice();
+    const os = parser.getOS();
+    const browser = parser.getBrowser();
+
     const bulkOps = apiData.map(item => {
       const impressions = Number(item.impression) || 0;
       const clicks = Number(item.clicks) || 0;
@@ -109,6 +116,15 @@ exports.fetchAndStoreAdsterraStats = async (req, res) => {
             placement: placementId,
             country: item.country || "all",
             date: todayDate,
+            device: device.type || "desktop",
+            deviceModel: device.model || "",
+            deviceVendor: device.vendor || "",
+
+            osName: os.name || "",
+            osVersion: os.version || "",
+
+            browserName: browser.name || "",
+            browserVersion: browser.version || "",
           },
           update: {
             $set: {
@@ -118,12 +134,15 @@ exports.fetchAndStoreAdsterraStats = async (req, res) => {
               country: item.country || "all",
               date: todayDate,
 
+              // stats
               impressions,
               clicks,
               revenue,
+              ctr,
+              cpm,
 
-              ctr,   // ✅ ADD
-              cpm,   // ✅ ADD
+              // ✅ NEW FIELDS
+
             },
           },
           upsert: true,
