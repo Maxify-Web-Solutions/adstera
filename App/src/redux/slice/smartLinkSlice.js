@@ -22,6 +22,25 @@ export const createSmartLink = createAsyncThunk(
 );
 
 /* =========================
+   UPDATE SMART LINK
+========================= */
+export const updateSmartLink = createAsyncThunk(
+    "smartlink/update",
+    async ({ id, name }, { rejectWithValue }) => {
+        try {
+            const response = await api.put(`/smartlink/${id}`, { name });
+            return response.data.smartLink;
+        } catch (error) {
+            return rejectWithValue(
+                error.response?.data?.message || "Failed to update smart link"
+            );
+        }
+    }
+);
+
+
+
+/* =========================
    APPROVE SMART LINK (ADMIN)
 ========================= */
 export const approveSmartLink = createAsyncThunk(
@@ -38,6 +57,8 @@ export const approveSmartLink = createAsyncThunk(
         }
     }
 );
+
+
 
 /* =========================
    GET MY SMART LINKS
@@ -105,6 +126,27 @@ const smartLinkSlice = createSlice({
                 state.loading = false;
                 state.error = action.payload;
             })
+
+            /* ===== UPDATE NAME ===== */
+.addCase(updateSmartLink.pending, (state) => {
+    state.loading = true;
+    state.error = null;
+})
+
+.addCase(updateSmartLink.fulfilled, (state, action) => {
+    state.loading = false;
+
+    const updatedLink = action.payload;
+
+    state.smartLinks = state.smartLinks.map((link) =>
+        link._id === updatedLink._id ? updatedLink : link
+    );
+})
+
+.addCase(updateSmartLink.rejected, (state, action) => {
+    state.loading = false;
+    state.error = action.payload;
+})
 
             /* ===== APPROVE ===== */
             .addCase(approveSmartLink.pending, (state) => {

@@ -38,7 +38,7 @@ function AddSmartlinkModal({ onClose, onSubmit }) {
                             onClick={() => setTrafficType(item.value)}
                             className={`flex items-center gap-3 cursor-pointer p-3 rounded-xl border
                             ${trafficType === item.value
-                                    ? "border-green-500 bg-green-50"
+                                    ? "border-green-500 "
                                     : "border-gray-300"
                                 }`}
                         >
