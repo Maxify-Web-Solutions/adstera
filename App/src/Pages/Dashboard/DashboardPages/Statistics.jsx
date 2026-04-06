@@ -41,37 +41,37 @@ const Statistics = () => {
   }, [])
 
   useEffect(() => {
-  if (location.state) {
-    setDomain(location.state.domain || "");
-    setPlacement(location.state.placement || "");
-  }
-}, [location.state]);
+    if (location.state) {
+      setDomain(location.state.domain || "");
+      setPlacement(location.state.placement || "");
+    }
+  }, [location.state]);
 
 
-useEffect(() => {
-  if (location.state?.domain && location.state?.placement) {
-    const start = startDate?.toISOString().split("T")[0];
-    const end = endDate?.toISOString().split("T")[0];
+  useEffect(() => {
+    if (location.state?.domain && location.state?.placement) {
+      const start = startDate?.toISOString().split("T")[0];
+      const end = endDate?.toISOString().split("T")[0];
 
-    dispatch(
-      fetchAdsterraStats({
-        start_date: start,
-        finish_date: end,
-        country: selectedCountry,
-      })
-    );
+      dispatch(
+        fetchAdsterraStats({
+          start_date: start,
+          finish_date: end,
+          country: selectedCountry,
+        })
+      );
 
-    dispatch(
-      getAdsterraStats({
-        domain: location.state.domain,
-        placement: location.state.placement,
-        country: selectedCountry,
-        start_date: start,
-        end_date: end,
-      })
-    );
-  }
-}, [location.state]);
+      dispatch(
+        getAdsterraStats({
+          domain: location.state.domain,
+          placement: location.state.placement,
+          country: selectedCountry,
+          start_date: start,
+          end_date: end,
+        })
+      );
+    }
+  }, [location.state]);
 
   // 🚀 APPLY
   const handleApply = async () => {
@@ -166,6 +166,21 @@ useEffect(() => {
 
       return acc;
     }, {})
+  );
+
+  // ✅ FRONTEND TOTAL (ACTUAL TABLE TOTAL)
+  const calculatedTotals = groupedData.reduce(
+    (acc, item) => {
+      acc.impressions += Number(item.impressions || 0);
+      acc.clicks += Number(item.clicks || 0);
+      acc.revenue += Number(item.revenue || 0);
+      return acc;
+    },
+    {
+      impressions: 0,
+      clicks: 0,
+      revenue: 0,
+    }
   );
 
   return (
@@ -287,57 +302,91 @@ useEffect(() => {
             </thead>
 
             <tbody>
-              {groupedData.map((item, i) => (
-                <tr key={i} className="border-t border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700/50 bg-white dark:bg-slate-800 text-gray-600 dark:text-gray-300 transition-colors">
+              {(groupedData || []).map((item, i) => {
+                // ✅ SAFE VALUES
+                const impressions = Number(item?.impressions || 0);
+                const clicks = Number(item?.clicks || 0);
+                const revenue = Number(item?.revenue || 0);
 
-                  {/* LEFT */}
-                  <td className="p-4 font-medium">
-                    {item.label}
-                  </td>
+                // ✅ SAFE CALCULATIONS
+                const ctr = impressions > 0 ? (clicks / impressions) * 100 : 0;
+                const cpm = impressions > 0 ? (revenue / impressions) * 1000 : 0;
 
-                  {/* RIGHT SIDE (separate columns) */}
-                  <td className="p-4 text-right">{item.impressions}</td>
+                return (
+                  <tr
+                    key={i}
+                    className="border-t border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700/50 bg-white dark:bg-slate-800 text-gray-600 dark:text-gray-300 transition-colors"
+                  >
+                    {/* LEFT */}
+                    <td className="p-4 font-medium">
+                      {item?.label || "-"}
+                    </td>
 
-                  <td className="p-4 text-right">{item.clicks}</td>
+                    {/* RIGHT */}
+                    <td className="p-4 text-right">
+                      {impressions.toLocaleString()}
+                    </td>
 
-                  <td className="p-4 text-right">
-                    {item.clicks && item.impressions
-                      ? ((item.clicks / item.impressions) * 100).toFixed(2)
-                      : 0}%
-                  </td>
+                    <td className="p-4 text-right">
+                      {clicks.toLocaleString()}
+                    </td>
 
-                  <td className="p-4 text-right">
-                    {item.impressions
-                      ? ((item.revenue / item.impressions) * 1000).toFixed(3)
-                      : 0}
-                  </td>
+                    <td className="p-4 text-right">
+                      {ctr.toFixed(2)}%
+                    </td>
 
-                  <td className="p-4 text-right">${item.revenue}</td>
+                    <td className="p-4 text-right">
+                      {cpm.toFixed(3)}
+                    </td>
 
-                </tr>
-              ))}
+                    <td className="p-4 text-right">
+                      ${revenue.toFixed(4)}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
+
+            {/* ✅ TOTALS */}
             {totals && (
-              <tr className="border-t border-gray-200 dark:border-slate-700 font-bold bg-gray-50 dark:bg-slate-900/50 overflow-hidden">
-                <td className="p-4">Total</td>
+              <tfoot>
+                <tr className="border-t border-gray-200 dark:border-slate-700 font-bold bg-gray-50 dark:bg-slate-900/50">
+                  <td className="p-4">Total</td>
 
-                <td className="p-4 text-right">{totals.totalImpressions}</td>
-                <td className="p-4 text-right">{totals.totalClicks}</td>
+                  <td className="p-4 text-right">
+                    {calculatedTotals.impressions.toLocaleString()}
+                  </td>
 
-                <td className="p-4 text-right">
-                  {totals.totalClicks && totals.totalImpressions
-                    ? ((totals.totalClicks / totals.totalImpressions) * 100).toFixed(2)
-                    : 0}%
-                </td>
+                  <td className="p-4 text-right">
+                    {calculatedTotals.clicks.toLocaleString()}
+                  </td>
 
-                <td className="p-4 text-right">
-                  {totals.totalImpressions
-                    ? ((totals.totalRevenue / totals.totalImpressions) * 1000).toFixed(3)
-                    : 0}
-                </td>
+                  <td className="p-4 text-right">
+                    {calculatedTotals.impressions > 0
+                      ? (
+                        (calculatedTotals.clicks /
+                          calculatedTotals.impressions) *
+                        100
+                      ).toFixed(2)
+                      : "0.00"}
+                    %
+                  </td>
 
-                <td className="p-4 text-right">${totals.totalRevenue}</td>
-              </tr>
+                  <td className="p-4 text-right">
+                    {calculatedTotals.impressions > 0
+                      ? (
+                        (calculatedTotals.revenue /
+                          calculatedTotals.impressions) *
+                        1000
+                      ).toFixed(3)
+                      : "0.000"}
+                  </td>
+
+                  <td className="p-4 text-right">
+                    ${calculatedTotals.revenue.toFixed(4)}
+                  </td>
+                </tr>
+              </tfoot>
             )}
           </table>
         </div>
