@@ -9,11 +9,11 @@ const CookiePolicy = () => {
     }, []);
 
     return (
-        <div className="min-h-screen w-full bg-slate-900 text-gray-300">
+        <div className="min-h-screen w-full dark:bg-slate-900 dark:text-gray-300 transition-colors duration-300 bg-gray-50 text-gray-900">
             <Header />
 
             <div className="max-w-4xl mx-auto px-4 sm:px-6 py-16 md:py-20">
-                <h1 className="text-3xl md:text-4xl font-bold text-white mb-8">Cookie Policy</h1>
+                <h1 className="text-3xl md:text-4xl font-bold dark:text-white text-gray-900 mb-8">Cookie Policy</h1>
 
                 <p className="mb-6">
                     This Cookie Policy explains how our website uses cookies and similar

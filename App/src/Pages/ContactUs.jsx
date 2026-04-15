@@ -83,17 +83,17 @@ const ContactUs = () => {
     }
 
     return (
-        <div className="min-h-screen w-full bg-slate-900 text-gray-300">
+        <div className="min-h-screen w-full bg-gray-50 dark:bg-slate-900 text-gray-900 dark:text-gray-300 transition-colors duration-300">
             <Header />
 
             <div className="max-w-6xl mx-auto px-4 sm:px-6 py-16 md:py-20">
 
                 {/* Heading */}
                 <div className="text-center mb-16">
-                    <h1 className="text-4xl md:text-5xl font-bold text-white mb-6">
+                    <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-6">
                         Contact Us
                     </h1>
-                    <p className="max-w-2xl mx-auto text-gray-400">
+                    <p className="max-w-2xl mx-auto text-gray-500 dark:text-gray-400">
                         Have questions about our platform, pricing, or features? Our team is here to help.
                         Send us a message and we'll respond as soon as possible.
                     </p>
@@ -105,33 +105,33 @@ const ContactUs = () => {
                     {/* LEFT CARDS */}
                     <div className="flex flex-col gap-6">
 
-                        <div className="bg-slate-800 p-6 rounded-2xl border border-slate-700">
-                            <h3 className="text-xl font-semibold text-white mb-3">
+                        <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-gray-200 dark:border-slate-700 shadow-sm transition-colors duration-300">
+                            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-3">
                                 Customer Support
                             </h3>
-                            <p className="text-gray-400 mb-2">
+                            <p className="text-gray-500 dark:text-gray-400 mb-2 text-sm">
                                 Need help with the platform or facing technical issues?
                             </p>
                             <p className="text-blue-400">support@yourdomain.com</p>
-                            <p className="text-gray-400">+1 (555) 123-4567</p>
+                            <p className="text-gray-500 dark:text-gray-400">+1 (555) 123-4567</p>
                         </div>
 
-                        <div className="bg-slate-800 p-6 rounded-2xl border border-slate-700">
-                            <h3 className="text-xl font-semibold text-white mb-3">
+                        <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-gray-200 dark:border-slate-700 shadow-sm transition-colors duration-300">
+                            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-3">
                                 Business & Partnerships
                             </h3>
-                            <p className="text-gray-400 mb-2">
+                            <p className="text-gray-500 dark:text-gray-400 mb-2 text-sm">
                                 Interested in partnerships or enterprise plans?
                             </p>
                             <p className="text-blue-400">business@yourdomain.com</p>
-                            <p className="text-gray-400">+1 (555) 987-6543</p>
+                            <p className="text-gray-500 dark:text-gray-400">+1 (555) 987-6543</p>
                         </div>
 
-                        <div className="bg-slate-800 p-6 rounded-2xl border border-slate-700">
-                            <h3 className="text-xl font-semibold text-white mb-3">
+                        <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-gray-200 dark:border-slate-700 shadow-sm transition-colors duration-300">
+                            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-3">
                                 Sales
                             </h3>
-                            <p className="text-gray-400 mb-2">
+                            <p className="text-gray-500 dark:text-gray-400 mb-2 text-sm">
                                 Questions about pricing, plans, or product features.
                             </p>
                             <p className="text-blue-400">sales@yourdomain.com</p>
@@ -141,14 +141,14 @@ const ContactUs = () => {
                     </div>
 
                     {/* CONTACT FORM */}
-                    <div className="bg-slate-800 p-8 rounded-2xl border border-slate-700">
+                    <div className="bg-white dark:bg-slate-800 p-8 rounded-2xl border border-gray-200 dark:border-slate-700 shadow-sm transition-colors duration-300">
 
                         <form onSubmit={handleSubmit} className="space-y-6">
 
                             <div className="grid md:grid-cols-2 gap-4">
 
                                 <div>
-                                    <label className="block mb-2 text-sm text-gray-400">
+                                    <label className="block mb-2 text-sm font-medium text-gray-500 dark:text-gray-400">
                                         Full Name
                                     </label>
                                     <input
@@ -157,12 +157,12 @@ const ContactUs = () => {
                                         value={form.name}
                                         onChange={handleChange}
                                         required
-                                        className="w-full px-4 py-3 rounded-lg bg-slate-900 border border-slate-700 focus:border-blue-500 focus:outline-none"
+                                        className="w-full px-4 py-3 rounded-lg bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-700 text-gray-900 dark:text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all"
                                     />
                                 </div>
 
                                 <div>
-                                    <label className="block mb-2 text-sm text-gray-400">
+                                    <label className="block mb-2 text-sm font-medium text-gray-500 dark:text-gray-400">
                                         Email Address
                                     </label>
                                     <input
@@ -171,14 +171,14 @@ const ContactUs = () => {
                                         value={form.email}
                                         onChange={handleChange}
                                         required
-                                        className="w-full px-4 py-3 rounded-lg bg-slate-900 border border-slate-700 focus:border-blue-500 focus:outline-none"
+                                        className="w-full px-4 py-3 rounded-lg bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-700 text-gray-900 dark:text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all"
                                     />
                                 </div>
 
                             </div>
 
                             <div>
-                                <label className="block mb-2 text-sm text-gray-400">
+                                <label className="block mb-2 text-sm font-medium text-gray-500 dark:text-gray-400">
                                     Subject
                                 </label>
                                 <input
@@ -186,12 +186,12 @@ const ContactUs = () => {
                                     name="subject"
                                     value={form.subject}
                                     onChange={handleChange}
-                                    className="w-full px-4 py-3 rounded-lg bg-slate-900 border border-slate-700 focus:border-blue-500 focus:outline-none"
+                                    className="w-full px-4 py-3 rounded-lg bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-700 text-gray-900 dark:text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all"
                                 />
                             </div>
 
                             <div>
-                                <label className="block mb-2 text-sm text-gray-400">
+                                <label className="block mb-2 text-sm font-medium text-gray-500 dark:text-gray-400">
                                     Message
                                 </label>
                                 <textarea
@@ -200,7 +200,7 @@ const ContactUs = () => {
                                     value={form.message}
                                     onChange={handleChange}
                                     required
-                                    className="w-full px-4 py-3 rounded-lg bg-slate-900 border border-slate-700 focus:border-blue-500 focus:outline-none resize-none"
+                                    className="w-full px-4 py-3 rounded-lg bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-700 text-gray-900 dark:text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none resize-none transition-all"
                                 />
                             </div>
 
@@ -220,22 +220,22 @@ const ContactUs = () => {
                 {/* BOTTOM INFO */}
                 <div className="grid md:grid-cols-2 gap-6 mt-12">
 
-                    <div className="bg-slate-800 p-6 rounded-2xl border border-slate-700">
-                        <h3 className="text-xl font-semibold text-white mb-3">
+                    <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-gray-200 dark:border-slate-700 shadow-sm transition-colors duration-300">
+                        <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-3">
                             Office Location
                         </h3>
-                        <p className="text-gray-400">
+                        <p className="text-gray-500 dark:text-gray-400 text-sm">
                             123 Tech Avenue <br />
                             Silicon Valley, CA 94043 <br />
                             United States
                         </p>
                     </div>
 
-                    <div className="bg-slate-800 p-6 rounded-2xl border border-slate-700">
-                        <h3 className="text-xl font-semibold text-white mb-3">
+                    <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-gray-200 dark:border-slate-700 shadow-sm transition-colors duration-300">
+                        <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-3">
                             Working Hours
                         </h3>
-                        <p className="text-gray-400">
+                        <p className="text-gray-500 dark:text-gray-400 text-sm">
                             Monday - Friday: 9:00 AM - 6:00 PM <br />
                             Saturday: 10:00 AM - 4:00 PM <br />
                             Sunday: Closed
@@ -252,15 +252,15 @@ const ContactUs = () => {
                         return (
                             <div
                                 key={index}
-                                className={`border rounded-xl bg-slate-800 overflow-hidden transition-all duration-300
-                                            ${isOpen ? "border-blue-500/60 shadow-lg shadow-blue-500/10" : "border-slate-700"}`}
+                                className={`border rounded-xl bg-white dark:bg-slate-800 overflow-hidden transition-all duration-300
+                                            ${isOpen ? "border-blue-500/60 shadow-lg shadow-blue-500/10" : "border-gray-200 dark:border-slate-700"}`}
                             >
 
                                 <button
                                     onClick={() => toggleFAQ(index)}
-                                    className="w-full flex justify-between items-center p-5 text-left hover:bg-slate-700/40 transition"
+                                    className="w-full flex justify-between items-center p-5 text-left hover:bg-gray-50 dark:hover:bg-slate-700/40 transition"
                                 >
-                                    <span className="text-white font-medium text-sm md:text-base">
+                                    <span className="text-gray-900 dark:text-white font-medium text-sm md:text-base">
                                         {faq.question}
                                     </span>
 
@@ -276,7 +276,7 @@ const ContactUs = () => {
                                     className={`transition-all duration-300 ease-in-out overflow-hidden
                                     ${isOpen ? "max-h-40 opacity-100" : "max-h-0 opacity-0"}`}
                                 >
-                                    <p className="px-5 pb-5 text-gray-400 text-sm leading-relaxed">
+                                    <p className="px-5 pb-5 text-gray-500 dark:text-gray-400 text-sm leading-relaxed">
                                         {faq.answer}
                                     </p>
                                 </div>

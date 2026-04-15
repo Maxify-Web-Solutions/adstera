@@ -53,7 +53,7 @@ const AudienceSection = () => {
                             ))}
                         </ul>
 
-                        <button className="mt-8 px-6 py-3 bg-indigo-600 rounded-lg font-semibold hover:bg-indigo-700 transition">
+                        <button className="mt-8 px-6 py-3 bg-indigo-600 rounded-lg font-semibold hover:bg-indigo-700 transition text-white">
                             Start Advertising
                         </button>
                     </div>
@@ -73,7 +73,7 @@ const AudienceSection = () => {
                             ))}
                         </ul>
 
-                        <button className="mt-8 px-6 py-3 bg-cyan-600 rounded-lg font-semibold hover:bg-cyan-700 transition">
+                        <button className="mt-8 px-6 py-3 bg-cyan-600 rounded-lg font-semibold hover:bg-cyan-700 transition text-white">
                             Start Monetizing
                         </button>
                     </div>

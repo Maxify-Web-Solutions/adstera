@@ -87,7 +87,7 @@ const Login = () => {
                                 onClick={() => setShowPassword(!showPassword)}
                                 className="absolute right-3 top-1/2 -translate-y-1/2 text-xl text-indigo-400 hover:text-indigo-300"
                             >
-                                {showPassword ? "🐵" : "🙈"}
+                                {showPassword ? <BiSolidShow /> : <BiSolidHide />}
                             </button>
 
                         </div>

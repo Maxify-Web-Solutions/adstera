@@ -40,7 +40,7 @@ const AboutUs = () => {
     }, []);
 
     return (
-        <div className="min-h-screen bg-slate-900 text-gray-300">
+        <div className="min-h-screen bg-gray-50 dark:bg-slate-900 text-gray-900 dark:text-gray-300 transition-colors duration-300">
 
             <Header />
 
@@ -48,11 +48,11 @@ const AboutUs = () => {
 
                 {/* HERO */}
                 <div className="text-center mb-24">
-                    <h1 className="text-4xl md:text-5xl font-bold text-white mb-6">
+                    <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-6">
                         About Our Platform
                     </h1>
 
-                    <p className="max-w-3xl mx-auto text-gray-400 text-lg">
+                    <p className="max-w-3xl mx-auto text-gray-500 dark:text-gray-400 text-lg">
                         We are building a powerful advertising ecosystem designed to help
                         businesses reach the right audience while empowering publishers to
                         monetize their traffic efficiently.
@@ -63,43 +63,43 @@ const AboutUs = () => {
                 <div className="grid md:grid-cols-2 gap-12 items-center mb-24">
 
                     <div>
-                        <h2 className="text-3xl font-bold text-white mb-6">
+                        <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">
                             Our Story
                         </h2>
 
-                        <p className="text-gray-400 mb-4">
+                        <p className="text-gray-500 dark:text-gray-400 mb-4">
                             Our journey started with a simple idea: advertising should be
                             transparent, efficient, and accessible to everyone.
                         </p>
 
-                        <p className="text-gray-400 mb-4">
+                        <p className="text-gray-500 dark:text-gray-400 mb-4">
                             We created a platform that bridges the gap between advertisers
                             and publishers by connecting high-quality traffic with powerful
                             monetization tools.
                         </p>
 
-                        <p className="text-gray-400">
+                        <p className="text-gray-500 dark:text-gray-400">
                             Today our platform serves thousands of users globally and
                             continues to grow with innovative advertising technology.
                         </p>
                     </div>
 
-                    <div className="bg-slate-800 p-10 rounded-2xl border border-slate-700">
-                        <h3 className="text-xl font-semibold text-white mb-4">
+                    <div className="bg-white dark:bg-slate-800 p-10 rounded-2xl border border-gray-200 dark:border-slate-700 shadow-sm transition-colors duration-300">
+                        <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
                             Our Mission
                         </h3>
 
-                        <p className="text-gray-400">
+                        <p className="text-gray-500 dark:text-gray-400">
                             Our mission is to build a transparent advertising ecosystem
                             where businesses reach their ideal audience and publishers
                             monetize their traffic efficiently.
                         </p>
 
-                        <h3 className="text-xl font-semibold text-white mt-8 mb-4">
+                        <h3 className="text-xl font-semibold text-gray-900 dark:text-white mt-8 mb-4">
                             Our Vision
                         </h3>
 
-                        <p className="text-gray-400">
+                        <p className="text-gray-500 dark:text-gray-400">
                             To become one of the most trusted and innovative advertising
                             platforms globally by delivering powerful technology and
                             exceptional user experience.
@@ -114,13 +114,13 @@ const AboutUs = () => {
                     {stats.map((stat, index) => (
                         <div
                             key={index}
-                            className="bg-slate-800 p-6 rounded-xl border border-slate-700 text-center hover:border-indigo-500/40 transition"
+                            className="bg-white dark:bg-slate-800 p-6 rounded-xl border border-gray-200 dark:border-slate-700 text-center hover:border-indigo-500/40 shadow-sm transition-all duration-300"
                         >
-                            <h3 className="text-3xl font-bold text-white">
+                            <h3 className="text-3xl font-bold text-gray-900 dark:text-white">
                                 {stat.number}
                             </h3>
 
-                            <p className="text-gray-400 mt-2 text-sm">
+                            <p className="text-gray-500 dark:text-gray-400 mt-2 text-sm">
                                 {stat.label}
                             </p>
                         </div>
@@ -132,41 +132,41 @@ const AboutUs = () => {
                 <div className="mb-24">
 
                     <div className="text-center mb-12">
-                        <h2 className="text-3xl font-bold text-white mb-4">
+                        <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
                             Our Core Values
                         </h2>
-                        <p className="text-gray-400">
+                        <p className="text-gray-500 dark:text-gray-400">
                             Principles that guide everything we build.
                         </p>
                     </div>
 
                     <div className="grid md:grid-cols-3 gap-6">
 
-                        <div className="bg-slate-800 p-6 rounded-xl border border-slate-700 hover:border-indigo-500/40 transition">
-                            <h3 className="text-lg font-semibold text-white mb-3">
+                        <div className="bg-white dark:bg-slate-800 p-6 rounded-xl border border-gray-200 dark:border-slate-700 hover:border-indigo-500/40 shadow-sm transition-all duration-300">
+                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
                                 Transparency
                             </h3>
-                            <p className="text-gray-400 text-sm">
+                            <p className="text-gray-500 dark:text-gray-400 text-sm">
                                 We believe in honest communication and clear reporting
                                 for advertisers and publishers.
                             </p>
                         </div>
 
-                        <div className="bg-slate-800 p-6 rounded-xl border border-slate-700 hover:border-indigo-500/40 transition">
-                            <h3 className="text-lg font-semibold text-white mb-3">
+                        <div className="bg-white dark:bg-slate-800 p-6 rounded-xl border border-gray-200 dark:border-slate-700 hover:border-indigo-500/40 shadow-sm transition-all duration-300">
+                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
                                 Innovation
                             </h3>
-                            <p className="text-gray-400 text-sm">
+                            <p className="text-gray-500 dark:text-gray-400 text-sm">
                                 Our team constantly builds smarter advertising tools
                                 to help businesses grow faster.
                             </p>
                         </div>
 
-                        <div className="bg-slate-800 p-6 rounded-xl border border-slate-700 hover:border-indigo-500/40 transition">
-                            <h3 className="text-lg font-semibold text-white mb-3">
+                        <div className="bg-white dark:bg-slate-800 p-6 rounded-xl border border-gray-200 dark:border-slate-700 hover:border-indigo-500/40 shadow-sm transition-all duration-300">
+                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
                                 Reliability
                             </h3>
-                            <p className="text-gray-400 text-sm">
+                            <p className="text-gray-500 dark:text-gray-400 text-sm">
                                 Stable infrastructure and reliable services ensure
                                 consistent performance for our users.
                             </p>
@@ -180,10 +180,10 @@ const AboutUs = () => {
                 <div className="mb-24">
 
                     <div className="text-center mb-12">
-                        <h2 className="text-3xl font-bold text-white mb-4">
+                        <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
                             Meet Our Team
                         </h2>
-                        <p className="text-gray-400">
+                        <p className="text-gray-500 dark:text-gray-400">
                             The people behind our platform.
                         </p>
                     </div>
@@ -193,7 +193,7 @@ const AboutUs = () => {
                         {team.map((member, index) => (
                             <div
                                 key={index}
-                                className="bg-slate-800 rounded-xl border border-slate-700 p-6 text-center hover:border-indigo-500/40 hover:scale-105 transition"
+                                className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 p-6 text-center hover:border-indigo-500/40 shadow-sm hover:scale-105 transition-all duration-300"
                             >
                                 <img
                                     src={member.image}
@@ -201,11 +201,11 @@ const AboutUs = () => {
                                     className="w-20 h-20 rounded-full mx-auto mb-4"
                                 />
 
-                                <h4 className="text-white font-semibold">
+                                <h4 className="text-gray-900 dark:text-white font-semibold">
                                     {member.name}
                                 </h4>
 
-                                <p className="text-gray-400 text-sm mt-1">
+                                <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">
                                     {member.role}
                                 </p>
                             </div>
@@ -216,13 +216,13 @@ const AboutUs = () => {
                 </div>
 
                 {/* CTA */}
-                <div className="bg-slate-800 border border-slate-700 rounded-2xl p-10 text-center">
+                <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-2xl p-10 text-center shadow-xl transition-colors duration-300">
 
-                    <h2 className="text-3xl font-bold text-white mb-4">
+                    <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
                         Join Our Growing Network
                     </h2>
 
-                    <p className="text-gray-400 mb-6 max-w-2xl mx-auto">
+                    <p className="text-gray-500 dark:text-gray-400 mb-6 max-w-2xl mx-auto">
                         Whether you're an advertiser looking for targeted traffic
                         or a publisher wanting to monetize your audience, our
                         platform provides the tools you need.

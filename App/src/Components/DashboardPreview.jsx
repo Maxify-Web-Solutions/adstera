@@ -45,7 +45,7 @@ const DashboardPreview = () => {
 
                         <ul className="mt-8 space-y-4 text-gray-600 dark:text-slate-300">
                             {features.map((item, index) => (
-                                <li key={index} className="flex items-center gap-3 text-slate-300">
+                                <li key={index} className="flex items-center gap-3 dark:text-slate-300 text-slate-900">
                                     <span className="text-indigo-400 text-lg">
                                         {item.icon}
                                     </span>
@@ -54,7 +54,7 @@ const DashboardPreview = () => {
                             ))}
                         </ul>
 
-                        <button className="mt-8 px-6 py-3 bg-indigo-600 rounded-lg font-semibold hover:bg-indigo-700 transition shadow-lg shadow-indigo-600/20">
+                        <button className="mt-8 px-6 py-3 bg-indigo-600 rounded-lg font-semibold hover:bg-indigo-700 transition shadow-lg shadow-indigo-600/20 text-white">
                             Explore Dashboard
                         </button>
 

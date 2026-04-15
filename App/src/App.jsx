@@ -44,12 +44,12 @@ function App() {
 
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
+        <Route path="/" element={<HomePage />} />
 
       <Route element={<ProtectedRoute />}>
         {/* <Route path="/dashboard" element={<Dashboard />} /> */}
         <Route path="/profile" element={<Profile />} />
       
-        <Route path="/" element={<HomePage />} />
         <Route path="/privacy-pollicy" element={<PrivacyPolicy />} />
         <Route path="/termsOfservice" element={<TermsOfService />} />
         <Route path="/cookiePollicy" element={<CookiePolicy />} />

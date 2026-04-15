@@ -31,7 +31,7 @@ const Cta = () => {
                     <div className="flex flex-wrap justify-center gap-5 mt-10">
 
                         {/* Primary Button */}
-                        <button className="group flex items-center gap-2 px-7 py-3 bg-indigo-600 rounded-xl font-semibold transition-all duration-300 hover:bg-indigo-700 hover:scale-105 shadow-lg shadow-indigo-600/30">
+                        <button className="group flex items-center gap-2 px-7 py-3 bg-indigo-600 rounded-xl font-semibold transition-all duration-300 hover:bg-indigo-700 hover:scale-105 shadow-lg shadow-indigo-600/30 text-white">
                             Buy Traffic
                             <FiArrowRight className="transition-transform group-hover:translate-x-1" />
                         </button>

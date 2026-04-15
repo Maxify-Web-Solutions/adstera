@@ -33,7 +33,7 @@ const Hero = () => {
 
                     <div className="flex flex-wrap gap-4 mt-10 justify-center md:justify-start">
 
-                        <button className="flex items-center gap-2 px-6 py-3 bg-indigo-600 rounded-lg font-semibold hover:bg-indigo-700 transition shadow-lg shadow-indigo-600/20">
+                        <button className="flex items-center gap-2 px-6 py-3 bg-indigo-600 rounded-lg font-semibold hover:bg-indigo-700 transition shadow-lg shadow-indigo-600/20 text-white">
                             Buy Traffic
                             <FiArrowRight />
                         </button>
