@@ -1,7 +1,7 @@
 import { Routes, Route } from "react-router-dom";
 import Login from "./Pages/Login";
 import Register from "./Pages/Register";
-import ProtectedRoute from "./components/ProtectedRoute";
+import ProtectedRoute from "./Components/ProtectedRoute";
 import HomePage from "./Pages/HomePage";
 import { useEffect } from "react";
 import { getUser } from "./redux/slice/authSlice";
