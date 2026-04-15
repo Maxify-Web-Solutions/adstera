@@ -134,16 +134,16 @@ const Statistics = () => {
           break;
 
         case "device":
-  key = item.device || "Unknown";
-  break;
+          key = item.device || "Unknown";
+          break;
 
-case "os":
-  key = item.osName || "Unknown";
-  break;
+        case "os":
+          key = item.osName || "Unknown";
+          break;
 
-case "browser":
-  key = item.browserName || "Unknown";
-  break;
+        case "browser":
+          key = item.browserName || "Unknown";
+          break;
 
         default:
           key = "Unknown";

@@ -245,7 +245,7 @@ const Profile = () => {
               Active Sessions
             </h2>
 
-            <div className="overflow-x-auto">
+            <div className="hidden md:block overflow-x-auto">
 
               <table className="w-full text-left min-w-[600px]">
 
@@ -322,6 +322,63 @@ const Profile = () => {
             </button>
 
           </div>
+
+          {/* Mobile View */}
+<div className="md:hidden space-y-4">
+  {sessions.map((s) => (
+    <div
+      key={s.id}
+      className="border border-gray-200 dark:border-slate-700 rounded-xl p-4 bg-white dark:bg-slate-800"
+    >
+      {/* Date */}
+      <div className="flex justify-between items-center mb-2">
+        <span className="text-sm text-gray-500">Date</span>
+        <div className="text-sm">
+          {s.date}
+          {s.isCurrent && (
+            <span className="ml-2 px-2 py-0.5 text-xs rounded bg-green-100 text-green-800">
+              Current
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* Browser */}
+      <div className="flex justify-between text-sm mb-1">
+        <span className="text-gray-500">Browser</span>
+        <span>{s.browser}</span>
+      </div>
+
+      {/* IP */}
+      <div className="flex justify-between items-center text-sm mb-1">
+        <span className="text-gray-500">IP</span>
+        <div className="flex items-center gap-2">
+          <span className="font-mono">{s.ip}</span>
+          <FiCopy
+            className="cursor-pointer opacity-60"
+            onClick={() => copyIP(s.ip)}
+          />
+        </div>
+      </div>
+
+      {/* Location */}
+      <div className="flex justify-between text-sm mb-2">
+        <span className="text-gray-500">Location</span>
+        <span>{s.location}</span>
+      </div>
+
+      {/* Action */}
+      <div className="flex justify-end">
+        <button
+          onClick={() => removeSession(s.id)}
+          className="text-red-500"
+        >
+          <FiX />
+        </button>
+      </div>
+    </div>
+  ))}
+</div>
 
         </div>
 

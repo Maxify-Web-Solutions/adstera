@@ -50,41 +50,46 @@ const ApiPage = () => {
           </button>
         ) : (
 
-          <div className="space-y-4">
+          <div className="bg-gray-50 dark:bg-slate-900/50 border border-gray-100 dark:border-slate-700 rounded-2xl p-5 md:p-6 space-y-6">
+            
+            <div className="flex justify-between items-start gap-4">
+              <div className="flex flex-col gap-1 flex-1 min-w-0">
+                <span className="text-[10px] text-gray-500 dark:text-gray-400 uppercase tracking-widest font-bold">
+                  Personal Access Token
+                </span>
+                <div className="text-gray-900 dark:text-white font-mono text-sm md:text-base break-all leading-relaxed">
+                  {showToken ? token : "••••••••••••••••••••••••••••••••••••••••"}
+                </div>
+              </div>
+              <span className="px-3 py-1 rounded-full text-[11px] font-medium bg-green-600/20 text-green-500 shrink-0">
+                ACTIVE
+              </span>
+            </div>
 
-            {/* Token Field */}
-            <div className="flex flex-col md:flex-row gap-3">
-
-              <input
-                type={showToken ? "text" : "password"}
-                value={token}
-                readOnly
-                className="flex-1 px-4 py-3 rounded-xl border bg-gray-50 dark:bg-slate-900 border-gray-300 dark:border-slate-700 text-gray-700 dark:text-gray-300 font-mono text-sm focus:ring-2 focus:ring-blue-500 outline-none"
-              />
-
+            <div className="flex flex-wrap items-center gap-x-6 gap-y-3 pt-5 border-t border-gray-200 dark:border-slate-700">
+              
               <button
                 onClick={() => setShowToken(!showToken)}
-                className="px-5 py-3 rounded-xl border border-gray-300 dark:border-slate-600 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors"
+                className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white font-medium transition-colors"
               >
-                {showToken ? "Hide" : "Show"}
+                {showToken ? "HIDE KEY" : "SHOW KEY"}
               </button>
 
               <button
                 onClick={copyToken}
-                className="px-5 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-600/20 transition-all"
+                className="text-sm text-green-500 hover:text-green-400 font-medium transition-colors"
               >
-                Copy
+                COPY KEY
+              </button>
+
+              <button
+                onClick={revokeToken}
+                className="text-sm text-red-500 hover:text-red-400 font-medium transition-colors sm:ml-auto"
+              >
+                REVOKE ACCESS
               </button>
 
             </div>
-
-            {/* Revoke Button */}
-            <button
-              onClick={revokeToken}
-              className="text-red-500 hover:text-red-400 text-sm"
-            >
-              Revoke Token
-            </button>
 
           </div>
 
@@ -103,10 +108,10 @@ const ApiPage = () => {
           Use your API token to authenticate requests to our API.
         </p>
 
-        <pre className="bg-gray-900 text-gray-300 p-6 rounded-xl text-sm overflow-x-auto font-mono">
+       <pre className="bg-gray-900 text-gray-300 p-4 md:p-6 rounded-xl text-xs sm:text-sm overflow-x-auto font-mono whitespace-pre-wrap break-words">
 {`curl https://api.yoursite.com/leads
   -H "Authorization: Bearer YOUR_API_TOKEN"`}
-        </pre>
+</pre>
 
       </div>
 
