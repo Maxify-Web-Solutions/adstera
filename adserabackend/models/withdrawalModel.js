@@ -1,5 +1,3 @@
-// models/withdrawalModel.js
-
 const mongoose = require("mongoose");
 
 const withdrawalSchema = new mongoose.Schema(
@@ -15,26 +13,65 @@ const withdrawalSchema = new mongoose.Schema(
       required: true,
     },
 
+    // ✅ Payment Type
+    paymentMethod: {
+      type: String,
+      enum: ["bank", "crypto"],
+      required: true,
+    },
+
+    // ================= BANK DETAILS =================
     accountHolderName: {
       type: String,
-      required: true,
+      required: function () {
+        return this.paymentMethod === "bank";
+      },
     },
 
     bankName: {
       type: String,
-      required: true,
+      required: function () {
+        return this.paymentMethod === "bank";
+      },
     },
 
     accountNumber: {
       type: String,
-      required: true,
+      required: function () {
+        return this.paymentMethod === "bank";
+      },
     },
 
     ifscCode: {
       type: String,
-      required: true,
+      required: function () {
+        return this.paymentMethod === "bank";
+      },
     },
 
+    // ================= CRYPTO DETAILS =================
+    cryptoType: {
+      type: String, // BTC, ETH, USDT etc
+      required: function () {
+        return this.paymentMethod === "crypto";
+      },
+    },
+
+    walletAddress: {
+      type: String,
+      required: function () {
+        return this.paymentMethod === "crypto";
+      },
+    },
+
+    network: {
+      type: String, // TRC20, ERC20, BEP20 etc
+      required: function () {
+        return this.paymentMethod === "crypto";
+      },
+    },
+
+    // ================= COMMON =================
     status: {
       type: String,
       enum: ["pending", "approved", "rejected"],
