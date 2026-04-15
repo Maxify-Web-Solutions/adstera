@@ -14,6 +14,7 @@ const connectDB = require("./config/connectdb");
 
 
 const dns = require("dns");
+const path = require("path");
 // Change DNS
 dns.setServers(["1.1.1.1", "8.8.8.8"]);
 
@@ -39,6 +40,15 @@ app.use("/api/adsterra", adsterraRoutes);
 app.use("/api", adsterraPlacementRoutes);
 
 app.use("/api/withdrawal", withdrawalRoutes);
+
+
+
+app.use(express.static(path.join(__dirname, "../App/dist")));
+
+app.get(/.*/, (req, res) => {
+  res.sendFile(path.join(__dirname, "../App/dist/index.html"));
+});
+
 
 
 connectDB();
