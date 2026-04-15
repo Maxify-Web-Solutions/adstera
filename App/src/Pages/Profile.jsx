@@ -92,7 +92,7 @@ const Profile = () => {
                     {/* Profile Card */}
                     <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-2xl p-6 md:p-8 mb-10 shadow-sm transition-colors duration-300">
 
-                        <div className="flex flex-col sm:flex-row items-center text-center sm:text-left gap-6">
+                        <div className="flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-left gap-4">
 
                             <div className="w-20 h-20 rounded-full bg-gradient-to-br from-indigo-500 to-cyan-500 flex items-center justify-center text-white text-3xl font-bold shadow-lg shadow-indigo-500/30">
                                 {user.name?.charAt(0).toUpperCase()}
@@ -101,9 +101,9 @@ const Profile = () => {
                             <div>
                                 <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">{user.name}</h2>
                                 <p className="text-gray-500 dark:text-gray-400">{user.email}</p>
-                                <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
-                                    User ID: {user._id}
-                                </p>
+                                <p className="text-sm text-gray-400 dark:text-gray-500 mt-1 break-all">
+    User ID: {user._id}
+</p>
                             </div>
 
                         </div>
@@ -117,22 +117,24 @@ const Profile = () => {
                             <FiUser className="text-indigo-500" /> Account Information
                         </h2>
 
-                        <div className="grid md:grid-cols-2 gap-6 text-sm text-gray-600 dark:text-gray-400">
-
-                            <p>
-                                <span className="text-gray-500 dark:text-gray-500 font-medium">Account Created:</span>{" "}
-                                {new Date(user.createdAt).toLocaleDateString()}
-                            </p>
-
-                            <p>
-                                <span className="text-gray-500 dark:text-gray-500 font-medium">Account Status:</span>{" "}
-                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
-                                    Active
-                                </span>
-                            </p>
-
+                        <div className="bg-gray-50 dark:bg-slate-900/50 border border-gray-100 dark:border-slate-700 rounded-2xl p-5 md:p-6">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                <div className="flex flex-col gap-1">
+                                    <span className="text-[10px] text-gray-500 dark:text-gray-400 uppercase tracking-widest font-bold">Member Since</span>
+                                    <span className="text-gray-900 dark:text-white font-medium">
+                                        {new Date(user.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+                                    </span>
+                                </div>
+                                <div className="flex flex-col gap-1">
+                                    <span className="text-[10px] text-gray-500 dark:text-gray-400 uppercase tracking-widest font-bold">Account Status</span>
+                                    <div>
+                                        <span className="px-3 py-1 rounded-full text-[11px] font-medium bg-green-600/20 text-green-500 uppercase tracking-wider">
+                                            ACTIVE
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-
                     </div>
 
                     {/* Profile Information */}
@@ -144,12 +146,12 @@ const Profile = () => {
 
                         <form
                             onSubmit={handleProfileUpdate}
-                            className="grid md:grid-cols-2 gap-6"
+                            className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6"
                         >
 
                             {/* Name */}
                             <div className="relative">
-                                <label className="text-sm text-gray-500 dark:text-gray-400 font-medium mb-1.5 block">Full Name</label>
+                                <label className="text-[10px] text-gray-500 dark:text-gray-400 uppercase tracking-widest font-bold mb-1.5 block">Full Name</label>
 
                                 <div className="relative">
                                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -167,7 +169,7 @@ const Profile = () => {
 
                             {/* Email */}
                             <div className="relative">
-                                <label className="text-sm text-gray-500 dark:text-gray-400 font-medium mb-1.5 block">Email</label>
+                                <label className="text-[10px] text-gray-500 dark:text-gray-400 uppercase tracking-widest font-bold mb-1.5 block">Email</label>
 
                                 <div className="relative">
                                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -185,7 +187,7 @@ const Profile = () => {
 
                             {/* Mobile */}
                             <div className="relative">
-                                <label className="text-sm text-gray-500 dark:text-gray-400 font-medium mb-1.5 block">Mobile</label>
+                                <label className="text-[10px] text-gray-500 dark:text-gray-400 uppercase tracking-widest font-bold mb-1.5 block">Mobile</label>
 
                                 <div className="relative">
                                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -222,12 +224,12 @@ const Profile = () => {
 
                         <form
                             onSubmit={handleChangePassword}
-                            className="grid md:grid-cols-2 gap-6"
+                            className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6"
                         >
 
                             {/* Current Password */}
                             <div className="relative md:col-span-2">
-                                <label className="text-sm text-gray-500 dark:text-gray-400 font-medium mb-1.5 block">
+                                <label className="text-[10px] text-gray-500 dark:text-gray-400 uppercase tracking-widest font-bold mb-1.5 block">
                                     Current Password
                                 </label>
 
@@ -254,7 +256,7 @@ const Profile = () => {
 
                             {/* New Password */}
                             <div className="relative">
-                                <label className="text-sm text-gray-500 dark:text-gray-400 font-medium mb-1.5 block">
+                                <label className="text-[10px] text-gray-500 dark:text-gray-400 uppercase tracking-widest font-bold mb-1.5 block">
                                     New Password
                                 </label>
 
@@ -274,7 +276,7 @@ const Profile = () => {
 
                             {/* Confirm Password */}
                             <div className="relative">
-                                <label className="text-sm text-gray-500 dark:text-gray-400 font-medium mb-1.5 block">
+                                <label className="text-[10px] text-gray-500 dark:text-gray-400 uppercase tracking-widest font-bold mb-1.5 block">
                                     Confirm Password
                                 </label>
 
