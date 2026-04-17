@@ -2,6 +2,10 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/authmodel");
 const UAParser = require("ua-parser-js");
+const TempUser = require("../models/tempUsers");
+
+const { sendAccountVerificationOTP } = require("../utils/mailer.js");
+
 
 
 // generate token
@@ -13,7 +17,8 @@ const generateToken = (id) => {
 
 
 // REGISTER
-const register = async (req, res) => {
+
+const  register = async (req, res) => {
   try {
     const { name, email, mobile, password } = req.body;
 
@@ -21,34 +26,112 @@ const register = async (req, res) => {
       return res.status(400).json({ message: "All fields are required" });
     }
 
-    const userexist = await User.findOne({ email });
+    // ✅ check main DB
+    const userexist = await User.findOne({
+      $or: [{ email }, { mobile }],
+    });
 
     if (userexist) {
       return res.status(400).json({ message: "User already exists" });
     }
 
-    const hashpassword = await bcrypt.hash(password, 10);
+    // ✅ generate OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
-    const user = await User.create({
-      name,
-      email,
-      mobile,
-      password: hashpassword,
+    // ✅ save temp user
+    await TempUser.findOneAndUpdate(
+      { email },
+      {
+        name,
+        email,
+        mobile,
+        password,
+        otp,
+        otpExpires: Date.now() + 5 * 60 * 1000,
+        isVerified: false,
+      },
+      { upsert: true, new: true }
+    );
+
+    // ✅ SEND EMAIL (🔥 MAIN PART)
+    const isSent = await sendAccountVerificationOTP(email, otp);
+
+    if (!isSent) {
+      return res.status(500).json({
+        message: "Failed to send OTP email",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "OTP sent to email successfully",
     });
 
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+
+
+const verifyOTP = async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+
+    if (!email || !otp) {
+      return res.status(400).json({ message: "Email & OTP required" });
+    }
+
+    // ✅ Find temp user
+    const tempUser = await TempUser.findOne({ email });
+
+    if (!tempUser) {
+      return res.status(400).json({ message: "User not found" });
+    }
+
+    // ✅ OTP match
+    if (tempUser.otp !== otp) {
+      return res.status(400).json({ message: "Invalid OTP" });
+    }
+
+    // ✅ Expiry check
+    if (Date.now() > tempUser.otpExpires) {
+      return res.status(400).json({ message: "OTP expired" });
+    }
+
+    // ✅ Hash password
+    const hashedPassword = await bcrypt.hash(tempUser.password, 10);
+
+    // ✅ Create real user
+    const user = await User.create({
+      name: tempUser.name,
+      email: tempUser.email,
+      mobile: tempUser.mobile,
+      password: hashedPassword,
+    });
+
+    // ✅ Mark verified (optional)
+    tempUser.isVerified = true;
+    await tempUser.save();
+
+    // ✅ Delete temp user (recommended)
+    await TempUser.deleteOne({ email });
+
+    // ✅ Generate token
     const token = generateToken(user._id);
 
     res.cookie("token", token, {
       httpOnly: true,
-      secure: false,
+      secure: false, // production me true
       sameSite: "strict",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
-    res.status(201).json({
+    return res.status(201).json({
       success: true,
-      message: "User created successfully",
+      message: "OTP verified & user created",
       user,
+      token,
     });
 
   } catch (error) {
@@ -170,4 +253,6 @@ module.exports = {
   login,
   getProfile,
   logout,
+  verifyOTP,
+
 };

@@ -2,11 +2,12 @@
 
 const Withdrawal = require("../models/withdrawalModel");
 const User = require("../models/authmodel");
+const { sendWithdrawalOTP } = require("../utils/mailer");
+const WithdrawalOtp = require("../models/WithdrawalOtp");
 
-// ✅ 1. Create Withdrawal (User)
 exports.createWithdrawal = async (req, res) => {
   try {
-    const userId = req.user._id;
+    const userId = req.user.id;
 
     const {
       amount,
@@ -17,6 +18,8 @@ exports.createWithdrawal = async (req, res) => {
       bankName,
       accountNumber,
       ifscCode,
+
+      otp,
 
       // crypto
       cryptoType,
@@ -78,7 +81,42 @@ exports.createWithdrawal = async (req, res) => {
       }
     }
 
-    // ✅ Deduct balance
+    // ================= OTP VERIFY =================
+
+    if (!otp) {
+      return res.status(400).json({
+        success: false,
+        message: "OTP is required",
+      });
+    }
+
+    // DB se latest OTP lao
+    const otpRecord = await WithdrawalOtp.findOne({ userId })
+      .sort({ createdAt: -1 });
+
+    if (!otpRecord) {
+      return res.status(400).json({
+        success: false,
+        message: "OTP not found",
+      });
+    }
+
+    // expire check
+    if (otpRecord.expiresAt < Date.now()) {
+      return res.status(400).json({
+        success: false,
+        message: "OTP expired",
+      });
+    }
+
+    // match check
+    if (otpRecord.otp !== otp) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid OTP",
+      });
+    }
+
     user.revenue -= amount;
     await user.save();
 
@@ -110,6 +148,51 @@ exports.createWithdrawal = async (req, res) => {
       withdrawal,
       remainingBalance: user.revenue,
     });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
+  }
+};
+
+// dummy email function (baad me nodemailer laga dena)
+
+exports.sendWithdrawalOtp = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+
+    const { amount } = req.body;
+
+    // ✅ user check
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    // ✅ OTP generate
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+    // ✅ DB me save
+    await WithdrawalOtp.create({
+      userId,
+      otp,
+      expiresAt: Date.now() + 5 * 60 * 1000, // 5 min
+    });
+
+    // ✅ email send
+    await sendWithdrawalOTP(user.email, otp, amount);
+
+    res.status(200).json({
+      success: true,
+      message: "OTP sent successfully",
+    });
+
   } catch (error) {
     console.log(error);
     res.status(500).json({

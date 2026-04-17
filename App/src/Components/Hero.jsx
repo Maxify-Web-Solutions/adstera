@@ -1,6 +1,7 @@
 import React from "react";
 import { FiArrowRight } from "react-icons/fi";
 import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
 
 const Hero = () => {
     return (
@@ -38,11 +39,12 @@ const Hero = () => {
                             <FiArrowRight />
                         </button>
 
-                        <button className="flex items-center gap-2 px-6 py-3 border border-gray-300 dark:border-slate-600 rounded-lg font-semibold hover:bg-gray-100 dark:hover:bg-slate-800 transition">
-                            Start Earning
-                            <FiArrowRight />
-                        </button>
-
+                        <Link to="/register">
+                            <button className="flex items-center gap-2 px-6 py-3 border border-gray-300 dark:border-slate-600 rounded-lg font-semibold hover:bg-gray-100 dark:hover:bg-slate-800 transition">
+                                Start Earning
+                                <FiArrowRight />
+                            </button>
+                        </Link>
                     </div>
 
                 </motion.div>

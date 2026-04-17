@@ -8,15 +8,17 @@ const {
   getMyWithdrawals,
   getAllWithdrawals,
   updateWithdrawalStatus,
+  sendWithdrawalOtp,
 } = require("../controllers/withdrawalController");
 
 // 🔐 Middleware (example)
 const authMiddleware = require("../middleware/authMiddleware");
 
 // 👤 USER ROUTES
+router.post("/send-otp", authMiddleware, sendWithdrawalOtp); // ✅ NEW
+
 router.post("/create", authMiddleware, createWithdrawal);
 router.get("/my", authMiddleware, getMyWithdrawals);
-
 // 👑 ADMIN ROUTES
 // router.get("/all", authMiddleware, isAdmin, getAllWithdrawals);
 // router.put("/update", authMiddleware, isAdmin, updateWithdrawalStatus);

@@ -1,5 +1,6 @@
 import React from "react";
 import { FiArrowRight } from "react-icons/fi";
+import { Link } from "react-router-dom";
 
 const Cta = () => {
     return (
@@ -37,11 +38,12 @@ const Cta = () => {
                         </button>
 
                         {/* Secondary Button */}
-                        <button className="group flex items-center gap-2 px-7 py-3 bg-white dark:bg-slate-700 border border-gray-200 dark:border-slate-600 text-gray-900 dark:text-white rounded-xl font-semibold transition-all duration-300 hover:bg-gray-50 dark:hover:bg-slate-600 hover:scale-105">
-                            Start Earning
-                            <FiArrowRight className="transition-transform group-hover:translate-x-1" />
-                        </button>
-
+                        <Link to="/register">
+                            <button className="flex items-center gap-2 px-6 py-3 border border-gray-300 dark:border-slate-600 rounded-lg font-semibold hover:bg-gray-100 dark:hover:bg-slate-800 transition">
+                                Start Earning
+                                <FiArrowRight />
+                            </button>
+                        </Link>
                     </div>
 
                     {/* Small trust note */}

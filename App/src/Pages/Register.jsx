@@ -1,6 +1,6 @@
 import { useDispatch } from "react-redux"
-import { registerUser } from "../redux/slice/authSlice"
-import { useState } from "react"
+import { registerUser, verifyOtp } from "../redux/slice/authSlice"
+import { useState, useEffect } from "react"
 import { Link, useNavigate } from "react-router-dom"
 
 import { MdPerson, MdEmail, MdLock, MdPhone } from "react-icons/md"
@@ -16,152 +16,190 @@ const Register = () => {
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
     const [showPassword, setShowPassword] = useState(false)
+    const [otp, setOtp] = useState("")
+    const [otpSent, setOtpSent] = useState(false)
+    const [loading, setLoading] = useState(false)
 
-    const handleRegister = async (e) => {
-        e.preventDefault()
+    /* =========================
+       🔥 AUTO LOAD FROM SESSION
+    ========================= */
+    useEffect(() => {
+        const savedData = JSON.parse(sessionStorage.getItem("registerData"))
 
-        const userData = {
+        if (savedData) {
+            setName(savedData.name || "")
+            setMobile(savedData.mobile || "")
+            setEmail(savedData.email || "")
+            setOtpSent(savedData.otpSent || false)
+        }
+    }, [])
+
+    /* =========================
+       🔥 AUTO SAVE ON CHANGE
+    ========================= */
+    useEffect(() => {
+        sessionStorage.setItem("registerData", JSON.stringify({
             name,
             mobile,
             email,
-            password
-        }
+            otpSent
+        }))
+    }, [name, mobile, email, otpSent])
 
-        const result = await dispatch(registerUser(userData))
+    /* =========================
+       REGISTER
+    ========================= */
+    const handleRegister = async (e) => {
+        e.preventDefault()
+        setLoading(true)
+
+        const result = await dispatch(registerUser({ name, mobile, email, password }))
 
         if (result.meta.requestStatus === "fulfilled") {
-            navigate("/")
+            setOtpSent(true)
         }
+
+        setLoading(false)
+    }
+
+    /* =========================
+       VERIFY OTP
+    ========================= */
+    const handleverifyOtp = async () => {
+        if (!otp) return alert("Enter OTP")
+
+        setLoading(true)
+
+        const result = await dispatch(verifyOtp({ email, otp }))
+
+        if (result.meta.requestStatus === "fulfilled") {
+            sessionStorage.clear() // ✅ full cleanup
+            navigate("/dashboard")
+        }
+
+        setLoading(false)
     }
 
     return (
-        <div className="flex min-h-screen items-center justify-center bg-slate-900">
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-black px-4">
 
-            <div className="w-full max-w-md rounded-xl bg-slate-800 p-8 shadow-lg border border-slate-700">
+            <div className="w-full max-w-md backdrop-blur-xl bg-white/5 border border-white/10 shadow-2xl rounded-2xl p-8">
 
-                <h2 className="mb-8 text-center text-3xl font-bold text-white">
-                    Register
+                <h2 className="text-3xl font-bold text-center text-white mb-6 tracking-wide">
+                    Create Account 🚀
                 </h2>
 
-                <form onSubmit={handleRegister} className="space-y-6">
+                <form onSubmit={handleRegister} className="space-y-5">
 
-                    {/* Username */}
-                    <div>
-                        <label className="mb-2 block text-sm font-medium text-slate-300">
-                            User Name
-                        </label>
-
-                        <div className="relative group">
-
-                            <MdPerson className="absolute left-3 top-1/2 -translate-y-1/2 text-xl text-slate-400 transition group-focus-within:text-indigo-400" />
-
-                            <input
-                                type="text"
-                                value={name}
-                                onChange={(e) => setName(e.target.value)}
-                                placeholder="Vikram Thakur"
-                                required
-                                className="w-full rounded-lg border border-slate-600 bg-slate-700 pl-10 pr-4 py-2.5 text-white placeholder-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
-                            />
-
-                        </div>
+                    {/* Name */}
+                    <div className="relative">
+                        <MdPerson className="absolute left-3 top-3 text-xl text-gray-400" />
+                        <input
+                            type="text"
+                            value={name}
+                            autoComplete="name"
+                            onChange={(e) => setName(e.target.value)}
+                            placeholder="Username"
+                            required
+                            className="w-full pl-10 pr-4 py-3 rounded-lg bg-slate-800 border border-slate-600 text-white focus:ring-2 focus:ring-indigo-500 outline-none"
+                        />
                     </div>
 
                     {/* Mobile */}
-                    <div>
-                        <label className="mb-2 block text-sm font-medium text-slate-300">
-                            Mobile No.
-                        </label>
-
-                        <div className="relative group">
-
-                            <MdPhone className="absolute left-3 top-1/2 -translate-y-1/2 text-xl text-slate-400 transition group-focus-within:text-indigo-400" />
-
-                            <input
-                                type="text"
-                                value={mobile}
-                                onChange={(e) => setMobile(e.target.value)}
-                                placeholder="Enter your Mobile no."
-                                required
-                                className="w-full rounded-lg border border-slate-600 bg-slate-700 pl-10 pr-4 py-2.5 text-white placeholder-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
-                            />
-
-                        </div>
+                    <div className="relative">
+                        <MdPhone className="absolute left-3 top-3 text-xl text-gray-400" />
+                        <input
+                            type="tel"
+                            value={mobile}
+                            autoComplete="tel"
+                            onChange={(e) => setMobile(e.target.value)}
+                            placeholder="Mobile Number"
+                            required
+                            className="w-full pl-10 pr-4 py-3 rounded-lg bg-slate-800 border border-slate-600 text-white focus:ring-2 focus:ring-indigo-500 outline-none"
+                        />
                     </div>
 
                     {/* Email */}
-                    <div>
-                        <label className="mb-2 block text-sm font-medium text-slate-300">
-                            Email Address
-                        </label>
-
-                        <div className="relative group">
-
-                            <MdEmail className="absolute left-3 top-1/2 -translate-y-1/2 text-xl text-slate-400 transition group-focus-within:text-indigo-400" />
-
-                            <input
-                                type="email"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                placeholder="youremail@example.com"
-                                required
-                                className="w-full rounded-lg border border-slate-600 bg-slate-700 pl-10 pr-4 py-2.5 text-white placeholder-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
-                            />
-
-                        </div>
+                    <div className="relative">
+                        <MdEmail className="absolute left-3 top-3 text-xl text-gray-400" />
+                        <input
+                            type="email"
+                            value={email}
+                            autoComplete="email"
+                            onChange={(e) => setEmail(e.target.value)}
+                            placeholder="Email Address"
+                            required
+                            className="w-full pl-10 pr-4 py-3 rounded-lg bg-slate-800 border border-slate-600 text-white focus:ring-2 focus:ring-indigo-500 outline-none"
+                        />
                     </div>
 
                     {/* Password */}
-                    <div>
-                        <label className="mb-2 block text-sm font-medium text-slate-300">
-                            Password
-                        </label>
+                    <div className="relative">
+                        <MdLock className="absolute left-3 top-3 text-xl text-gray-400" />
+                        <input
+                            type={showPassword ? "text" : "password"}
+                            value={password}
+                            autoComplete="new-password"
+                            onChange={(e) => setPassword(e.target.value)}
+                            placeholder="Password"
+                            required
+                            className="w-full pl-10 pr-12 py-3 rounded-lg bg-slate-800 border border-slate-600 text-white focus:ring-2 focus:ring-indigo-500 outline-none"
+                        />
+                        <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="absolute right-3 top-3 text-xl text-gray-400"
+                        >
+                            {showPassword ? <BiSolidHide /> : <BiSolidShow />}
+                        </button>
+                    </div>
 
-                        <div className="relative group">
+                    {/* Register Button */}
+                    {!otpSent && (
+                        <button
+                            type="submit"
+                            disabled={loading}
+                            className="w-full py-3 rounded-lg bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold hover:scale-[1.02] transition-all duration-200 disabled:opacity-50"
+                        >
+                            {loading ? "Sending OTP..." : "Register"}
+                        </button>
+                    )}
 
-                            <MdLock className="absolute left-3 top-1/2 -translate-y-1/2 text-xl text-slate-400 transition group-focus-within:text-indigo-400" />
+                    {/* OTP Section */}
+                    {otpSent && (
+                        <div className="space-y-3 animate-fade-in">
 
                             <input
-                                type={showPassword ? "text" : "password"}
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                placeholder="******"
-                                required
-                                className="w-full rounded-lg border border-slate-600 bg-slate-700 pl-10 pr-12 py-2.5 text-white placeholder-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
+                                type="text"
+                                value={otp}
+                                onChange={(e) => setOtp(e.target.value)}
+                                placeholder="Enter OTP"
+                                className="w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-600 text-white focus:ring-2 focus:ring-green-500 outline-none"
                             />
 
                             <button
                                 type="button"
-                                onClick={() => setShowPassword(!showPassword)}
-                                className="absolute right-3 top-1/2 -translate-y-1/2 text-xl text-slate-400 transition group-focus-within:text-indigo-400 hover:text-indigo-300"
+                                onClick={handleverifyOtp}
+                                disabled={loading}
+                                className="w-full py-3 rounded-lg bg-gradient-to-r from-green-500 to-emerald-600 text-white font-semibold hover:scale-[1.02] transition-all duration-200 disabled:opacity-50"
                             >
-                                {showPassword ? <BiSolidHide /> : <BiSolidShow />}
+                                {loading ? "Verifying..." : "Verify OTP"}
                             </button>
 
                         </div>
-                    </div>
-
-                    {/* Register Button */}
-                    <button
-                        type="submit"
-                        className="w-full rounded-lg bg-indigo-600 px-4 py-2.5 font-semibold text-white shadow-md transition-colors hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-slate-800"
-                    >
-                        Register
-                    </button>
+                    )}
 
                 </form>
 
-                <p className="mt-6 text-center text-sm text-slate-400">
+                <p className="mt-6 text-center text-sm text-gray-400">
                     Already have an account?{" "}
-                    <Link
-                        to="/login"
-                        className="font-semibold text-indigo-400 hover:text-indigo-300"
-                    >
+                    <Link to="/login" className="text-indigo-400 font-semibold hover:underline">
                         Login
                     </Link>
                 </p>
 
             </div>
+
         </div>
     )
 }
