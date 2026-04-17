@@ -79,23 +79,13 @@ const Header = () => {
                     <div className="flex h-16 items-center justify-between">
 
                         {/* LOGO */}
-                        <Link to="/" className="flex items-center gap-2 shrink-0">
+                        <Link href="/" className="flex items-center shrink-0">
 
-                            <div className="relative flex items-center justify-center w-9 h-9 rounded-lg
-              bg-gradient-to-br from-indigo-500 to-cyan-500 shadow-lg shadow-indigo-500/30">
-
-                                <span className="text-white font-bold text-lg">A</span>
-
-                                <div className="absolute inset-0 rounded-lg blur-md opacity-40
-                bg-gradient-to-br from-indigo-500 to-cyan-500"></div>
-
-                            </div>
-
-                            <span className="text-xl sm:text-2xl font-bold tracking-wide
-              bg-gradient-to-r from-indigo-400 via-purple-400 to-cyan-400
-              bg-clip-text text-transparent">
-                                Adstera
-                            </span>
+                            <img
+                                src="https://i.ibb.co/gbrn443W/Adstorx-logo.png"
+                                alt="Adstorx Logo"
+                                className="h-16 w-auto object-contain"
+                            />
 
                         </Link>
 

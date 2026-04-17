@@ -4,7 +4,7 @@ const Placement = require("../models/AdsterraPlacement");
 const AdsterraStats = require("../models/AdsterraStats");
 const User = require("../models/authmodel");
 const UAParser = require("ua-parser-js");
-const Config = reuqire("../models/Config");
+const Config = require("../models/Config");
 
 
 

@@ -50,16 +50,17 @@ const DashboardHeader = ({ onMenuClick }) => {
                 </button>
 
                 {/* Logo */}
-                <Link to={"/"} className="flex gap-3">
-                    <div className="text-orange-500 text-2xl font-bold hidden sm:block">
-                        A
-                    </div>
+                <Link to={"/"} className="flex items-center gap-3">
+  <img
+    src="https://i.ibb.co/1fQdkh8S/Adstorx-logo-1-removebg-preview.png"
+    alt="logo"
+    className="h-8 w-auto object-contain"
+  />
 
-                    {/* Page Title */}
-                    <h1 className="text-lg md:text-xl font-semibold text-gray-800 dark:text-white">
-                        Statistics
-                    </h1>
-                </Link>
+  <h1 className="text-lg md:text-xl font-semibold text-gray-800 dark:text-white">
+    Statistics
+  </h1>
+</Link>
 
             </div>
 

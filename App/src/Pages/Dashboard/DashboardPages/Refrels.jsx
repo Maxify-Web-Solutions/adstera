@@ -1,29 +1,66 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { toast } from "react-toastify";
 import { FaArrowUp, FaArrowDown } from "react-icons/fa";
-import { useSortableData } from "../../../Components/useSortableData"; 
-
-const referralsData = [
-    {
-        email: "user1@email.com",
-        date: "12 Mar 2026",
-        status: "Active",
-        earning: "$12.00",
-    },
-    {
-        email: "user2@email.com",
-        date: "10 Mar 2026",
-        status: "Pending",
-        earning: "$0.00",
-    },
-];
+import { useSortableData } from "../../../Components/useSortableData";
+import { host } from "../../../redux/slice/axiosConfig";
 
 const Refrels = () => {
-    const { items: sortedReferrals, requestSort, sortConfig } = useSortableData(referralsData);
-    const referralLink = "https://yourwebsite.com/ref/vikram27";
+    const { user } = useSelector((state) => state.auth);
+    const [referrals, setReferrals] = useState([]);
+    const [stats, setStats] = useState({
+        totalReferrals: 0,
+        totalEarnings: 0,
+        conversionRate: 0,
+    });
+
+    const { items: sortedReferrals, requestSort, sortConfig } = useSortableData(referrals);
+
+    // Generate dynamic referral link based on user ID
+    const referralLink = user && user._id ? `${host}?ref=${user._id}` : "https://yourwebsite.com";
+
+    // Fetch user's referral data (when backend endpoint is ready)
+    useEffect(() => {
+        // TODO: Replace with actual API call when backend endpoint is created
+        // For now, using mock data structure for UI testing
+        const mockReferralsData = [
+            {
+                email: "user1@email.com",
+                date: "12 Mar 2026",
+                status: "Active",
+                earning: "$12.00",
+            },
+            {
+                email: "user2@email.com",
+                date: "10 Mar 2026",
+                status: "Pending",
+                earning: "$0.00",
+            },
+        ];
+        
+        setReferrals(mockReferralsData);
+        
+        // Calculate stats from referrals
+        const totalEarnings = mockReferralsData.reduce((sum, ref) => {
+            const earning = parseFloat(ref.earning.replace("$", ""));
+            return sum + earning;
+        }, 0);
+
+        const activeReferrals = mockReferralsData.filter(ref => ref.status === "Active").length;
+        const conversionRate = mockReferralsData.length > 0 
+            ? Math.round((activeReferrals / mockReferralsData.length) * 100)
+            : 0;
+
+        setStats({
+            totalReferrals: mockReferralsData.length,
+            totalEarnings: totalEarnings.toFixed(2),
+            conversionRate: conversionRate,
+        });
+    }, []);
 
     const copyLink = () => {
         navigator.clipboard.writeText(referralLink);
-        alert("Referral link copied!");
+        toast.success("Referral link copied to clipboard!");
     };
 
     const getSortIcon = (name) => {
@@ -84,7 +121,7 @@ const Refrels = () => {
                         Total Referrals
                     </p>
                     <h3 className="text-3xl font-bold text-gray-900 dark:text-white mt-2">
-                        24
+                        {stats.totalReferrals}
                     </h3>
                 </div>
 
@@ -93,7 +130,7 @@ const Refrels = () => {
                         Total Earnings
                     </p>
                     <h3 className="text-3xl font-bold text-gray-900 dark:text-white mt-2">
-                        $184.00
+                        ${stats.totalEarnings}
                     </h3>
                 </div>
 
@@ -102,7 +139,7 @@ const Refrels = () => {
                         Conversion Rate
                     </p>
                     <h3 className="text-3xl font-bold text-gray-900 dark:text-white mt-2">
-                        18%
+                        {stats.conversionRate}%
                     </h3>
                 </div>
 

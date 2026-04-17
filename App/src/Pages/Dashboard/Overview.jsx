@@ -1,130 +1,167 @@
-import React, { useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
-// import { getOverviewData } from "../../redux/slice/overviewSlice";
+import React, { useEffect, useState } from "react";
 
-const defaultStats = [
-    { title: "Active Package", value: "Pro Plan" },
-    { title: "Scrapes Used", value: "1,250 / 5,000" },
-    { title: "Leads Collected", value: "8,320" },
-    { title: "Account Status", value: "Active" },
+/* Timeline Data */
+const sections = [
+    {
+        date: "Today",
+        title: "Welcome to Adstorx",
+        content: [
+            "Choose traffic type",
+            "Add website & verify",
+            "Create ad unit",
+            "Start monetizing",
+        ],
+    },
+    {
+        date: "Yesterday",
+        title: "Ad Unit Created",
+        content: [
+            "Banner & Popunder ready",
+            "Ad code generated",
+        ],
+    },
+    {
+        date: "2 Days Ago",
+        title: "Traffic Started",
+        content: [
+            "Ads live on website",
+            "Tracking impressions & clicks",
+        ],
+    },
 ];
 
-const defaultActivities = [
-    {
-        title: "Scraping started",
-        description: "Location: New York | Category: Restaurants",
-        time: "2 hours ago",
-    },
-    {
-        title: "Package upgraded",
-        description: "Upgraded to Pro Plan",
-        time: "1 day ago",
-    },
-    {
-        title: "Export completed",
-        description: "Leads exported to Google Sheets",
-        time: "3 days ago",
-    },
+/* Fake Chart Data */
+const chartData = [40, 60, 55, 80, 120, 90, 140];
+const ctrData = [2, 3, 2.5, 4, 3.2, 4.5, 5];
+
+/* Countries */
+const countries = [
+    { name: "USA", value: "$540" },
+    { name: "India", value: "$320" },
+    { name: "UK", value: "$210" },
+    { name: "Canada", value: "$175" },
 ];
 
 const Overview = () => {
-    // const dispatch = useDispatch();
-    // const { stats, activities } = useSelector((state) => state.overview);
+    const [revenue, setRevenue] = useState(1245);
 
-    // useEffect(() => {
-    //     dispatch(getOverviewData());
-    // }, [dispatch]);
-
-    const displayStats = defaultStats; // stats || defaultStats;
-    const displayActivities = defaultActivities; // activities || defaultActivities;
+    /* 🔥 Live Counter */
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setRevenue((prev) => prev + Math.random() * 2);
+        }, 2000);
+        return () => clearInterval(interval);
+    }, []);
 
     return (
-        <div>
+        <div className="space-y-10">
 
-            {/* Title */}
-            <div className="mb-10">
-                <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-2">
-                    Dashboard
+            {/* Header */}
+            <div>
+                <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+                    Adstorx Dashboard
                 </h1>
-                <p className="text-gray-500 dark:text-gray-400">
-                    Welcome back! Here's an overview of your account activity.
+                <p className="text-gray-500 dark:text-gray-400 mt-2">
+                    Monitor your ads performance & earnings 🚀
                 </p>
             </div>
 
             {/* Stats */}
-            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-                {displayStats.map((stat, index) => (
-                    <div
-                        key={index}
-                        className="bg-white dark:bg-slate-800 p-6 rounded-xl border border-gray-200 dark:border-slate-700"
-                    >
-                        <p className="text-gray-500 dark:text-gray-400 text-sm mb-2">
-                            {stat.title}
-                        </p>
-                        <h3 className="text-2xl font-semibold text-gray-900 dark:text-white">
-                            {stat.value}
-                        </h3>
-                    </div>
-                ))}
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                <StatCard title="Status" value="Active" />
+                <StatCard title="Impressions" value="124,580" />
+                <StatCard title="Clicks" value="8,942" />
+                <StatCard title="Revenue" value={`$${revenue.toFixed(2)}`} glow />
             </div>
 
-            {/* Main Grid */}
+            {/* Charts */}
             <div className="grid lg:grid-cols-3 gap-8">
 
-                {/* Quick Actions */}
-                <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl p-6">
+                {/* Main Chart */}
+                <div className="lg:col-span-2 bg-white dark:bg-slate-800 p-6 rounded-2xl border dark:border-slate-700">
+                    <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">
+                        Impressions vs Revenue
+                    </h3>
 
-                    <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">
-                        Quick Actions
+                    <div className="flex items-end gap-2 h-40">
+                        {chartData.map((val, i) => (
+                            <div
+                                key={i}
+                                className="flex-1 bg-gradient-to-t from-indigo-500 to-purple-500 rounded"
+                                style={{ height: `${val}%` }}
+                            ></div>
+                        ))}
+                    </div>
+                </div>
+
+                {/* CTR Graph */}
+                <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border dark:border-slate-700">
+                    <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">
+                        CTR Trend
+                    </h3>
+
+                    <div className="flex items-end gap-2 h-40">
+                        {ctrData.map((val, i) => (
+                            <div
+                                key={i}
+                                className="flex-1 bg-green-500 rounded"
+                                style={{ height: `${val * 15}%` }}
+                            ></div>
+                        ))}
+                    </div>
+                </div>
+
+            </div>
+
+            {/* Bottom Section */}
+            <div className="grid lg:grid-cols-3 gap-8">
+
+                {/* Timeline */}
+                <div className="lg:col-span-2 space-y-6">
+                    {sections.map((section, index) => (
+                        <div
+                            key={index}
+                            className="relative pl-10 p-6 bg-white dark:bg-slate-800 rounded-2xl border dark:border-slate-700"
+                        >
+                            <div className="absolute left-0 top-6 w-4 h-4 bg-indigo-500 rounded-full"></div>
+
+                            {index !== sections.length - 1 && (
+                                <div className="absolute left-2 top-10 w-[2px] h-full bg-gray-300 dark:bg-slate-600"></div>
+                            )}
+
+                            <p className="text-xs text-gray-400 mb-2">{section.date}</p>
+
+                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
+                                {section.title}
+                            </h3>
+
+                            <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
+                                {section.content.map((item, i) => (
+                                    <li key={i}>• {item}</li>
+                                ))}
+                            </ul>
+                        </div>
+                    ))}
+                </div>
+
+                {/* Country Earnings */}
+                <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border dark:border-slate-700">
+                    <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">
+                        Top Countries
                     </h3>
 
                     <div className="space-y-4">
-
-                        <button className="w-full py-3 bg-blue-600 hover:bg-blue-700 rounded-lg text-white font-medium">
-                            Start New Scrape
-                        </button>
-
-                        <button className="w-full py-3 bg-gray-200 dark:bg-slate-700 hover:bg-gray-300 dark:hover:bg-slate-600 rounded-lg text-gray-800 dark:text-white font-medium">
-                            Export Leads
-                        </button>
-
-                        <button className="w-full py-3 bg-gray-200 dark:bg-slate-700 hover:bg-gray-300 dark:hover:bg-slate-600 rounded-lg text-gray-800 dark:text-white font-medium">
-                            Upgrade Package
-                        </button>
-
-                    </div>
-
-                </div>
-
-                {/* Recent Activity */}
-                <div className="lg:col-span-2 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl p-6">
-
-                    <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">
-                        Recent Activity
-                    </h3>
-
-                    <div className="space-y-6">
-
-                        {displayActivities.map((item, index) => (
-                            <div key={index} className="border-b border-gray-200 dark:border-slate-700 pb-4 last:border-b-0">
-
-                                <h4 className="text-gray-900 dark:text-white font-medium">
-                                    {item.title}
-                                </h4>
-
-                                <p className="text-gray-500 dark:text-gray-400 text-sm">
-                                    {item.description}
-                                </p>
-
-                                <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
-                                    {item.time}
-                                </p>
-
+                        {countries.map((c, i) => (
+                            <div key={i} className="flex justify-between text-sm">
+                                <span className="text-gray-600 dark:text-gray-400">
+                                    {c.name}
+                                </span>
+                                <span className="font-semibold text-gray-900 dark:text-white">
+                                    {c.value}
+                                </span>
                             </div>
                         ))}
-
                     </div>
-
                 </div>
 
             </div>
@@ -132,5 +169,15 @@ const Overview = () => {
         </div>
     );
 };
+
+/* Reusable Stat Card */
+const StatCard = ({ title, value, glow }) => (
+    <div className={`p-6 rounded-2xl bg-white dark:bg-slate-800 border dark:border-slate-700 ${glow ? "shadow-lg shadow-indigo-500/20" : ""}`}>
+        <p className="text-sm text-gray-500 dark:text-gray-400">{title}</p>
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mt-2">
+            {value}
+        </h2>
+    </div>
+);
 
 export default Overview;

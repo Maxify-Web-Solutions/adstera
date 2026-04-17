@@ -8,17 +8,18 @@ import {
   createWithdrawal,
 } from "../../../redux/slice/withdrawalSlice";
 
+/* Inputs */
 const Input = ({ ...props }) => (
   <input
     {...props}
-    className="w-full px-4 py-3 rounded-xl bg-slate-900/60 border border-white/10 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+    className="w-full px-4 py-3 rounded-xl bg-slate-900/60 border border-white/10 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm md:text-base"
   />
 );
 
 const Select = ({ children, ...props }) => (
   <select
     {...props}
-    className="w-full px-4 py-3 rounded-xl bg-slate-900/60 border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+    className="w-full px-4 py-3 rounded-xl bg-slate-900/60 border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm md:text-base"
   >
     {children}
   </select>
@@ -65,7 +66,6 @@ const Payouts = () => {
     };
 
     await dispatch(createWithdrawal(payload));
-
     setAmount("");
     setOtp("");
   };
@@ -77,18 +77,20 @@ const Payouts = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto space-y-10 p-4">
-      {/* WITHDRAW CARD */}
+    <div className="max-w-7xl mx-auto space-y-8 p-3 md:p-6">
+
+      {/* WITHDRAW */}
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-gradient-to-br from-slate-900 to-slate-800 border border-white/10 rounded-2xl p-6 shadow-xl"
+        className="bg-gradient-to-br from-slate-900 to-slate-800 border border-white/10 rounded-2xl p-4 md:p-6 shadow-xl"
       >
-        <h2 className="text-xl font-semibold text-white mb-6">
+        <h2 className="text-lg md:text-xl font-semibold text-white mb-4 md:mb-6">
           Withdraw Funds
         </h2>
 
-        <div className="grid md:grid-cols-2 gap-4">
+        {/* Responsive Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
           <Input
             type="number"
             placeholder="Enter Amount"
@@ -102,92 +104,37 @@ const Payouts = () => {
           </Select>
         </div>
 
+        {/* Dynamic Fields */}
         <div className="mt-4 space-y-3">
           {method === "bank" ? (
-            <>
-              <Input
-                placeholder="Account Holder Name"
-                value={bankDetails.accountHolderName}
-                onChange={(e) =>
-                  setBankDetails({
-                    ...bankDetails,
-                    accountHolderName: e.target.value,
-                  })
-                }
-              />
-              <Input
-                placeholder="Bank Name"
-                value={bankDetails.bankName}
-                onChange={(e) =>
-                  setBankDetails({ ...bankDetails, bankName: e.target.value })
-                }
-              />
-              <Input
-                placeholder="Account Number"
-                value={bankDetails.accountNumber}
-                onChange={(e) =>
-                  setBankDetails({
-                    ...bankDetails,
-                    accountNumber: e.target.value,
-                  })
-                }
-              />
-              <Input
-                placeholder="IFSC Code"
-                value={bankDetails.ifscCode}
-                onChange={(e) =>
-                  setBankDetails({ ...bankDetails, ifscCode: e.target.value })
-                }
-              />
-            </>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <Input placeholder="Account Holder Name" />
+              <Input placeholder="Bank Name" />
+              <Input placeholder="Account Number" />
+              <Input placeholder="IFSC Code" />
+            </div>
           ) : (
-            <>
-              <Input
-                placeholder="Wallet Address"
-                value={cryptoDetails.walletAddress}
-                onChange={(e) =>
-                  setCryptoDetails({
-                    ...cryptoDetails,
-                    walletAddress: e.target.value,
-                  })
-                }
-              />
-              <Select
-                value={cryptoDetails.network}
-                onChange={(e) =>
-                  setCryptoDetails({
-                    ...cryptoDetails,
-                    network: e.target.value,
-                  })
-                }
-              >
-                <option value="TRC20">TRC20</option>
-                <option value="ERC20">ERC20</option>
-                <option value="BEP20">BEP20</option>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <Input placeholder="Wallet Address" />
+              <Select>
+                <option>TRC20</option>
+                <option>ERC20</option>
+                <option>BEP20</option>
               </Select>
-            </>
+            </div>
           )}
         </div>
 
-        <div className="mt-6">
+        {/* Buttons */}
+        <div className="mt-5">
           {!otpSent ? (
-            <button
-              onClick={handleSendOtp}
-              className="w-full py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 transition text-white font-medium"
-            >
+            <button className="w-full py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 transition text-white font-medium text-sm md:text-base">
               {loading ? "Sending OTP..." : "Send OTP"}
             </button>
           ) : (
             <>
-              <Input
-                placeholder="Enter OTP"
-                value={otp}
-                onChange={(e) => setOtp(e.target.value)}
-              />
-              <button
-                onClick={handleWithdraw}
-                className="w-full mt-3 py-3 rounded-xl bg-green-600 hover:bg-green-700 transition text-white font-medium"
-              >
+              <Input placeholder="Enter OTP" />
+              <button className="w-full mt-3 py-3 rounded-xl bg-green-600 hover:bg-green-700 transition text-white font-medium text-sm md:text-base">
                 Confirm Withdrawal
               </button>
             </>
@@ -195,22 +142,23 @@ const Payouts = () => {
         </div>
       </motion.div>
 
-      {/* HISTORY TABLE */}
+      {/* HISTORY */}
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-gradient-to-br from-slate-900 to-slate-800 border border-white/10 rounded-2xl shadow-xl overflow-hidden"
+        className="bg-gradient-to-br from-slate-900 to-slate-800 border border-white/10 rounded-2xl shadow-xl"
       >
-        <div className="p-6 border-b border-white/10 flex justify-between items-center">
-          <h2 className="text-xl font-semibold text-white">
+        <div className="p-4 md:p-6 border-b border-white/10 flex justify-between items-center">
+          <h2 className="text-lg md:text-xl font-semibold text-white">
             Payout History
           </h2>
-          <button className="flex items-center gap-2 text-sm text-indigo-400 hover:text-indigo-300">
+          <button className="flex items-center gap-2 text-sm text-indigo-400">
             <FiFilter /> Filters
           </button>
         </div>
 
-        <div className="overflow-x-auto">
+        {/* Desktop Table */}
+        <div className="hidden md:block overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="text-gray-400 border-b border-white/10">
               <tr>
@@ -224,53 +172,56 @@ const Payouts = () => {
             </thead>
 
             <tbody>
-              {withdrawals?.length === 0 ? (
-                <tr>
-                  <td colSpan="6" className="p-10 text-center text-gray-500">
-                    No payouts yet.
+              {withdrawals?.map((item) => (
+                <tr key={item._id} className="border-b border-white/5">
+                  <td className="p-4">
+                    {new Date(item.createdAt).toLocaleDateString()}
+                  </td>
+                  <td className="p-4 text-white font-medium">
+                    ₹{item.amount}
+                  </td>
+                  <td className="p-4">{item.paymentMethod}</td>
+                  <td className="p-4 text-xs">
+                    {item.paymentMethod === "bank"
+                      ? item.bankName
+                      : item.network}
+                  </td>
+                  <td className={`p-4 ${getStatusColor(item.status)}`}>
+                    {item.status}
+                  </td>
+                  <td className="p-4 text-xs text-gray-500">
+                    {item.adminRemark || "-"}
                   </td>
                 </tr>
-              ) : (
-                withdrawals?.map((item) => (
-                  <tr
-                    key={item._id}
-                    className="border-b border-white/5 hover:bg-white/5 transition"
-                  >
-                    <td className="p-4">
-                      {new Date(item.createdAt).toLocaleDateString()}
-                    </td>
-                    <td className="p-4 font-medium text-white">
-                      ₹{item.amount}
-                    </td>
-                    <td className="p-4">{item.paymentMethod}</td>
-                    <td className="p-4 text-xs">
-                      {item.paymentMethod === "bank" ? (
-                        <>
-                          {item.bankName} <br />
-                          {item.accountNumber}
-                        </>
-                      ) : (
-                        <>
-                          {item.cryptoType} <br />
-                          {item.network}
-                        </>
-                      )}
-                    </td>
-                    <td
-                      className={`p-4 font-medium ${getStatusColor(
-                        item.status
-                      )}`}
-                    >
-                      {item.status}
-                    </td>
-                    <td className="p-4 text-xs text-gray-500">
-                      {item.adminRemark || "-"}
-                    </td>
-                  </tr>
-                ))
-              )}
+              ))}
             </tbody>
           </table>
+        </div>
+
+        {/* Mobile Cards */}
+        <div className="md:hidden p-4 space-y-4">
+          {withdrawals?.map((item) => (
+            <div
+              key={item._id}
+              className="p-4 rounded-xl bg-white/5 border border-white/10"
+            >
+              <p className="text-xs text-gray-400">
+                {new Date(item.createdAt).toLocaleDateString()}
+              </p>
+
+              <p className="text-lg font-semibold text-white mt-1">
+                ₹{item.amount}
+              </p>
+
+              <p className="text-sm text-gray-400">
+                {item.paymentMethod}
+              </p>
+
+              <p className={`text-sm mt-1 ${getStatusColor(item.status)}`}>
+                {item.status}
+              </p>
+            </div>
+          ))}
         </div>
       </motion.div>
     </div>

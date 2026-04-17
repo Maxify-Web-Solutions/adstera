@@ -54,7 +54,7 @@ const Sidebar = ({ isOpen, onClose }) => {
                 <div className="flex justify-between items-center mb-10">
 
                     <h2 className="text-gray-900 dark:text-white text-xl font-bold">
-                        ScraperPanel
+                        Dashboard
                     </h2>
 
                     <button
