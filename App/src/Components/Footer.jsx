@@ -10,7 +10,7 @@ const Footer = () => {
                 <div className="col-span-1 md:col-span-1">
                     <Link to="/" className="text-2xl font-bold text-gray-900 dark:text-white mb-4 block">
                         <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-cyan-400 bg-clip-text text-transparent">
-                            Adstera
+                            Adstorx
                         </span>
                     </Link>
                     <p className="text-sm text-gray-500 dark:text-slate-400 mb-6">
@@ -58,7 +58,7 @@ const Footer = () => {
             </div>
 
             <div className="max-w-7xl mx-auto px-6 mt-12 pt-8 border-t border-gray-200 dark:border-slate-800 text-center text-sm text-gray-500 dark:text-slate-500">
-                &copy; {new Date().getFullYear()} Adstera Inc. All rights reserved.
+                &copy; {new Date().getFullYear()} Adstorx Inc. All rights reserved.
             </div>
         </footer>
     );

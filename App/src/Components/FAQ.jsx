@@ -37,8 +37,8 @@ const FAQ = () => {
 
     const faqData = [
         {
-            question: 'What is Adstera?',
-            answer: 'Adstera is a next-generation advertising network that connects publishers and advertisers. We provide tools for traffic monetization, audience targeting, and real-time analytics to maximize your revenue and reach.',
+            question: 'What is Adstorx?',
+            answer: 'Adstorx is a next-generation advertising network that connects publishers and advertisers. We provide tools for traffic monetization, audience targeting, and real-time analytics to maximize your revenue and reach.',
         },
         {
             question: 'How do I get paid as a publisher?',

@@ -7,7 +7,7 @@ const Testimonials = () => {
             role: "Marketing Director",
             company: "TechFlow",
             content:
-                "Adstera transformed our ad revenue. The targeting is precise and the ROI has been incredible.",
+                "Adstorx transformed our ad revenue. The targeting is precise and the ROI has been incredible.",
             image: "https://randomuser.me/api/portraits/women/44.jpg",
         },
         {
@@ -23,7 +23,7 @@ const Testimonials = () => {
             role: "CEO",
             company: "StartUp Inc",
             content:
-                "We've seen a 40% increase in engagement since switching to Adstera. The analytics are a game changer.",
+                "We've seen a 40% increase in engagement since switching to Adstorx. The analytics are a game changer.",
             image: "https://randomuser.me/api/portraits/men/86.jpg",
         },
         {
@@ -54,7 +54,7 @@ const Testimonials = () => {
                 </h2>
 
                 <p className="text-gray-500 dark:text-slate-400 mt-4 max-w-xl mx-auto">
-                    Thousands of advertisers and publishers trust Adstera to grow their business.
+                    Thousands of advertisers and publishers trust Adstorx to grow their business.
                 </p>
             </div>
 

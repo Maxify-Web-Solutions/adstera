@@ -35,7 +35,7 @@ const HowItWorks = () => {
                 <div className="text-center mb-16">
                     <h2 className="text-3xl md:text-5xl font-bold text-gray-900 dark:text-white">How It Works</h2>
                     <p className="mt-4 text-gray-500 dark:text-gray-400 max-w-xl mx-auto">
-                        Start using Adstera in just a few simple steps.
+                        Start using Adstorx in just a few simple steps.
                     </p>
                 </div>
 

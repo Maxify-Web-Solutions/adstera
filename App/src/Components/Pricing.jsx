@@ -24,7 +24,7 @@ const Cta = () => {
 
                     {/* Description */}
                     <p className="mt-6 text-gray-500 dark:text-gray-400 text-lg max-w-2xl mx-auto leading-relaxed">
-                        Join Adstera today and unlock premium traffic, powerful targeting,
+                        Join Adstorx today and unlock premium traffic, powerful targeting,
                         and monetization tools built to scale your campaigns faster.
                     </p>
 

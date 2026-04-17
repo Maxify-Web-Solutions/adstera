@@ -29,8 +29,8 @@ const Contact = () => {
                                     </div>
                                     <div>
                                         <h4 className="font-semibold text-lg text-gray-900 dark:text-white">Email Us</h4>
-                                        <p className="text-gray-500 dark:text-slate-400">support@adstera.com</p>
-                                        <p className="text-gray-500 dark:text-slate-400">sales@adstera.com</p>
+                                        <p className="text-gray-500 dark:text-slate-400">support@adstorx.com</p>
+                                        <p className="text-gray-500 dark:text-slate-400">sales@adstorx.com</p>
                                     </div>
                                 </div>
                                 
