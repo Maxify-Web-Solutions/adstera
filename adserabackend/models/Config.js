@@ -1,6 +1,6 @@
 // models/Config.js
 
-import mongoose from "mongoose";
+const mongoose = require("mongoose");
 
 const configSchema = new mongoose.Schema(
   {
@@ -12,4 +12,4 @@ const configSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-export const Config = mongoose.model("Config", configSchema);
+module.exports = mongoose.model("Config", configSchema);
