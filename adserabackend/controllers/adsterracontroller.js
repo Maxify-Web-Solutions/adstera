@@ -4,6 +4,9 @@ const Placement = require("../models/AdsterraPlacement");
 const AdsterraStats = require("../models/AdsterraStats");
 const User = require("../models/authmodel");
 const UAParser = require("ua-parser-js");
+const Config = reuqire("../models/Config");
+
+
 
 
 
@@ -51,7 +54,12 @@ exports.fetchAndStoreAdsterraStats = async (req, res) => {
     pastDate.setDate(today.getDate() - 15);
     const defaultStartDate = pastDate.toISOString().split("T")[0];
 
-    // 📡 API CALL
+    const config = await Config.findOne();
+
+    if (!config || !config.adsterraApiKey) {
+      return res.status(400).json({ message: "Adsterra API key not set" });
+    }
+
     const response = await axios.get(
       "https://api3.adsterratools.com/publisher/stats.json",
       {
@@ -64,13 +72,12 @@ exports.fetchAndStoreAdsterraStats = async (req, res) => {
         },
         headers: {
           Accept: "application/json",
-          "X-API-Key": process.env.ADSTERA_API_KEY,
+          "X-API-Key": config.adsterraApiKey, // ✅ FIX
           "User-Agent":
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120 Safari/537.36",
         },
       }
     );
-
     let apiData = response.data?.items || [];
 
 
