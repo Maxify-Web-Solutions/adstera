@@ -274,13 +274,39 @@ const Header = () => {
                         </NavLink>
                     )}
 
-                    {user && (
+                    {user ? (
                         <button
                             onClick={handleLogout}
-                            className="bg-red-500 px-4 py-2 rounded text-white hover:bg-red-600 mt-2"
+                            className="bg-red-500 px-4 py-2 rounded text-white hover:bg-red-600"
                         >
                             Logout
                         </button>
+                    ) : (
+                        <>
+                            <NavLink
+                                to="/login"
+                                className={({ isActive }) =>
+                                    `px-4 py-2 rounded transition font-medium ${isActive
+                                        ? "bg-indigo-600 text-white"
+                                        : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800 hover:text-gray-900 dark:hover:text-white"
+                                    }`
+                                }
+                            >
+                                Login
+                            </NavLink>
+
+                            <NavLink
+                                to="/register"
+                                className={({ isActive }) =>
+                                    `px-4 py-2 rounded transition font-medium ${isActive
+                                        ? "bg-indigo-600 text-white"
+                                        : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800 hover:text-gray-900 dark:hover:text-white"
+                                    }`
+                                }
+                            >
+                                Register
+                            </NavLink>
+                        </>
                     )}
 
                 </div>

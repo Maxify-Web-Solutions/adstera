@@ -5,6 +5,7 @@ import { Link, useNavigate } from "react-router-dom"
 
 import { MdPerson, MdEmail, MdLock, MdPhone } from "react-icons/md"
 import { BiSolidHide, BiSolidShow } from "react-icons/bi"
+import Header from "../Components/Header"
 
 const Register = () => {
 
@@ -81,12 +82,14 @@ const Register = () => {
     }
 
     return (
+        <>
+        <Header />
         <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-black px-4">
 
             <div className="w-full max-w-md backdrop-blur-xl bg-white/5 border border-white/10 shadow-2xl rounded-2xl p-8">
 
                 <h2 className="text-3xl font-bold text-center text-white mb-6 tracking-wide">
-                    Create Account 🚀
+                    Create Account 
                 </h2>
 
                 <form onSubmit={handleRegister} className="space-y-5">
@@ -201,6 +204,7 @@ const Register = () => {
             </div>
 
         </div>
+        </>
     )
 }
 

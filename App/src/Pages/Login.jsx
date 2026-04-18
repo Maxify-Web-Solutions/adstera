@@ -4,6 +4,7 @@ import { useDispatch } from 'react-redux'
 import { loginUser } from '../redux/slice/authSlice'
 import { BiSolidHide, BiSolidShow } from "react-icons/bi"
 import { MdEmail, MdLock } from "react-icons/md"
+import Header from '../Components/Header'
 
 const Login = () => {
 
@@ -30,7 +31,9 @@ const Login = () => {
     }
 
     return (
-        <div className="flex min-h-screen items-center justify-center bg-slate-900">
+        <>
+        <Header />
+        <div className="flex min-h-screen items-center justify-center bg-slate-900 px-4">
             <div className="w-full max-w-md rounded-xl bg-slate-800 p-8 shadow-lg border border-slate-700">
 
                 <h2 className="mb-8 text-center text-3xl font-bold text-white">
@@ -115,6 +118,7 @@ const Login = () => {
 
             </div>
         </div>
+        </>
     )
 }
 
