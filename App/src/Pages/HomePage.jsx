@@ -32,9 +32,9 @@ const HomePage = () => {
             </Reveal>
 
             {/* <TrustedBy/> */}
-            <Reveal>
+            {/* <Reveal> */}
             <Features />
-            </Reveal>
+            {/* </Reveal> */}
 
             <Reveal>
             <Pricing />

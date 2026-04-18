@@ -1,9 +1,23 @@
 import React from "react";
 import { FiArrowRight } from "react-icons/fi";
 import { motion } from "framer-motion";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
 
 const Hero = () => {
+
+    const navigate = useNavigate();
+
+    const { user } = useSelector((state) => state.auth); // 👈 auth slice
+
+    const handleClick = () => {
+        if (user) {
+            navigate("/dashboard");
+        } else {
+            navigate("/register");
+        }
+    };
+
     return (
         <section className="bg-white dark:bg-slate-900 text-gray-800 dark:text-white relative overflow-hidden">
 
@@ -39,12 +53,13 @@ const Hero = () => {
                             <FiArrowRight />
                         </button>
 
-                        <Link to="/register">
-                            <button className="flex items-center gap-2 px-6 py-3 border border-gray-300 dark:border-slate-600 rounded-lg font-semibold hover:bg-gray-100 dark:hover:bg-slate-800 transition">
-                                Start Earning
-                                <FiArrowRight />
-                            </button>
-                        </Link>
+                        <button
+                            onClick={handleClick}
+                            className="flex items-center gap-2 px-6 py-3 border border-gray-300 dark:border-slate-600 rounded-lg font-semibold hover:bg-gray-100 dark:hover:bg-slate-800 transition"
+                        >
+                            Start Earning
+                            <FiArrowRight />
+                        </button>
                     </div>
 
                 </motion.div>
@@ -53,7 +68,7 @@ const Hero = () => {
                 <motion.div
                     initial={{ opacity: 0, x: 80 }}
                     animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.8, ease: "easeOut", delay: 0.2 }} className="relative flex justify-center mt-10 md:mt-0">
+                    transition={{ duration: 0.8, ease: "easeOut", delay: 0.2 }} className="relative flex justify-center mt-10 md:mt-0 pb-10 md:pb-0">
 
                     <div className="relative flex items-center justify-center">
 
@@ -69,7 +84,7 @@ const Hero = () => {
 
                         {/* center logo */}
                         <div className="relative w-32 h-32 md:w-40 md:h-40 rounded-full bg-gradient-to-br from-indigo-500 to-cyan-400 flex items-center justify-center text-4xl md:text-5xl font-bold shadow-xl shadow-indigo-500/30">
-                            A
+                            <img src="https://i.ibb.co/R4sG9jYg/Picsart-26-04-18-12-27-04-842.png" alt="" className="h-20" />
                         </div>
 
                     </div>

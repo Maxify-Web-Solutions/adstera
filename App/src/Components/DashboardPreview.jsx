@@ -1,6 +1,8 @@
 import React from "react";
 import { FiBarChart2, FiTarget, FiTrendingUp } from "react-icons/fi";
 import Reveal from "./Reveal";
+import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
 
 const DashboardPreview = () => {
     const features = [
@@ -17,6 +19,18 @@ const DashboardPreview = () => {
             text: "Performance optimization tools",
         },
     ];
+
+    const navigate = useNavigate();
+
+    const { user } = useSelector((state) => state.auth); // 👈 auth slice
+
+    const handleClick = () => {
+        if (user) {
+            navigate("/dashboard");
+        } else {
+            navigate("/register");
+        }
+    };
 
     return (
         <section className="bg-gray-50 dark:bg-slate-900 text-gray-800 dark:text-white py-20 relative">
@@ -54,7 +68,7 @@ const DashboardPreview = () => {
                             ))}
                         </ul>
 
-                        <button className="mt-8 px-6 py-3 bg-indigo-600 rounded-lg font-semibold hover:bg-indigo-700 transition shadow-lg shadow-indigo-600/20 text-white">
+                        <button onClick={handleClick} className="mt-8 px-6 py-3 bg-indigo-600 rounded-lg font-semibold hover:bg-indigo-700 transition shadow-lg shadow-indigo-600/20 text-white">
                             Explore Dashboard
                         </button>
 

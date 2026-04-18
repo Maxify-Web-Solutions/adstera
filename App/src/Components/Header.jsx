@@ -79,7 +79,7 @@ const Header = () => {
                     <div className="flex h-16 items-center justify-between">
 
                         {/* LOGO */}
-                        <Link href="/" className="flex items-center shrink-0">
+                        <Link to="/" className="flex items-center shrink-0">
 
                             <img
                                 src="https://i.ibb.co/gbrn443W/Adstorx-logo.png"

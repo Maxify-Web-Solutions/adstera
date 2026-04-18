@@ -6,6 +6,7 @@ import { Link, useNavigate } from "react-router-dom"
 import { MdPerson, MdEmail, MdLock, MdPhone } from "react-icons/md"
 import { BiSolidHide, BiSolidShow } from "react-icons/bi"
 import Header from "../Components/Header"
+import Swal from "sweetalert2";
 
 const Register = () => {
 
@@ -51,35 +52,92 @@ const Register = () => {
        REGISTER
     ========================= */
     const handleRegister = async (e) => {
-        e.preventDefault()
-        setLoading(true)
+    e.preventDefault()
+    setLoading(true)
 
-        const result = await dispatch(registerUser({ name, mobile, email, password }))
+    const result = await dispatch(registerUser({ name, mobile, email, password }))
 
-        if (result.meta.requestStatus === "fulfilled") {
-            setOtpSent(true)
-        }
+    if (result.meta.requestStatus === "fulfilled") {
 
-        setLoading(false)
+        await Swal.fire({
+            icon: "success",
+            title: "OTP Sent 📩",
+            text: "Check your email for verification code",
+            showConfirmButton: false,
+            timer: 1500,
+            timerProgressBar: true,
+            background: "#0f172a",
+            color: "#e2e8f0",
+            customClass: {
+                popup: "rounded-2xl shadow-2xl"
+            }
+        })
+
+        setOtpSent(true)
+
+    } else {
+
+        Swal.fire({
+            icon: "error",
+            title: "Registration Failed",
+            text: result.payload || "Something went wrong",
+            background: "#0f172a",
+            color: "#e2e8f0",
+            confirmButtonColor: "#6366f1"
+        })
     }
+
+    setLoading(false)
+}
 
     /* =========================
        VERIFY OTP
     ========================= */
     const handleverifyOtp = async () => {
-        if (!otp) return alert("Enter OTP")
-
-        setLoading(true)
-
-        const result = await dispatch(verifyOtp({ email, otp }))
-
-        if (result.meta.requestStatus === "fulfilled") {
-            sessionStorage.clear() // ✅ full cleanup
-            navigate("/dashboard")
-        }
-
-        setLoading(false)
+    if (!otp) {
+        Swal.fire({
+            icon: "warning",
+            title: "Enter OTP",
+            background: "#0f172a",
+            color: "#e2e8f0"
+        })
+        return
     }
+
+    setLoading(true)
+
+    const result = await dispatch(verifyOtp({ email, otp }))
+
+    if (result.meta.requestStatus === "fulfilled") {
+
+        await Swal.fire({
+            icon: "success",
+            title: "Account Created 🎉",
+            text: "Welcome to dashboard",
+            showConfirmButton: false,
+            timer: 1500,
+            timerProgressBar: true,
+            background: "#0f172a",
+            color: "#e2e8f0"
+        })
+
+        sessionStorage.clear()
+        navigate("/dashboard")
+
+    } else {
+
+        Swal.fire({
+            icon: "error",
+            title: "Invalid OTP",
+            text: result.payload || "Please try again",
+            background: "#0f172a",
+            color: "#e2e8f0",
+            confirmButtonColor: "#6366f1"
+        })
+    }
+
+    setLoading(false)
+}
 
     return (
         <>
