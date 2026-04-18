@@ -64,7 +64,6 @@ const userschema = new mongoose.Schema(
   }
 );
 
-// 🔥 Auto-generate referral code before saving
 
 
 const User = mongoose.model('users', userschema);
