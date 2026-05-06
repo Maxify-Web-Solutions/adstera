@@ -8,7 +8,6 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-
 const emailWrapper = (title, subtitle, bodyHTML) => `
 <!DOCTYPE html>
 <html>
@@ -66,7 +65,7 @@ const emailWrapper = (title, subtitle, bodyHTML) => `
               border-top:1px solid #e5e7eb;
             ">
               If you did not sign up for this account, you can safely ignore this email.<br/><br/>
-              © 2025 MaxifyAcademy. All rights reserved.
+              © 2025 Adstrox. All rights reserved.
             </td>
           </tr>
 
@@ -84,9 +83,9 @@ const emailWrapper = (title, subtitle, bodyHTML) => `
 exports.sendAccountVerificationOTP = async (email, otp) => {
   try {
     await transporter.sendMail({
-      from: `"Maxify Academy" <${process.env.EMAIL_USER}>`,
+      from: `"Adstrox" <${process.env.EMAIL_USER}>`,
       to: email,
-      subject: "Verify Your Maxify Academy Account",
+      subject: "Verify Your Adstrox Account",
       html: emailWrapper(
         "Verify Your Account",
         "Complete your signup to get instant access 🚀",
@@ -116,7 +115,9 @@ exports.sendAccountVerificationOTP = async (email, otp) => {
         `
       ),
     });
+
     return true;
+
   } catch (err) {
     console.log("Verification OTP Error:", err);
     return false;
@@ -126,7 +127,7 @@ exports.sendAccountVerificationOTP = async (email, otp) => {
 exports.sendWithdrawalOTP = async (email, otp, amount) => {
   try {
     await transporter.sendMail({
-      from: `"Maxify Academy" <${process.env.EMAIL_USER}>`,
+      from: `"Adstrox" <${process.env.EMAIL_USER}>`,
       to: email,
       subject: "Withdrawal OTP Verification",
       html: emailWrapper(
