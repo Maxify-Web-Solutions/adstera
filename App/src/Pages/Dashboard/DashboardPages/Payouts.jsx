@@ -108,34 +108,107 @@ const Payouts = () => {
         <div className="mt-4 space-y-3">
           {method === "bank" ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <Input placeholder="Account Holder Name" />
-              <Input placeholder="Bank Name" />
-              <Input placeholder="Account Number" />
-              <Input placeholder="IFSC Code" />
-            </div>
+
+  <Input
+    placeholder="Account Holder Name"
+    value={bankDetails.accountHolderName}
+    onChange={(e) =>
+      setBankDetails({
+        ...bankDetails,
+        accountHolderName: e.target.value,
+      })
+    }
+  />
+
+  <Input
+    placeholder="Bank Name"
+    value={bankDetails.bankName}
+    onChange={(e) =>
+      setBankDetails({
+        ...bankDetails,
+        bankName: e.target.value,
+      })
+    }
+  />
+
+  <Input
+    placeholder="Account Number"
+    value={bankDetails.accountNumber}
+    onChange={(e) =>
+      setBankDetails({
+        ...bankDetails,
+        accountNumber: e.target.value,
+      })
+    }
+  />
+
+  <Input
+    placeholder="IFSC Code"
+    value={bankDetails.ifscCode}
+    onChange={(e) =>
+      setBankDetails({
+        ...bankDetails,
+        ifscCode: e.target.value,
+      })
+    }
+  />
+
+</div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <Input placeholder="Wallet Address" />
-              <Select>
-                <option>TRC20</option>
-                <option>ERC20</option>
-                <option>BEP20</option>
-              </Select>
-            </div>
+
+  <Input
+    placeholder="Wallet Address"
+    value={cryptoDetails.walletAddress}
+    onChange={(e) =>
+      setCryptoDetails({
+        ...cryptoDetails,
+        walletAddress: e.target.value,
+      })
+    }
+  />
+
+  <Select
+    value={cryptoDetails.network}
+    onChange={(e) =>
+      setCryptoDetails({
+        ...cryptoDetails,
+        network: e.target.value,
+      })
+    }
+  >
+    <option value="TRC20">TRC20</option>
+    <option value="ERC20">ERC20</option>
+    <option value="BEP20">BEP20</option>
+  </Select>
+
+</div>
           )}
         </div>
 
         {/* Buttons */}
         <div className="mt-5">
           {!otpSent ? (
-            <button className="w-full py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 transition text-white font-medium text-sm md:text-base">
+            <button
+              onClick={handleSendOtp}
+              disabled={loading}
+              className="w-full py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 transition text-white font-medium text-sm md:text-base"
+            >
               {loading ? "Sending OTP..." : "Send OTP"}
             </button>
           ) : (
             <>
-              <Input placeholder="Enter OTP" />
-              <button className="w-full mt-3 py-3 rounded-xl bg-green-600 hover:bg-green-700 transition text-white font-medium text-sm md:text-base">
-                Confirm Withdrawal
+              <Input
+                placeholder="Enter OTP"
+                value={otp}
+                onChange={(e) => setOtp(e.target.value)}
+              />
+              <button
+                onClick={handleWithdraw}
+                disabled={loading}
+                className="w-full mt-3 py-3 rounded-xl bg-green-600 hover:bg-green-700 disabled:opacity-50 transition text-white font-medium text-sm md:text-base"
+              >
+                {loading ? "Processing..." : "Confirm Withdrawal"}
               </button>
             </>
           )}
@@ -143,87 +216,258 @@ const Payouts = () => {
       </motion.div>
 
       {/* HISTORY */}
-      <motion.div
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="bg-gradient-to-br from-slate-900 to-slate-800 border border-white/10 rounded-2xl shadow-xl"
-      >
-        <div className="p-4 md:p-6 border-b border-white/10 flex justify-between items-center">
-          <h2 className="text-lg md:text-xl font-semibold text-white">
-            Payout History
-          </h2>
-          <button className="flex items-center gap-2 text-sm text-indigo-400">
-            <FiFilter /> Filters
-          </button>
-        </div>
+      {/* ================= HISTORY ================= */}
+<motion.div
+  initial={{ opacity: 0, y: 30 }}
+  animate={{ opacity: 1, y: 0 }}
+  className="bg-gradient-to-br from-slate-900 to-slate-800 border border-white/10 rounded-2xl shadow-xl"
+>
+  
+  {/* HEADER */}
+  <div className="p-4 md:p-6 border-b border-white/10 flex justify-between items-center">
+    
+    <h2 className="text-lg md:text-xl font-semibold text-white">
+      Payout History
+    </h2>
 
-        {/* Desktop Table */}
-        <div className="hidden md:block overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="text-gray-400 border-b border-white/10">
-              <tr>
-                <th className="p-4">Date</th>
-                <th className="p-4">Amount</th>
-                <th className="p-4">Method</th>
-                <th className="p-4">Details</th>
-                <th className="p-4">Status</th>
-                <th className="p-4">Remark</th>
-              </tr>
-            </thead>
+    <button className="flex items-center gap-2 text-sm text-indigo-400">
+      <FiFilter /> Filters
+    </button>
 
-            <tbody>
-              {withdrawals?.map((item) => (
-                <tr key={item._id} className="border-b border-white/5">
-                  <td className="p-4">
-                    {new Date(item.createdAt).toLocaleDateString()}
-                  </td>
-                  <td className="p-4 text-white font-medium">
-                    ₹{item.amount}
-                  </td>
-                  <td className="p-4">{item.paymentMethod}</td>
-                  <td className="p-4 text-xs">
-                    {item.paymentMethod === "bank"
-                      ? item.bankName
-                      : item.network}
-                  </td>
-                  <td className={`p-4 ${getStatusColor(item.status)}`}>
-                    {item.status}
-                  </td>
-                  <td className="p-4 text-xs text-gray-500">
-                    {item.adminRemark || "-"}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+  </div>
 
-        {/* Mobile Cards */}
-        <div className="md:hidden p-4 space-y-4">
-          {withdrawals?.map((item) => (
-            <div
+
+  {/* ================= DESKTOP TABLE ================= */}
+  <div className="hidden md:block overflow-x-auto">
+
+    <table className="w-full text-sm">
+
+      <thead className="text-gray-400 border-b border-white/10">
+        <tr>
+          <th className="p-4 text-left">Date</th>
+          <th className="p-4 text-left">Amount</th>
+          <th className="p-4 text-left">Method</th>
+          <th className="p-4 text-left">Details</th>
+          <th className="p-4 text-left">Status</th>
+          <th className="p-4 text-left">Remark</th>
+        </tr>
+      </thead>
+
+
+      <tbody>
+
+        {withdrawals && withdrawals.length > 0 ? (
+
+          withdrawals.map((item) => (
+
+            <tr
               key={item._id}
-              className="p-4 rounded-xl bg-white/5 border border-white/10"
+              className="border-b border-white/5 hover:bg-white/5 transition"
             >
-              <p className="text-xs text-gray-400">
-                {new Date(item.createdAt).toLocaleDateString()}
-              </p>
 
-              <p className="text-lg font-semibold text-white mt-1">
+              {/* DATE */}
+              <td className="p-4">
+
+                <div className="flex flex-col">
+
+                  <span className="text-white text-sm">
+                    {new Date(item.createdAt).toLocaleDateString(
+                      undefined,
+                      {
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                      }
+                    )}
+                  </span>
+
+                  <span className="text-xs text-gray-500 mt-1">
+                    {new Date(item.createdAt).toLocaleTimeString(
+                      undefined,
+                      {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      }
+                    )}
+                  </span>
+
+                </div>
+
+              </td>
+
+
+              {/* AMOUNT */}
+              <td className="p-4 text-white font-semibold">
                 ₹{item.amount}
-              </p>
+              </td>
 
-              <p className="text-sm text-gray-400">
+
+              {/* METHOD */}
+              <td className="p-4 capitalize text-gray-300">
                 {item.paymentMethod}
-              </p>
+              </td>
 
-              <p className={`text-sm mt-1 ${getStatusColor(item.status)}`}>
+
+              {/* DETAILS */}
+              <td className="p-4 text-xs text-gray-400">
+
+                {item.paymentMethod === "bank" ? (
+                  <div className="space-y-1">
+
+                    <p>{item.bankName || "-"}</p>
+
+                    <p>
+                      A/C: ****
+                      {item.accountNumber?.slice(-4)}
+                    </p>
+
+                    <p>{item.ifscCode}</p>
+
+                  </div>
+                ) : (
+                  <div className="space-y-1">
+
+                    <p>{item.network}</p>
+
+                    <p className="break-all">
+                      {item.walletAddress}
+                    </p>
+
+                  </div>
+                )}
+
+              </td>
+
+
+              {/* STATUS */}
+              <td
+                className={`p-4 font-medium capitalize ${getStatusColor(
+                  item.status
+                )}`}
+              >
                 {item.status}
-              </p>
+              </td>
+
+
+              {/* REMARK */}
+              <td className="p-4 text-xs text-gray-500">
+                {item.adminRemark || "-"}
+              </td>
+
+            </tr>
+          ))
+
+        ) : (
+
+          <tr>
+
+            <td
+              colSpan="6"
+              className="p-10 text-center text-gray-500"
+            >
+              No payout history found
+            </td>
+
+          </tr>
+
+        )}
+
+      </tbody>
+
+    </table>
+
+  </div>
+
+
+
+  {/* ================= MOBILE CARDS ================= */}
+  <div className="md:hidden p-4 space-y-4">
+
+    {withdrawals && withdrawals.length > 0 ? (
+
+      withdrawals.map((item) => (
+
+        <div
+          key={item._id}
+          className="p-4 rounded-xl bg-white/5 border border-white/10"
+        >
+
+          {/* DATE */}
+          <div className="flex items-center justify-between">
+
+            <p className="text-xs text-gray-400">
+              {new Date(item.createdAt).toLocaleDateString()}
+            </p>
+
+            <p
+              className={`text-xs font-medium capitalize ${getStatusColor(
+                item.status
+              )}`}
+            >
+              {item.status}
+            </p>
+
+          </div>
+
+
+          {/* AMOUNT */}
+          <p className="text-lg font-semibold text-white mt-2">
+            ₹{item.amount}
+          </p>
+
+
+          {/* METHOD */}
+          <p className="text-sm text-gray-400 capitalize mt-1">
+            {item.paymentMethod}
+          </p>
+
+
+          {/* DETAILS */}
+          <div className="mt-3 text-xs text-gray-500 space-y-1">
+
+            {item.paymentMethod === "bank" ? (
+              <>
+                <p>{item.bankName}</p>
+
+                <p>
+                  A/C: ****
+                  {item.accountNumber?.slice(-4)}
+                </p>
+              </>
+            ) : (
+              <>
+                <p>{item.network}</p>
+
+                <p className="break-all">
+                  {item.walletAddress}
+                </p>
+              </>
+            )}
+
+          </div>
+
+
+          {/* REMARK */}
+          {item.adminRemark && (
+            <div className="mt-3 text-xs text-indigo-400">
+              Remark: {item.adminRemark}
             </div>
-          ))}
+          )}
+
         </div>
-      </motion.div>
+      ))
+
+    ) : (
+
+      <div className="text-center text-gray-500 py-10">
+        No payout history found
+      </div>
+
+    )}
+
+  </div>
+
+</motion.div>
     </div>
   );
 };
