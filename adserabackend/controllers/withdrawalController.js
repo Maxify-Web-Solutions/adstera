@@ -4,6 +4,9 @@ const Withdrawal = require("../models/withdrawalModel");
 const User = require("../models/authmodel");
 const { sendWithdrawalOTP } = require("../utils/mailer");
 const WithdrawalOtp = require("../models/WithdrawalOtp");
+const mongoose = require("mongoose");
+
+// ✅ 1. Create Withdrawal
 
 exports.createWithdrawal = async (req, res) => {
   try {
@@ -205,18 +208,47 @@ exports.sendWithdrawalOtp = async (req, res) => {
 // ✅ 2. Get My Withdrawals
 exports.getMyWithdrawals = async (req, res) => {
   try {
-    const withdrawals = await Withdrawal.find({
-      userId: req.user.id,
-    }).sort({ createdAt: -1 });
+    console.log("REQ USER:", req.user);
 
-    res.status(200).json({
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized user",
+      });
+    }
+
+    const rawUserId = req.user._id || req.user.id;
+
+    if (!rawUserId) {
+      return res.status(400).json({
+        success: false,
+        message: "User ID missing",
+      });
+    }
+
+    // ✅ SAFE ObjectId handling
+    let userId = rawUserId;
+
+    if (mongoose.Types.ObjectId.isValid(rawUserId)) {
+      userId = new mongoose.Types.ObjectId(rawUserId.toString());
+    }
+
+    const withdrawals = await Withdrawal.find({ userId })
+      .sort({ createdAt: -1 })
+      .lean();
+
+    return res.status(200).json({
       success: true,
+      count: withdrawals.length,
       withdrawals,
     });
+
   } catch (error) {
-    res.status(500).json({
+    console.error("WITHDRAWAL ERROR FULL:", error);
+
+    return res.status(500).json({
       success: false,
-      message: "Server error",
+      message: error.message, // 👈 IMPORTANT DEBUG
     });
   }
 };
