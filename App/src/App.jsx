@@ -26,6 +26,7 @@ import FAQCaseStudies from "./Pages/Dashboard/DashboardPages/FAQCaseStudies";
 import PayoutInformation from "./Pages/Dashboard/DashboardPages/PayoutInformation";
 import Payouts from "./Pages/Dashboard/DashboardPages/Payouts";
 import DashboardProfile from "./Pages/Dashboard/DashboardPages/DashboardProfile";
+import RedirectPage from "./Pages/RedirectPage";
 
 function App() {
 
@@ -45,6 +46,7 @@ function App() {
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
         <Route path="/" element={<HomePage />} />
+        <Route path="/s/:code" element={<RedirectPage />} />
 
       <Route element={<ProtectedRoute />}>
         {/* <Route path="/dashboard" element={<Dashboard />} /> */}
