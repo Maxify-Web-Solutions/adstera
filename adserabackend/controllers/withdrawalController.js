@@ -206,7 +206,7 @@ exports.sendWithdrawalOtp = async (req, res) => {
 exports.getMyWithdrawals = async (req, res) => {
   try {
     const withdrawals = await Withdrawal.find({
-      userId: req.user._id,
+      userId: req.user.id,
     }).sort({ createdAt: -1 });
 
     res.status(200).json({
