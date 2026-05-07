@@ -7,7 +7,6 @@ import { logoutUser } from "../redux/slice/authSlice";
 import ThemeToggle from "./ThemeToggle";
 
 const Header = () => {
-
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isScrolled, setIsScrolled] = useState(false);
     const [scrollProgress, setScrollProgress] = useState(0);
@@ -20,12 +19,11 @@ const Header = () => {
 
     /* Scroll progress */
     useEffect(() => {
-
         const handleScroll = () => {
-
             setIsScrolled(window.scrollY > 20);
 
             const scrollTop = window.scrollY;
+
             const docHeight =
                 document.documentElement.scrollHeight - window.innerHeight;
 
@@ -39,21 +37,36 @@ const Header = () => {
         window.addEventListener("scroll", handleScroll);
 
         return () => window.removeEventListener("scroll", handleScroll);
-
     }, []);
 
     /* Reset scroll when route changes */
     useEffect(() => {
-
         window.scrollTo({ top: 0, behavior: "smooth" });
+
         setScrollProgress(0);
 
+        setIsMenuOpen(false);
     }, [location]);
+
+    /* Lock body scroll when mobile menu open */
+    useEffect(() => {
+        if (isMenuOpen) {
+            document.body.style.overflow = "hidden";
+        } else {
+            document.body.style.overflow = "auto";
+        }
+
+        return () => {
+            document.body.style.overflow = "auto";
+        };
+    }, [isMenuOpen]);
 
     const handleLogout = async () => {
         try {
             await dispatch(logoutUser()).unwrap();
+
             setIsMenuOpen(false);
+
             navigate("/", { replace: true });
         } catch (error) {
             console.error("Logout failed:", error);
@@ -64,47 +77,43 @@ const Header = () => {
 
     return (
         <>
-
             {/* HEADER */}
             <header
                 className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 border-b border-transparent dark:border-slate-800
-        ${isScrolled
+                ${
+                    isScrolled
                         ? "bg-white/80 dark:bg-slate-900/80 backdrop-blur-md shadow-lg dark:border-white/10"
                         : "bg-transparent"
-                    }`}
+                }`}
             >
-
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-
-                    <div className="flex h-16 items-center justify-between">
-
+                <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+                    <div className="flex h-14 sm:h-16 items-center justify-between">
                         {/* LOGO */}
                         <Link to="/" className="flex items-center shrink-0">
-
                             <img
                                 src="https://i.ibb.co/gbrn443W/Adstorx-logo.png"
                                 alt="Adstorx Logo"
-                                className="h-16 w-auto object-contain"
+                                className="h-11 sm:h-14 md:h-16 w-auto object-contain"
                             />
-
                         </Link>
 
                         {/* DESKTOP NAV */}
                         <div className="hidden md:flex items-center gap-2">
-
                             <NavLink
                                 to="/"
                                 className={({ isActive }) =>
-                                    `relative px-4 py-2 rounded transition font-medium text-gray-600 dark:text-gray-300
-                                    ${isActive
-                                        ? "text-gray-900 dark:text-white"
-                                        : "hover:text-gray-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10"
+                                    `relative px-4 py-2 rounded-lg transition font-medium text-gray-600 dark:text-gray-300
+                                    ${
+                                        isActive
+                                            ? "text-gray-900 dark:text-white"
+                                            : "hover:text-gray-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10"
                                     }`
                                 }
                             >
                                 {({ isActive }) => (
                                     <>
                                         Home
+
                                         {isActive && (
                                             <span className="absolute left-0 bottom-0 w-full h-[2px] bg-gradient-to-r from-indigo-500 to-cyan-400 rounded-full"></span>
                                         )}
@@ -116,16 +125,18 @@ const Header = () => {
                                 <NavLink
                                     to="/dashboard"
                                     className={({ isActive }) =>
-                                        `relative px-4 py-2 rounded transition font-medium text-gray-600 dark:text-gray-300
-                                    ${isActive
-                                            ? "text-gray-900 dark:text-white"
-                                            : "hover:text-gray-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10"
+                                        `relative px-4 py-2 rounded-lg transition font-medium text-gray-600 dark:text-gray-300
+                                        ${
+                                            isActive
+                                                ? "text-gray-900 dark:text-white"
+                                                : "hover:text-gray-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10"
                                         }`
                                     }
                                 >
                                     {({ isActive }) => (
                                         <>
                                             Dashboard
+
                                             {isActive && (
                                                 <span className="absolute left-0 bottom-0 w-full h-[2px] bg-gradient-to-r from-indigo-500 to-cyan-400 rounded-full"></span>
                                             )}
@@ -138,16 +149,18 @@ const Header = () => {
                                 <NavLink
                                     to="/profile"
                                     className={({ isActive }) =>
-                                        `relative px-4 py-2 rounded transition font-medium text-gray-600 dark:text-gray-300
-        ${isActive
-                                            ? "text-gray-900 dark:text-white"
-                                            : "hover:text-gray-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10"
+                                        `relative px-4 py-2 rounded-lg transition font-medium text-gray-600 dark:text-gray-300
+                                        ${
+                                            isActive
+                                                ? "text-gray-900 dark:text-white"
+                                                : "hover:text-gray-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10"
                                         }`
                                     }
                                 >
                                     {({ isActive }) => (
                                         <>
                                             Profile
+
                                             {isActive && (
                                                 <span className="absolute left-0 bottom-0 w-full h-[2px] bg-gradient-to-r from-indigo-500 to-cyan-400 rounded-full"></span>
                                             )}
@@ -159,7 +172,7 @@ const Header = () => {
                             {user ? (
                                 <button
                                     onClick={handleLogout}
-                                    className="bg-red-500 px-4 py-2 rounded text-white hover:bg-red-600"
+                                    className="bg-red-500 px-4 py-2 rounded-lg text-white hover:bg-red-600 transition"
                                 >
                                     Logout
                                 </button>
@@ -167,14 +180,14 @@ const Header = () => {
                                 <>
                                     <NavLink
                                         to="/login"
-                                        className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10 px-4 py-2 rounded transition"
+                                        className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10 px-4 py-2 rounded-lg transition"
                                     >
                                         Login
                                     </NavLink>
 
                                     <NavLink
                                         to="/register"
-                                        className="bg-indigo-600 px-4 py-2 rounded text-white hover:bg-indigo-700"
+                                        className="bg-indigo-600 px-4 py-2 rounded-lg text-white hover:bg-indigo-700 transition"
                                     >
                                         Register
                                     </NavLink>
@@ -182,19 +195,16 @@ const Header = () => {
                             )}
 
                             <ThemeToggle />
-
                         </div>
 
                         {/* MOBILE MENU BUTTON */}
                         <button
                             onClick={toggleMenu}
-                            className="md:hidden text-gray-800 dark:text-white text-2xl"
+                            className="md:hidden flex items-center justify-center w-10 h-10 rounded-lg text-gray-800 dark:text-white text-2xl hover:bg-black/5 dark:hover:bg-white/10 transition"
                         >
                             <GiHamburgerMenu />
                         </button>
-
                     </div>
-
                 </div>
 
                 {/* SCROLL PROGRESS BAR */}
@@ -204,7 +214,6 @@ const Header = () => {
                         style={{ width: `${scrollProgress * 100}%` }}
                     />
                 </div>
-
             </header>
 
             {/* BACKDROP */}
@@ -217,27 +226,32 @@ const Header = () => {
 
             {/* MOBILE SIDEBAR */}
             <div
-                className={`fixed inset-y-0 right-0 w-[260px] bg-white dark:bg-slate-900 z-[60]
-        transform transition-transform duration-300 ease-in-out
-        border-l border-gray-200 dark:border-slate-800 shadow-2xl
-        ${isMenuOpen ? "translate-x-0" : "translate-x-full"}`}
+                className={`fixed inset-y-0 right-0 w-[85%] max-w-[320px] bg-white dark:bg-slate-900 z-[60]
+                transform transition-transform duration-500 ease-in-out
+                border-l border-gray-200 dark:border-slate-800 shadow-2xl
+                ${isMenuOpen ? "translate-x-0" : "translate-x-full"}`}
             >
-
+                {/* CLOSE BUTTON */}
                 <div className="flex justify-end p-4">
-                    <button onClick={toggleMenu} className="text-gray-800 dark:text-white text-2xl">
+                    <button
+                        onClick={toggleMenu}
+                        className="flex items-center justify-center w-10 h-10 rounded-lg text-gray-800 dark:text-white text-2xl hover:bg-black/5 dark:hover:bg-white/10 transition"
+                    >
                         <IoMdClose />
                     </button>
                 </div>
 
-                <div className="flex flex-col space-y-3 px-6">
-
+                {/* MOBILE NAV */}
+                <div className="flex flex-col space-y-3 px-5 pb-8 overflow-y-auto h-full">
                     <NavLink
                         to="/"
                         onClick={toggleMenu}
                         className={({ isActive }) =>
-                            `px-4 py-2 rounded transition font-medium text-gray-600 dark:text-gray-300 ${isActive
-                                ? "bg-indigo-600 text-white"
-                                : "hover:text-gray-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10"
+                            `px-4 py-3 text-base rounded-xl transition font-medium
+                            ${
+                                isActive
+                                    ? "bg-indigo-600 text-white"
+                                    : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800 hover:text-gray-900 dark:hover:text-white"
                             }`
                         }
                     >
@@ -249,9 +263,11 @@ const Header = () => {
                             to="/dashboard"
                             onClick={toggleMenu}
                             className={({ isActive }) =>
-                                `px-4 py-2 rounded transition font-medium text-gray-600 dark:text-gray-300 ${isActive
-                                    ? "bg-indigo-600 text-white"
-                                    : "hover:text-gray-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10"
+                                `px-4 py-3 text-base rounded-xl transition font-medium
+                                ${
+                                    isActive
+                                        ? "bg-indigo-600 text-white"
+                                        : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800 hover:text-gray-900 dark:hover:text-white"
                                 }`
                             }
                         >
@@ -264,9 +280,11 @@ const Header = () => {
                             to="/profile"
                             onClick={toggleMenu}
                             className={({ isActive }) =>
-                                `px-4 py-2 rounded transition font-medium text-gray-600 dark:text-gray-300 ${isActive
-                                    ? "bg-indigo-600 text-white"
-                                    : "hover:text-gray-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10"
+                                `px-4 py-3 text-base rounded-xl transition font-medium
+                                ${
+                                    isActive
+                                        ? "bg-indigo-600 text-white"
+                                        : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800 hover:text-gray-900 dark:hover:text-white"
                                 }`
                             }
                         >
@@ -277,7 +295,7 @@ const Header = () => {
                     {user ? (
                         <button
                             onClick={handleLogout}
-                            className="bg-red-500 px-4 py-2 rounded text-white hover:bg-red-600"
+                            className="bg-red-500 px-4 py-3 rounded-xl text-white hover:bg-red-600 transition"
                         >
                             Logout
                         </button>
@@ -285,10 +303,13 @@ const Header = () => {
                         <>
                             <NavLink
                                 to="/login"
+                                onClick={toggleMenu}
                                 className={({ isActive }) =>
-                                    `px-4 py-2 rounded transition font-medium ${isActive
-                                        ? "bg-indigo-600 text-white"
-                                        : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800 hover:text-gray-900 dark:hover:text-white"
+                                    `px-4 py-3 text-base rounded-xl transition font-medium
+                                    ${
+                                        isActive
+                                            ? "bg-indigo-600 text-white"
+                                            : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800 hover:text-gray-900 dark:hover:text-white"
                                     }`
                                 }
                             >
@@ -297,10 +318,13 @@ const Header = () => {
 
                             <NavLink
                                 to="/register"
+                                onClick={toggleMenu}
                                 className={({ isActive }) =>
-                                    `px-4 py-2 rounded transition font-medium ${isActive
-                                        ? "bg-indigo-600 text-white"
-                                        : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800 hover:text-gray-900 dark:hover:text-white"
+                                    `px-4 py-3 text-base rounded-xl transition font-medium
+                                    ${
+                                        isActive
+                                            ? "bg-indigo-600 text-white"
+                                            : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800 hover:text-gray-900 dark:hover:text-white"
                                     }`
                                 }
                             >
@@ -309,10 +333,12 @@ const Header = () => {
                         </>
                     )}
 
+                    {/* THEME TOGGLE */}
+                    <div className="pt-2">
+                        <ThemeToggle />
+                    </div>
                 </div>
-
             </div>
-
         </>
     );
 };

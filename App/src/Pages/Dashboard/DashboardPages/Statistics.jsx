@@ -186,7 +186,7 @@ const Statistics = () => {
   return (
     <div className="space-y-10">
       {/* FILTERS */}
-      <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-2xl p-6 md:p-8 shadow-sm">
+      <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-2xl p-4 md:p-6 shadow-sm">
         <h2 className="font-semibold mb-6">Filters</h2>
 
         <div className="grid md:grid-cols-4 gap-6">
@@ -271,7 +271,7 @@ const Statistics = () => {
           <button
             key={tab.value}
             onClick={() => setGroupBy(tab.value)}
-            className={`px-5 py-2 rounded-full text-sm font-medium transition-all ${groupBy === tab.value
+            className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${groupBy === tab.value
               ? "bg-green-600 text-white shadow-md shadow-green-600/20"
               : "bg-white dark:bg-slate-800 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-700 border border-gray-200 dark:border-slate-700"
               }`}
@@ -281,115 +281,129 @@ const Statistics = () => {
         ))}
       </div>
 
-      {/* TABLE */}
       <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-2xl shadow-sm overflow-hidden">
-        <div className="p-4 border-b border-gray-200 dark:border-slate-700">
-          <button className="text-green-500">EXPORT CSV</button>
+
+        {/* TOP BAR */}
+        <div className="p-4 border-b border-gray-200 dark:border-slate-700 flex items-center justify-between">
+          <h2 className="text-gray-900 dark:text-white font-semibold">
+            Statistics
+          </h2>
+
+          <button className="text-green-500 text-sm font-medium whitespace-nowrap">
+            EXPORT CSV
+          </button>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left">
-            <thead className="bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-gray-300 text-sm">
-              <tr>
-                <th className="p-4 text-left">{groupBy}</th>
+        {/* RESPONSIVE TABLE */}
+        <div className="max-w-[24.5rem] md:hidden">
+{/* TABLE */}
+<div className="overflow-hidden">
 
-                <th className="p-4 text-right border-l">Impressions</th>
-                <th className="p-4 text-right border-l">Clicks</th>
-                <th className="p-4 text-right border-l">CTR</th>
-                <th className="p-4 text-right border-l">CPM</th>
-                <th className="p-4 text-right border-l">Revenue</th>
-              </tr>
-            </thead>
+  <div className="overflow-x-auto">
 
-            <tbody>
-              {(groupedData || []).map((item, i) => {
-                // ✅ SAFE VALUES
-                const impressions = Number(item?.impressions || 0);
-                const clicks = Number(item?.clicks || 0);
-                const revenue = Number(item?.revenue || 0);
+    <table className="w-full min-w-max text-left border-collapse">
 
-                // ✅ SAFE CALCULATIONS
-                const ctr = impressions > 0 ? (clicks / impressions) * 100 : 0;
-                const cpm = impressions > 0 ? (revenue / impressions) * 1000 : 0;
+      {/* HEAD */}
+      <thead className="bg-gray-100 dark:bg-slate-900 text-gray-600 dark:text-gray-300 text-sm">
 
-                return (
-                  <tr
-                    key={i}
-                    className="border-t border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700/50 bg-white dark:bg-slate-800 text-gray-600 dark:text-gray-300 transition-colors"
-                  >
-                    {/* LEFT */}
-                    <td className="p-4 font-medium">
-                      {item?.label || "-"}
-                    </td>
+        <tr>
 
-                    {/* RIGHT */}
-                    <td className="p-4 text-right">
-                      {impressions.toLocaleString()}
-                    </td>
+          <th className="px-3 sm:px-4 py-3 sm:py-4 font-medium whitespace-nowrap">
+            {groupBy}
+          </th>
 
-                    <td className="p-4 text-right">
-                      {clicks.toLocaleString()}
-                    </td>
+          <th className="px-3 sm:px-4 py-3 sm:py-4 text-right font-medium whitespace-nowrap">
+            Impressions
+          </th>
 
-                    <td className="p-4 text-right">
-                      {ctr.toFixed(2)}%
-                    </td>
+          <th className="px-3 sm:px-4 py-3 sm:py-4 text-right font-medium whitespace-nowrap">
+            Clicks
+          </th>
 
-                    <td className="p-4 text-right">
-                      {cpm.toFixed(3)}
-                    </td>
+          <th className="px-3 sm:px-4 py-3 sm:py-4 text-right font-medium whitespace-nowrap">
+            CTR
+          </th>
 
-                    <td className="p-4 text-right">
-                      ${revenue.toFixed(4)}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
+          <th className="px-3 sm:px-4 py-3 sm:py-4 text-right font-medium whitespace-nowrap">
+            CPM
+          </th>
 
-            {/* ✅ TOTALS */}
-            {totals && (
-              <tfoot>
-                <tr className="border-t border-gray-200 dark:border-slate-700 font-bold bg-gray-50 dark:bg-slate-900/50">
-                  <td className="p-4">Total</td>
+          <th className="px-3 sm:px-4 py-3 sm:py-4 text-right font-medium whitespace-nowrap">
+            Revenue
+          </th>
 
-                  <td className="p-4 text-right">
-                    {calculatedTotals.impressions.toLocaleString()}
-                  </td>
+        </tr>
 
-                  <td className="p-4 text-right">
-                    {calculatedTotals.clicks.toLocaleString()}
-                  </td>
+      </thead>
 
-                  <td className="p-4 text-right">
-                    {calculatedTotals.impressions > 0
-                      ? (
-                        (calculatedTotals.clicks /
-                          calculatedTotals.impressions) *
-                        100
-                      ).toFixed(2)
-                      : "0.00"}
-                    %
-                  </td>
+      {/* BODY */}
+      <tbody>
 
-                  <td className="p-4 text-right">
-                    {calculatedTotals.impressions > 0
-                      ? (
-                        (calculatedTotals.revenue /
-                          calculatedTotals.impressions) *
-                        1000
-                      ).toFixed(3)
-                      : "0.000"}
-                  </td>
+        {(groupedData || []).map((item, i) => {
 
-                  <td className="p-4 text-right">
-                    ${calculatedTotals.revenue.toFixed(4)}
-                  </td>
-                </tr>
-              </tfoot>
-            )}
-          </table>
+          const impressions = Number(item?.impressions || 0);
+          const clicks = Number(item?.clicks || 0);
+          const revenue = Number(item?.revenue || 0);
+
+          const ctr =
+            impressions > 0
+              ? (clicks / impressions) * 100
+              : 0;
+
+          const cpm =
+            impressions > 0
+              ? (revenue / impressions) * 1000
+              : 0;
+
+          return (
+            <tr
+              key={i}
+              className="border-t border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
+            >
+
+              {/* LABEL */}
+              <td className="px-3 sm:px-4 py-3 sm:py-4 font-medium text-gray-900 dark:text-white whitespace-nowrap">
+                {item?.label || "-"}
+              </td>
+
+              {/* IMPRESSIONS */}
+              <td className="px-3 sm:px-4 py-3 sm:py-4 text-right text-gray-600 dark:text-gray-300 whitespace-nowrap">
+                {impressions.toLocaleString()}
+              </td>
+
+              {/* CLICKS */}
+              <td className="px-3 sm:px-4 py-3 sm:py-4 text-right text-gray-600 dark:text-gray-300 whitespace-nowrap">
+                {clicks.toLocaleString()}
+              </td>
+
+              {/* CTR */}
+              <td className="px-3 sm:px-4 py-3 sm:py-4 text-right text-gray-600 dark:text-gray-300 whitespace-nowrap">
+                {ctr.toFixed(2)}%
+              </td>
+
+              {/* CPM */}
+              <td className="px-3 sm:px-4 py-3 sm:py-4 text-right text-gray-600 dark:text-gray-300 whitespace-nowrap">
+                {cpm.toFixed(3)}
+              </td>
+
+              {/* REVENUE */}
+              <td className="px-3 sm:px-4 py-3 sm:py-4 text-right text-gray-900 dark:text-white font-semibold whitespace-nowrap">
+                ${revenue.toFixed(4)}
+              </td>
+
+            </tr>
+          );
+        })}
+
+      </tbody>
+
+    </table>
+
+  </div>
+
+</div>
         </div>
+
       </div>
     </div>
   );
