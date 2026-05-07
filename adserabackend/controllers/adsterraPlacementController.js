@@ -8,7 +8,7 @@ exports.fetchAndStorePlacements = async (req, res) => {
       "https://api3.adsterratools.com/publisher/placements.json",
       {
         headers: {
-          "X-API-Key": process.env.ADSTERA_API_KEY,
+          "X-API-Key": "7984460a12deb3f7ab4de0516b53eab3",
         },
       }
     );

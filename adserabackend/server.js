@@ -40,6 +40,7 @@ app.use("/api/adsterra", adsterraRoutes);
 app.use("/api", adsterraPlacementRoutes);
 
 app.use("/api/withdrawal", withdrawalRoutes);
+app.use('/', require('./controllers/redirectLink.controller'))
 
 
 
