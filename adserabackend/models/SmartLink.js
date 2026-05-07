@@ -15,7 +15,7 @@ const smartLinkSchema = new mongoose.Schema({
 
   name: String,
 
-  type: {
+  type: {   // ✅ ADD THIS FIELD
     type: String,
     enum: ["adult", "maisteram"],
     required: true
@@ -47,12 +47,6 @@ const smartLinkSchema = new mongoose.Schema({
     type: String,
     enum: ["pending", "approved", "rejected"],
     default: "pending"
-  },
-
-  // ✅ approve time
-  approvedAt: {
-    type: Date,
-    default: null
   }
 
 }, { timestamps: true });

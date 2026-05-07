@@ -5,6 +5,7 @@ import smartLinkReducer from "../redux/slice/smartLinkSlice";
 import smartLinkStatsReducer from "../redux/slice/smartLinkStatsSlice";
 import adsterraReducer from "../redux/slice/adsterraStatsSlice";
 import withdrawalReducer from "../redux/slice/withdrawalSlice";
+import adsterraPlacementReducer from "../redux/slice/adsterraPlacementSlice";
 
 export const store = configureStore({
   reducer: {
@@ -12,7 +13,9 @@ export const store = configureStore({
     smartlink: smartLinkReducer,
     smartlinkStats: smartLinkStatsReducer, // 🔥 rename for clarity
     adsterra: adsterraReducer,
-     withdrawal: withdrawalReducer,
+    withdrawal: withdrawalReducer,
+    adsterraPlacements: adsterraPlacementReducer,
+
   },
 
   devTools: process.env.NODE_ENV !== "production", // ✅ best practice
