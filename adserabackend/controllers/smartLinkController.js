@@ -30,6 +30,8 @@ exports.createSmartLink = async (req, res) => {
         const key = crypto.randomBytes(16).toString("hex");
 
         const baseUrl = "https://adstorx.com";
+        // const baseUrl = "https://bestprofitablecpmhike.tech";
+
 
         const finalUrl = `${baseUrl}/s/${smartCode}?key=${key}`;
 

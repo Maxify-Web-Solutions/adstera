@@ -27,6 +27,7 @@ import PayoutInformation from "./Pages/Dashboard/DashboardPages/PayoutInformatio
 import Payouts from "./Pages/Dashboard/DashboardPages/Payouts";
 import DashboardProfile from "./Pages/Dashboard/DashboardPages/DashboardProfile";
 import RedirectPage from "./Pages/RedirectPage";
+import { fetchPlacements } from "./redux/slice/adsterraPlacementSlice";
 
 function App() {
 
@@ -35,6 +36,7 @@ function App() {
 
     useEffect(() => {
         dispatch(getUser());
+        dispatch(fetchPlacements())
     }, [dispatch]);
 
 
