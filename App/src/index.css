@@ -2,24 +2,31 @@
 @tailwind components;
 @tailwind utilities;
 
-html, body, #root {
+html,
+body,
+#root {
   min-height: 100%;
 }
 
 body {
-  overflow-x: hidden;
   background-color: #fff;
+  overflow-x: hidden; /* ✅ allow horizontal scroll */
 }
 
 html.dark body {
   background-color: #0f172a;
 }
 
-/* Global responsive container for better mobile spacing */
+/* Global responsive container */
 .container {
   width: min(100%, 1240px);
   margin-inline: auto;
   padding-inline: 1rem;
+}
+
+/* Optional smooth scrolling */
+* {
+  -webkit-overflow-scrolling: touch;
 }
 
 @media (max-width: 768px) {
@@ -27,5 +34,3 @@ html.dark body {
     font-size: 0.95rem;
   }
 }
-
-
