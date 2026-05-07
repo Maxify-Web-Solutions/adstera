@@ -31,7 +31,7 @@ exports.createWithdrawal = async (req, res) => {
     } = req.body;
 
     // ✅ Amount validation
-    if (!amount || amount <= 0) {
+    if (!amount || amount <= 25) {
       return res.status(400).json({
         success: false,
         message: "Invalid amount",
