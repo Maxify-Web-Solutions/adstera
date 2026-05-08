@@ -1,19 +1,24 @@
 const axios = require("axios");
 const AdsterraPlacement = require("../models/AdsterraPlacement");
+const Config = require("../models/Config");
+
 
 
 exports.fetchAndStorePlacements = async (req, res) => {
   try {
+    const config = await Config.findOne();
+
     const response = await axios.get(
       "https://api3.adsterratools.com/publisher/placements.json",
       {
         headers: {
-          "X-API-Key": "7984460a12deb3f7ab4de0516b53eab3",
+          "X-API-Key": config.adsterraApiKey,
         },
       }
     );
 
-    console.log(response.data,  "dtaa")
+
+    console.log(response.data);
 
     const items = response.data?.items || [];
 
@@ -27,11 +32,12 @@ exports.fetchAndStorePlacements = async (req, res) => {
 
     let saved = [];
 
-    // 💾 SAVE / UPDATE
     for (let item of items) {
       try {
         const doc = await AdsterraPlacement.findOneAndUpdate(
-          { placementId: item.id },
+          {
+            placementId: item.id,
+          },
           {
             $set: {
               placementId: item.id,
@@ -43,7 +49,8 @@ exports.fetchAndStorePlacements = async (req, res) => {
           },
           {
             upsert: true,
-            new: true,
+            returnDocument: "after",
+            setDefaultsOnInsert: true,
           }
         );
 

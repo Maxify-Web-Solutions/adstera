@@ -18,7 +18,7 @@ const generateToken = (id) => {
 
 // REGISTER
 
-const  register = async (req, res) => {
+const register = async (req, res) => {
   try {
     const { name, email, mobile, password } = req.body;
 
@@ -50,7 +50,10 @@ const  register = async (req, res) => {
         otpExpires: Date.now() + 5 * 60 * 1000,
         isVerified: false,
       },
-      { upsert: true, new: true }
+      {
+        upsert: true,
+        returnDocument: "after",
+      }
     );
 
     // ✅ SEND EMAIL (🔥 MAIN PART)

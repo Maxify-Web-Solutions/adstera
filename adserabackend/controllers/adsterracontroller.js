@@ -12,41 +12,31 @@ const Config = require("../models/Config");
 
 exports.fetchAndStoreAdsterraStats = async (req, res) => {
   try {
-    const userId = req.user?.id; // ✅ FIX
+    const userId = req.user?.id;
 
     const { country, start_date, finish_date, group_by } = req.query;
 
-    // 🔎 Find SmartLink (ONLY USER BASED)
-    const link = await SmartLink.findOne({ userId });
+    // ✅ GET ALL SMART LINKS
+    const links = await SmartLink.find({ userId });
 
-    if (!link) {
+    if (!links.length) {
       return res.status(404).json({
         success: false,
-        message: "No SmartLink found for this user",
+        message: "No SmartLinks found",
       });
     }
-    const url = link.redirectUrl || link.targetUrl;
-    if (!url) {
+
+    const config = await Config.findOne();
+
+    if (!config?.adsterraApiKey) {
       return res.status(400).json({
         success: false,
-        message: "No redirect URL found",
+        message: "Adsterra API key not set",
       });
     }
 
-    // 🔎 Find Placement
-    const placementData = await Placement.findOne({ directUrl: url });
-    if (!placementData) {
-      return res.status(404).json({
-        success: false,
-        message: "Placement not found",
-      });
-    }
+    const todayDate = new Date().toISOString().split("T")[0];
 
-    const domain = placementData.domainId;
-    const placementId = placementData.placementId;
-    const todayDate = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
-
-    // 📅 Default dates
     const today = new Date();
     const defaultFinishDate = today.toISOString().split("T")[0];
 
@@ -54,51 +44,6 @@ exports.fetchAndStoreAdsterraStats = async (req, res) => {
     pastDate.setDate(today.getDate() - 15);
     const defaultStartDate = pastDate.toISOString().split("T")[0];
 
-    const config = await Config.findOne();
-
-    if (!config || !config.adsterraApiKey) {
-      return res.status(400).json({ message: "Adsterra API key not set" });
-    }
-
-    const response = await axios.get(
-      "https://api3.adsterratools.com/publisher/stats.json",
-      {
-        params: {
-          domain,
-          placement: placementId,
-          start_date: start_date || defaultStartDate,
-          finish_date: finish_date || defaultFinishDate,
-          group_by: group_by || "country",
-        },
-        headers: {
-          Accept: "application/json",
-          "X-API-Key": config.adsterraApiKey, // ✅ FIX
-          "User-Agent":
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120 Safari/537.36",
-        },
-      }
-    );
-    let apiData = response.data?.items || [];
-
-
-    if (!apiData.length) {
-      return res.json({
-        success: true,
-        message: "No data from API",
-        total: 0,
-        data: [],
-      });
-    }
-
-    // 🌍 COUNTRY FILTER
-    if (country) {
-      const countries = country.split(",").map(c => c.trim().toLowerCase());
-      apiData = apiData.filter(item =>
-        countries.includes(item.country?.toLowerCase())
-      );
-    }
-
-    // 🚀 BULK WRITE
     const ua = req.headers["user-agent"];
     const parser = new UAParser(ua);
 
@@ -106,77 +51,155 @@ exports.fetchAndStoreAdsterraStats = async (req, res) => {
     const os = parser.getOS();
     const browser = parser.getBrowser();
 
-    const bulkOps = apiData.map(item => {
-      const impressions = Number(item.impression) || 0;
-      const clicks = Number(item.clicks) || 0;
-      const revenue = (Number(item.revenue) || 0) / 2;
+    let allData = [];
+    let bulkOps = [];
+    let totalRevenue = 0;
 
-      // ✅ Safe calculations
-      const ctr = impressions > 0 ? (clicks / impressions) * 100 : 0;
-      const cpm = impressions > 0 ? (revenue / impressions) * 1000 : 0;
+    // =========================
+    // LOOP ALL SMART LINKS
+    // =========================
+    for (const link of links) {
+      const url = link.redirectUrl || link.targetUrl;
 
-      return {
-        updateOne: {
-          filter: {
-            userId,
+      if (!url) continue;
+
+      // 🔥 FIX: better matching (remove query params)
+      const cleanUrl = url.split("?")[0];
+
+      const placementData = await Placement.findOne({
+        directUrl: { $regex: cleanUrl, $options: "i" },
+      });
+
+      if (!placementData) {
+        console.log("No placement found for:", url);
+        continue;
+      }
+
+      const domain = placementData.domainId;
+      const placementId = placementData.placementId;
+
+      // =========================
+      // API CALL
+      // =========================
+      const response = await axios.get(
+        "https://api3.adsterratools.com/publisher/stats.json",
+        {
+          params: {
             domain,
             placement: placementId,
-            country: item.country || "all",
-            date: todayDate,
-            device: device.type || "desktop",
-            deviceModel: device.model || "",
-            deviceVendor: device.vendor || "",
-
-            osName: os.name || "",
-            osVersion: os.version || "",
-
-            browserName: browser.name || "",
-            browserVersion: browser.version || "",
+            start_date: start_date || defaultStartDate,
+            finish_date: finish_date || defaultFinishDate,
+            group_by: group_by || "country",
           },
-          update: {
-            $set: {
+          headers: {
+            Accept: "application/json",
+            "X-API-Key": config.adsterraApiKey,
+          },
+        }
+      );
+
+      let apiData = response.data?.items || [];
+
+      // =========================
+      // COUNTRY FILTER
+      // =========================
+      if (country) {
+        const countries = country
+          .split(",")
+          .map(c => c.trim().toLowerCase());
+
+        apiData = apiData.filter(item =>
+          countries.includes(item.country?.toLowerCase())
+        );
+      }
+
+      allData.push(...apiData);
+
+      // =========================
+      // BULK OPS
+      // =========================
+      apiData.forEach(item => {
+        const impressions = Number(item.impression) || 0;
+        const clicks = Number(item.clicks) || 0;
+        const revenue = (Number(item.revenue) || 0) / 2;
+
+        totalRevenue += revenue;
+
+        const ctr = impressions > 0 ? (clicks / impressions) * 100 : 0;
+        const cpm = impressions > 0 ? (revenue / impressions) * 1000 : 0;
+
+        bulkOps.push({
+          updateOne: {
+            filter: {
               userId,
+
+              // 🔥 FIX: IMPORTANT — prevent overwrite between links
+              smartLinkId: link._id,
+              linkId: link.linkId,
+
               domain,
               placement: placementId,
               country: item.country || "all",
               date: todayDate,
-
-              // stats
-              impressions,
-              clicks,
-              revenue,
-              ctr,
-              cpm,
-
-              // ✅ NEW FIELDS
-
             },
+            update: {
+              $set: {
+                userId,
+                smartLinkId: link._id,
+                linkId: link.linkId,
+                linkName: link.name,
+
+                domain,
+                placement: placementId,
+                country: item.country || "all",
+                date: todayDate,
+
+                impressions,
+                clicks,
+                revenue,
+                ctr,
+                cpm,
+
+                device: device.type || "desktop",
+                deviceModel: device.model || "",
+                deviceVendor: device.vendor || "",
+
+                osName: os.name || "",
+                osVersion: os.version || "",
+
+                browserName: browser.name || "",
+                browserVersion: browser.version || "",
+              },
+            },
+            upsert: true,
           },
-          upsert: true,
-        },
-      };
+        });
+      });
+    }
+
+    // =========================
+    // SAVE STATS
+    // =========================
+    if (bulkOps.length) {
+      await AdsterraStats.bulkWrite(bulkOps);
+    }
+
+    // =========================
+    // UPDATE USER REVENUE
+    // =========================
+    await User.findByIdAndUpdate(userId, {
+      $set: {
+        revenue: totalRevenue.toFixed(2),
+      },
     });
-
-    // 🔥 TOTAL REVENUE CALCULATE FROM API DATA
-    const totalRevenue = (
-      apiData.reduce((sum, item) => {
-        return sum + (Number(item.revenue) || 0);
-      }, 0) / 2
-    ).toFixed(2);
-    // 🔥 ADD TO USER REVENUE (NO DUPLICATE ISSUE)
-    await User.findByIdAndUpdate(
-      userId,
-      { $inc: { revenue: totalRevenue } },
-      { returnDocument: "after" }
-    );
-
-    await AdsterraStats.bulkWrite(bulkOps);
 
     return res.json({
       success: true,
-      message: "Stats fetched & stored",
-      total: apiData.length,
-      data: apiData,
+      message: "All stats fetched & stored successfully",
+      total: allData.length,
+      linksProcessed: links.length,
+      revenue: totalRevenue.toFixed(2),
+      data: allData,
     });
 
   } catch (error) {
@@ -185,7 +208,7 @@ exports.fetchAndStoreAdsterraStats = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to fetch stats",
-      error: error?.response?.data || error.message,
+      error: error.message,
     });
   }
 };

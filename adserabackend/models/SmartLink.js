@@ -23,6 +23,12 @@ const smartLinkSchema = new mongoose.Schema({
 
   targetUrl: String,
 
+  placementId:{
+    type: String,
+    unique: true,
+    required: true
+  },
+
   smartCode: {
     type: String,
     unique: true
