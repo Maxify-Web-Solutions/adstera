@@ -5,6 +5,7 @@ import {
   fetchAdsterraStats,
   getAdsterraStats,
 } from "../../../redux/slice/adsterraStatsSlice";
+
 import { getNames } from "country-list";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -12,34 +13,44 @@ import lookup from "country-code-lookup";
 
 const Statistics = () => {
   const dispatch = useDispatch();
-  const countries = getNames();
   const location = useLocation();
 
-  // 📅 Date setup
+  const countries = getNames();
+
+  // DATE
   const today = new Date();
+
   const twoDaysAgo = new Date();
   twoDaysAgo.setDate(today.getDate() - 2);
 
   const [dateRange, setDateRange] = useState([twoDaysAgo, today]);
-  const [startDate, endDate] = dateRange;
-  const [groupBy, setGroupBy] = useState("country");
 
-  // 🎯 Filters
+  const [startDate, endDate] = dateRange;
+
+  // FILTERS
+  const [groupBy, setGroupBy] = useState("country");
   const [selectedCountry, setSelectedCountry] = useState("");
   const [domain, setDomain] = useState("");
   const [placement, setPlacement] = useState("");
 
-  // 📊 Redux state
-  const { data, totals, loading, fetchLoading, error } = useSelector(
-    (state) => state.adsterra
-  );
+  // REDUX
+  const {
+    data,
+    totals,
+    loading,
+    fetchLoading,
+    error,
+  } = useSelector((state) => state.adsterra);
 
-  console.log(data);
-  useEffect(() => {
-    dispatch(fetchAdsterraStats())
-    dispatch(getAdsterraStats())
-  }, [])
+  // FIXED DATA
+  const statsData = Array.isArray(data)
+    ? data
+    : data?.data || [];
 
+  console.log("FULL API DATA =>", data);
+  console.log("FINAL STATS DATA =>", statsData);
+
+  // GET DATA FROM SMARTLINK PAGE
   useEffect(() => {
     if (location.state) {
       setDomain(location.state.domain || "");
@@ -47,19 +58,12 @@ const Statistics = () => {
     }
   }, [location.state]);
 
-
+  // AUTO FETCH
   useEffect(() => {
     if (location.state?.domain && location.state?.placement) {
+
       const start = startDate?.toISOString().split("T")[0];
       const end = endDate?.toISOString().split("T")[0];
-
-      dispatch(
-        fetchAdsterraStats({
-          start_date: start,
-          finish_date: end,
-          country: selectedCountry,
-        })
-      );
 
       dispatch(
         getAdsterraStats({
@@ -71,10 +75,11 @@ const Statistics = () => {
         })
       );
     }
-  }, [location.state]);
+  }, []);
 
-  // 🚀 APPLY
+  // APPLY
   const handleApply = async () => {
+
     if (!domain || !placement) {
       alert("Domain & Placement required");
       return;
@@ -84,7 +89,7 @@ const Statistics = () => {
     const end = endDate?.toISOString().split("T")[0];
 
     try {
-      // 1️⃣ Fetch API data
+
       await dispatch(
         fetchAdsterraStats({
           start_date: start,
@@ -93,7 +98,6 @@ const Statistics = () => {
         })
       );
 
-      // 2️⃣ Get DB data
       dispatch(
         getAdsterraStats({
           domain,
@@ -103,12 +107,13 @@ const Statistics = () => {
           end_date: end,
         })
       );
+
     } catch (err) {
       console.error(err);
     }
   };
 
-  // 🔄 RESET
+  // RESET
   const handleReset = () => {
     setSelectedCountry("");
     setDomain("");
@@ -116,8 +121,10 @@ const Statistics = () => {
     setDateRange([twoDaysAgo, today]);
   };
 
+  // GROUP DATA
   const groupedData = Object.values(
-    (data || []).reduce((acc, item) => {
+    (statsData || []).reduce((acc, item) => {
+
       let key;
 
       switch (groupBy) {
@@ -127,6 +134,7 @@ const Statistics = () => {
             ? lookup.byIso(item.country)?.country || item.country
             : "Unknown";
           break;
+
         case "date":
           key = item.date
             ? new Date(item.date).toLocaleDateString()
@@ -149,8 +157,6 @@ const Statistics = () => {
           key = "Unknown";
       }
 
-      if (!key) key = "Unknown";
-
       if (!acc[key]) {
         acc[key] = {
           label: key,
@@ -160,21 +166,25 @@ const Statistics = () => {
         };
       }
 
-      acc[key].impressions += item.impressions || 0;
-      acc[key].clicks += item.clicks || 0;
-      acc[key].revenue += item.revenue || 0;
+      acc[key].impressions += Number(item.impressions || 0);
+      acc[key].clicks += Number(item.clicks || 0);
+      acc[key].revenue += Number(item.revenue || 0);
 
       return acc;
+
     }, {})
   );
 
-  // ✅ FRONTEND TOTAL (ACTUAL TABLE TOTAL)
+  // TOTALS
   const calculatedTotals = groupedData.reduce(
     (acc, item) => {
+
       acc.impressions += Number(item.impressions || 0);
       acc.clicks += Number(item.clicks || 0);
       acc.revenue += Number(item.revenue || 0);
+
       return acc;
+
     },
     {
       impressions: 0,
@@ -185,32 +195,44 @@ const Statistics = () => {
 
   return (
     <div className="space-y-10">
+
       {/* FILTERS */}
       <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-2xl p-4 md:p-6 shadow-sm">
-        <h2 className="font-semibold mb-6">Filters</h2>
 
-        <div className="grid md:grid-cols-4 gap-6">
+        <h2 className="font-semibold mb-6 text-gray-900 dark:text-white">
+          Filters
+        </h2>
+
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+
           {/* DATE */}
           <div>
-            <label className="text-sm mb-2 block">Date range</label>
+            <label className="text-sm mb-2 block text-gray-700 dark:text-gray-300">
+              Date Range
+            </label>
+
             <DatePicker
               selectsRange
               startDate={startDate}
               endDate={endDate}
               onChange={(update) => setDateRange(update)}
-              className="w-full border border-gray-200 dark:border-slate-700 px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-slate-900 dark:text-gray-300 focus:ring-2 focus:ring-green-500 outline-none transition-all"
+              className="w-full border border-gray-200 dark:border-slate-700 px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-slate-900 dark:text-gray-300 outline-none"
             />
           </div>
 
           {/* COUNTRY */}
           <div>
-            <label className="text-sm mb-2 block">Country</label>
+            <label className="text-sm mb-2 block text-gray-700 dark:text-gray-300">
+              Country
+            </label>
+
             <select
               value={selectedCountry}
               onChange={(e) => setSelectedCountry(e.target.value)}
-              className="w-full border border-gray-200 dark:border-slate-700 px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-slate-900 dark:text-gray-300 focus:ring-2 focus:ring-green-500 outline-none transition-all"
+              className="w-full border border-gray-200 dark:border-slate-700 px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-slate-900 dark:text-gray-300 outline-none"
             >
               <option value="">All Countries</option>
+
               {countries.map((c, i) => (
                 <option key={i} value={c}>
                   {c}
@@ -221,46 +243,58 @@ const Statistics = () => {
 
           {/* DOMAIN */}
           <div>
-            <label className="text-sm mb-2 block">Domain</label>
+            <label className="text-sm mb-2 block text-gray-700 dark:text-gray-300">
+              Domain
+            </label>
+
             <input
               value={domain}
               onChange={(e) => setDomain(e.target.value)}
-              placeholder="Enter domain ID"
-              className="w-full border border-gray-200 dark:border-slate-700 px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-slate-900 dark:text-gray-300 focus:ring-2 focus:ring-green-500 outline-none transition-all"
+              placeholder="Enter domain"
+              className="w-full border border-gray-200 dark:border-slate-700 px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-slate-900 dark:text-gray-300 outline-none"
             />
           </div>
 
           {/* PLACEMENT */}
           <div>
-            <label className="text-sm mb-2 block">Placement</label>
+            <label className="text-sm mb-2 block text-gray-700 dark:text-gray-300">
+              Placement
+            </label>
+
             <input
               value={placement}
               onChange={(e) => setPlacement(e.target.value)}
-              placeholder="Enter placement ID"
-              className="w-full border border-gray-200 dark:border-slate-700 px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-slate-900 dark:text-gray-300 focus:ring-2 focus:ring-green-500 outline-none transition-all"
+              placeholder="Enter placement"
+              className="w-full border border-gray-200 dark:border-slate-700 px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-slate-900 dark:text-gray-300 outline-none"
             />
           </div>
+
         </div>
 
         {/* BUTTONS */}
         <div className="flex gap-4 mt-6">
+
           <button
             onClick={handleApply}
-            className="bg-gray-900 dark:bg-white text-white dark:text-gray-900 px-8 py-2.5 rounded-xl font-medium shadow-lg hover:shadow-xl transition-all hover:scale-[1.02]"
+            className="bg-green-600 hover:bg-green-700 text-white px-8 py-2.5 rounded-xl font-medium"
           >
-            {fetchLoading ? "Fetching..." : "APPLY"}
+            {fetchLoading ? "Loading..." : "APPLY"}
           </button>
 
           <button
             onClick={handleReset}
-            className="text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 px-4 py-2.5 font-medium transition-colors"
+            className="text-gray-500 hover:text-gray-900 dark:hover:text-white"
           >
             RESET
           </button>
+
         </div>
+
       </div>
 
-      <div className="flex flex-wrap gap-2 py-4">
+      {/* TABS */}
+      <div className="flex flex-wrap gap-3">
+
         {[
           { label: "Country", value: "country" },
           { label: "Date", value: "date" },
@@ -268,143 +302,192 @@ const Statistics = () => {
           { label: "OS", value: "os" },
           { label: "Browser", value: "browser" },
         ].map((tab) => (
+
           <button
             key={tab.value}
             onClick={() => setGroupBy(tab.value)}
-            className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${groupBy === tab.value
-              ? "bg-green-600 text-white shadow-md shadow-green-600/20"
-              : "bg-white dark:bg-slate-800 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-700 border border-gray-200 dark:border-slate-700"
-              }`}
+            className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
+              groupBy === tab.value
+                ? "bg-green-600 text-white"
+                : "bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-700 dark:text-gray-300"
+            }`}
           >
             {tab.label}
           </button>
+
         ))}
+
       </div>
 
+      {/* TABLE */}
       <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-2xl shadow-sm overflow-hidden">
 
-        {/* TOP BAR */}
+        {/* HEADER */}
         <div className="p-4 border-b border-gray-200 dark:border-slate-700 flex items-center justify-between">
+
           <h2 className="text-gray-900 dark:text-white font-semibold">
             Statistics
           </h2>
 
-          <button className="text-green-500 text-sm font-medium whitespace-nowrap">
+          <button className="text-green-500 text-sm font-medium">
             EXPORT CSV
           </button>
+
         </div>
 
-        {/* RESPONSIVE TABLE */}
-        <div className="max-w-[24.5rem] md:hidden">
-{/* TABLE */}
-<div className="overflow-hidden">
+        {/* TABLE */}
+        <div className="overflow-x-auto">
 
-  <div className="overflow-x-auto">
+          <table className="w-full min-w-[900px] text-left">
 
-    <table className="w-full min-w-max text-left border-collapse">
+            <thead className="bg-gray-50 dark:bg-slate-900 text-gray-500 dark:text-gray-400 text-sm">
 
-      {/* HEAD */}
-      <thead className="bg-gray-100 dark:bg-slate-900 text-gray-600 dark:text-gray-300 text-sm">
+              <tr>
 
-        <tr>
+                <th className="px-4 py-3">
+                  {groupBy.toUpperCase()}
+                </th>
 
-          <th className="px-3 sm:px-4 py-3 sm:py-4 font-medium whitespace-nowrap">
-            {groupBy}
-          </th>
+                <th className="px-4 py-3 text-right">
+                  Impressions
+                </th>
 
-          <th className="px-3 sm:px-4 py-3 sm:py-4 text-right font-medium whitespace-nowrap">
-            Impressions
-          </th>
+                <th className="px-4 py-3 text-right">
+                  Clicks
+                </th>
 
-          <th className="px-3 sm:px-4 py-3 sm:py-4 text-right font-medium whitespace-nowrap">
-            Clicks
-          </th>
+                <th className="px-4 py-3 text-right">
+                  CTR
+                </th>
 
-          <th className="px-3 sm:px-4 py-3 sm:py-4 text-right font-medium whitespace-nowrap">
-            CTR
-          </th>
+                <th className="px-4 py-3 text-right">
+                  CPM
+                </th>
 
-          <th className="px-3 sm:px-4 py-3 sm:py-4 text-right font-medium whitespace-nowrap">
-            CPM
-          </th>
+                <th className="px-4 py-3 text-right">
+                  Revenue
+                </th>
 
-          <th className="px-3 sm:px-4 py-3 sm:py-4 text-right font-medium whitespace-nowrap">
-            Revenue
-          </th>
+              </tr>
 
-        </tr>
+            </thead>
 
-      </thead>
+            <tbody>
 
-      {/* BODY */}
-      <tbody>
+              {groupedData?.length > 0 ? (
 
-        {(groupedData || []).map((item, i) => {
+                groupedData.map((item, i) => {
 
-          const impressions = Number(item?.impressions || 0);
-          const clicks = Number(item?.clicks || 0);
-          const revenue = Number(item?.revenue || 0);
+                  const impressions = Number(item.impressions || 0);
+                  const clicks = Number(item.clicks || 0);
+                  const revenue = Number(item.revenue || 0);
 
-          const ctr =
-            impressions > 0
-              ? (clicks / impressions) * 100
-              : 0;
+                  const ctr =
+                    impressions > 0
+                      ? ((clicks / impressions) * 100).toFixed(2)
+                      : "0.00";
 
-          const cpm =
-            impressions > 0
-              ? (revenue / impressions) * 1000
-              : 0;
+                  const cpm =
+                    impressions > 0
+                      ? ((revenue / impressions) * 1000).toFixed(3)
+                      : "0.000";
 
-          return (
-            <tr
-              key={i}
-              className="border-t border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
-            >
+                  return (
 
-              {/* LABEL */}
-              <td className="px-3 sm:px-4 py-3 sm:py-4 font-medium text-gray-900 dark:text-white whitespace-nowrap">
-                {item?.label || "-"}
-              </td>
+                    <tr
+                      key={i}
+                      className="border-t border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700"
+                    >
 
-              {/* IMPRESSIONS */}
-              <td className="px-3 sm:px-4 py-3 sm:py-4 text-right text-gray-600 dark:text-gray-300 whitespace-nowrap">
-                {impressions.toLocaleString()}
-              </td>
+                      <td className="px-4 py-4 text-gray-900 dark:text-white font-medium whitespace-nowrap">
+                        {item.label}
+                      </td>
 
-              {/* CLICKS */}
-              <td className="px-3 sm:px-4 py-3 sm:py-4 text-right text-gray-600 dark:text-gray-300 whitespace-nowrap">
-                {clicks.toLocaleString()}
-              </td>
+                      <td className="px-4 py-4 text-right whitespace-nowrap">
+                        {impressions.toLocaleString()}
+                      </td>
 
-              {/* CTR */}
-              <td className="px-3 sm:px-4 py-3 sm:py-4 text-right text-gray-600 dark:text-gray-300 whitespace-nowrap">
-                {ctr.toFixed(2)}%
-              </td>
+                      <td className="px-4 py-4 text-right whitespace-nowrap">
+                        {clicks.toLocaleString()}
+                      </td>
 
-              {/* CPM */}
-              <td className="px-3 sm:px-4 py-3 sm:py-4 text-right text-gray-600 dark:text-gray-300 whitespace-nowrap">
-                {cpm.toFixed(3)}
-              </td>
+                      <td className="px-4 py-4 text-right whitespace-nowrap">
+                        {ctr}%
+                      </td>
 
-              {/* REVENUE */}
-              <td className="px-3 sm:px-4 py-3 sm:py-4 text-right text-gray-900 dark:text-white font-semibold whitespace-nowrap">
-                ${revenue.toFixed(4)}
-              </td>
+                      <td className="px-4 py-4 text-right whitespace-nowrap">
+                        {cpm}
+                      </td>
 
-            </tr>
-          );
-        })}
+                      <td className="px-4 py-4 text-right font-semibold whitespace-nowrap">
+                        ${revenue.toFixed(4)}
+                      </td>
 
-      </tbody>
+                    </tr>
 
-    </table>
+                  );
+                })
 
-  </div>
+              ) : (
 
-</div>
+                <tr>
+
+                  <td
+                    colSpan="6"
+                    className="text-center py-10 text-gray-500"
+                  >
+                    No Statistics Found
+                  </td>
+
+                </tr>
+
+              )}
+
+            </tbody>
+
+            {/* TOTAL */}
+            {groupedData?.length > 0 && (
+
+              <tfoot className="bg-gray-50 dark:bg-slate-900 border-t border-gray-200 dark:border-slate-700">
+
+                <tr>
+
+                  <td className="px-4 py-4 font-bold">
+                    TOTAL
+                  </td>
+
+                  <td className="px-4 py-4 text-right font-bold">
+                    {calculatedTotals.impressions.toLocaleString()}
+                  </td>
+
+                  <td className="px-4 py-4 text-right font-bold">
+                    {calculatedTotals.clicks.toLocaleString()}
+                  </td>
+
+                  <td className="px-4 py-4 text-right font-bold">
+                    -
+                  </td>
+
+                  <td className="px-4 py-4 text-right font-bold">
+                    -
+                  </td>
+
+                  <td className="px-4 py-4 text-right font-bold">
+                    ${calculatedTotals.revenue.toFixed(4)}
+                  </td>
+
+                </tr>
+
+              </tfoot>
+
+            )}
+
+          </table>
+
         </div>
 
       </div>
+
     </div>
   );
 };
