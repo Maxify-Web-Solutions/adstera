@@ -99,9 +99,9 @@ const adsterraStatsSchema = new mongoose.Schema(
 );
 
 // 🔥 Unique combination (duplicate avoid)
-adsterraStatsSchema.index(
-  { domain: 1, placement: 1, country: 1, date: 1 },
-  { unique: true }
-);
+// adsterraStatsSchema.index(
+//   { domain: 1, placement: 1, country: 1, date: 1 },
+//   { unique: true }
+// );
 
 module.exports = mongoose.model("AdsterraStats", adsterraStatsSchema);

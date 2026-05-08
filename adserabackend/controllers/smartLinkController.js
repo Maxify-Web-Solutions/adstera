@@ -85,7 +85,7 @@ exports.getSmartLinksByUser = async (req, res) => {
 exports.approveSmartLink = async (req, res) => {
     try {
         const { id } = req.params;
-        const { redirectUrl } = req.body;
+        const { redirectUrl, } = req.body;
 
         const updateData = {
             status: "approved",
@@ -132,9 +132,10 @@ exports.updateSmartLinkData = async (req, res) => {
                 redirectUrl,
                 status: status || "approved",
             },
-            { new: true }
+            {
+                returnDocument: "after",
+            }
         );
-
         if (!link) {
             return res.status(404).json({
                 success: false,
