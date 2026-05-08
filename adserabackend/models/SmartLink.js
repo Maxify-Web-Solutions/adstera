@@ -26,7 +26,6 @@ const smartLinkSchema = new mongoose.Schema({
   placementId:{
     type: String,
     unique: true,
-    
   },
 
   smartCode: {

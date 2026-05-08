@@ -6,8 +6,8 @@ const Config = require("../models/Config");
 
 exports.fetchAndStorePlacements = async (req, res) => {
   try {
-    const config = await Config.findOne();
-
+        const config = await Config.findOne();
+    
     const response = await axios.get(
       "https://api3.adsterratools.com/publisher/placements.json",
       {
