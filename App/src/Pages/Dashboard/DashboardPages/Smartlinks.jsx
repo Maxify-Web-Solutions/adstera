@@ -200,137 +200,95 @@ const Smartlinks = () => {
             )}
 
             {/* TABLE */}
-            {/* TABLE */}
-            <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-2xl shadow-sm overflow-hidden">
+            <div className="hidden md:block bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-2xl shadow-sm overflow-hidden">
 
-                {/* ✅ Top section fixed rahega */}
-                <div className="p-4 border-b border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800">
-                    <h2 className="text-gray-900 dark:text-white font-semibold">
-                        Smartlinks
-                    </h2>
-                </div>
+                <table className="w-full text-left min-w-[640px]">
+                    <thead className="bg-gray-50 dark:bg-slate-900 text-gray-500 dark:text-gray-400 text-sm">
+                        <tr>
+                            <th className="px-4 py-3">
+                                <button onClick={() => requestSort("name")} className="flex items-center gap-2">
+                                    Name {getSortIcon("name")}
+                                </button>
+                            </th>
 
-                {/* ✅ Sirf table scroll hogi mobile me */}
-                <div className="overflow-x-auto">
+                            <th className="px-4 py-3">
+                                ID
+                            </th>
 
-                    {/* ✅ Mobile me width badi hogi */}
-                    <div className="min-w-[900px] md:min-w-full">
+                            <th className="px-4 py-3">
+                                Status
+                            </th>
 
-                        <table className="w-full text-left border-collapse">
+                            <th className="px-4 py-3 text-right">
+                                Actions
+                            </th>
+                        </tr>
+                    </thead>
 
-                            <thead className="bg-gray-50 dark:bg-slate-900 text-gray-500 dark:text-gray-400 text-sm">
-                                <tr>
+                    <tbody>
+                        {sortedLinks.length > 0 ? (
+                            sortedLinks.map((link) => (
+                                <tr key={link._id} className="border-t border-gray-200 dark:border-slate-700 hover:bg-gray-100 dark:hover:bg-slate-700">
 
-                                    <th className="px-4 py-3">
+                                    <td className="px-4 py-3">{link.name}</td>
+
+                                    <td className="px-4 py-3 text-gray-500 dark:text-gray-400">
+                                        {link.linkId}
+                                    </td>
+
+                                    <td className="px-4 py-3">
+                                        <span className={`px-3 py-1 text-xs rounded-full ${getStatusColor(link.status)}`}>
+                                            {link.status || "Inactive"}
+                                        </span>
+                                    </td>
+
+                                    <td className="px-4 py-3 flex justify-end gap-6 text-sm">
+
                                         <button
-                                            onClick={() => requestSort("name")}
-                                            className="flex items-center gap-2"
+                                            onClick={() =>
+                                                navigate("/dashboard/statistics", {
+                                                    state: {
+                                                        domain: link.linkId,
+                                                        placement: link._id,
+                                                    },
+                                                })
+                                            }
                                         >
-                                            Name {getSortIcon("name")}
+                                            STATISTICS
                                         </button>
-                                    </th>
 
-                                    <th className="px-4 py-3">
-                                        ID
-                                    </th>
+                                        <button
+                                            onClick={() => {
+                                                setEditingLink(link);
+                                                setIsEditModalOpen(true);
+                                            }}
+                                        >
+                                            EDIT
+                                        </button>
 
-                                    <th className="px-4 py-3">
-                                        Status
-                                    </th>
+                                        <button onClick={() => handleCopy(link)}>
+                                            COPY LINK
+                                        </button>
 
-                                    <th className="px-4 py-3 text-right">
-                                        Actions
-                                    </th>
+                                        {link.status !== "Active" && (
+                                            <button onClick={() => handleReactivate(link)}>
+                                                REACTIVATE
+                                            </button>
+                                        )}
 
+                                    </td>
                                 </tr>
-                            </thead>
+                            ))
+                        ) : (
+                            <tr>
+                                <td colSpan="4" className="text-center py-6 text-gray-500">
+                                    No Smartlinks Found
+                                </td>
+                            </tr>
+                        )}
+                    </tbody>
+                </table>
 
-                            <tbody>
-                                {sortedLinks.length > 0 ? (
-                                    sortedLinks.map((link) => (
-                                        <tr
-                                            key={link._id}
-                                            className="border-t border-gray-200 dark:border-slate-700 hover:bg-gray-100 dark:hover:bg-slate-700"
-                                        >
-
-                                            <td className="px-4 py-3 whitespace-nowrap">
-                                                {link.name}
-                                            </td>
-
-                                            <td className="px-4 py-3 text-gray-500 dark:text-gray-400 whitespace-nowrap">
-                                                {link.linkId}
-                                            </td>
-
-                                            <td className="px-4 py-3 whitespace-nowrap">
-                                                <span
-                                                    className={`px-3 py-1 text-xs rounded-full ${getStatusColor(
-                                                        link.status
-                                                    )}`}
-                                                >
-                                                    {link.status || "Inactive"}
-                                                </span>
-                                            </td>
-
-                                            <td className="px-4 py-3">
-                                                <div className="flex justify-end gap-6 text-sm whitespace-nowrap">
-
-                                                    <button
-                                                        onClick={() =>
-                                                            navigate("/dashboard/statistics", {
-                                                                state: {
-                                                                    domain: link.linkId,
-                                                                    placement: link._id,
-                                                                },
-                                                            })
-                                                        }
-                                                    >
-                                                        STATISTICS
-                                                    </button>
-
-                                                    <button
-                                                        onClick={() => {
-                                                            setEditingLink(link);
-                                                            setIsEditModalOpen(true);
-                                                        }}
-                                                    >
-                                                        EDIT
-                                                    </button>
-
-                                                    <button onClick={() => handleCopy(link)}>
-                                                        COPY LINK
-                                                    </button>
-
-                                                    {link.status !== "Active" && (
-                                                        <button
-                                                            onClick={() =>
-                                                                handleReactivate(link)
-                                                            }
-                                                        >
-                                                            REACTIVATE
-                                                        </button>
-                                                    )}
-
-                                                </div>
-                                            </td>
-
-                                        </tr>
-                                    ))
-                                ) : (
-                                    <tr>
-                                        <td
-                                            colSpan="4"
-                                            className="text-center py-6 text-gray-500"
-                                        >
-                                            No Smartlinks Found
-                                        </td>
-                                    </tr>
-                                )}
-                            </tbody>
-
-                        </table>
-
-                    </div>
-                </div>
             </div>
 
         </div>
