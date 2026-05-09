@@ -16,12 +16,7 @@ const Footer = () => {
                     <p className="text-sm text-gray-500 dark:text-slate-400 mb-6">
                         Next-generation advertising network connecting premium publishers with top-tier advertisers.
                     </p>
-                    <div className="flex gap-4">
-                        <a href="#" className="hover:text-indigo-400 transition"><FaTwitter size={20} /></a>
-                        <a href="#" className="hover:text-indigo-400 transition"><FaLinkedin size={20} /></a>
-                        <a href="#" className="hover:text-indigo-400 transition"><FaGithub size={20} /></a>
-                        <a href="#" className="hover:text-indigo-400 transition"><FaDiscord size={20} /></a>
-                    </div>
+                    
                 </div>
 
                 {/* Links Column 1 */}

@@ -12,16 +12,18 @@ import {
 import { useLocation } from "react-router-dom";
 
 import {
-  getSmartLinkStats,
+  fetchAdsterraStats,
+  getAdsterraStats,
+} from "../../../redux/slice/adsterraStatsSlice";
+
+import {
   setFilters,
 } from "../../../redux/slice/smartlinkFilterSlice";
 
 import { getNames } from "country-list";
-
 import lookup from "country-code-lookup";
 
 import DatePicker from "react-datepicker";
-
 import "react-datepicker/dist/react-datepicker.css";
 
 const Statistics = () => {
@@ -29,16 +31,16 @@ const Statistics = () => {
 
   const location = useLocation();
 
-  const countries = getNames();
+  // 🌍 COUNTRIES
+  const countries = useMemo(
+    () => getNames().sort(),
+    []
+  );
 
-  // =====================================
-  // DATE SETUP
-  // =====================================
-
+  // 📅 DATE SETUP
   const today = new Date();
 
-  const twoDaysAgo =
-    new Date();
+  const twoDaysAgo = new Date();
 
   twoDaysAgo.setDate(
     today.getDate() - 2
@@ -53,14 +55,11 @@ const Statistics = () => {
   const [startDate, endDate] =
     dateRange;
 
-  // =====================================
-  // FILTERS
-  // =====================================
-
+  // 🎯 FILTERS
   const [
     selectedCountry,
     setSelectedCountry,
-  ] = useState("");
+  ] = useState("ALL");
 
   const [domain, setDomain] =
     useState("");
@@ -68,163 +67,227 @@ const Statistics = () => {
   const [placement, setPlacement] =
     useState("");
 
-  // =====================================
-  // GROUP BY
-  // =====================================
-
+  // 📊 GROUP BY
   const [groupBy, setGroupBy] =
     useState("date");
 
-  // =====================================
-  // REDUX STATE
-  // =====================================
-
+  // 📦 ADSTERRA STATE
   const {
     data,
     totals,
     loading,
+    fetchLoading,
     error,
   } = useSelector(
+    (state) => state.adsterra
+  );
+
+  // 📦 SMARTLINK FILTER STATE
+  const { filters } = useSelector(
     (state) =>
       state.smartlinkFilter
   );
 
-  // =====================================
-  // COUNTRY NAME → ISO
-  // =====================================
-
+  // 🌍 COUNTRY NAME → ISO
   const countryCode = useMemo(() => {
-    if (!selectedCountry)
-      return "ALL";
+    if (
+      !selectedCountry ||
+      selectedCountry === "ALL"
+    ) {
+      return "";
+    }
 
     const country =
       lookup.byCountry(
         selectedCountry
       );
 
-    return (
-      country?.iso2 || "ALL"
-    );
+    return country?.iso2 || "";
   }, [selectedCountry]);
 
-  // =====================================
+  // 📅 FORMAT DATE
+  const formatDate = (date) => {
+    return date
+      ?.toISOString()
+      ?.split("T")[0];
+  };
+
+  // ====================================
   // INITIAL LOAD
-  // =====================================
+  // ====================================
 
   useEffect(() => {
-    dispatch(
-      getSmartLinkStats({
-        country: "ALL",
-      })
-    );
+    dispatch(getAdsterraStats());
   }, [dispatch]);
 
-  // =====================================
-  // AUTO FILTER FROM SMARTLINK PAGE
-  // =====================================
+  // ====================================
+  // LOCATION STATE AUTO FILTER
+  // ====================================
 
   useEffect(() => {
-    if (!location.state)
-      return;
+    if (!location.state) return;
 
-    const incomingPlacement =
-      location.state
-        .placementId ||
-      location.state
-        .placement ||
+    const newDomain =
+      location.state.domain || "";
+
+    const newPlacement =
+      location.state.placementId ||
+      location.state.placement ||
       "";
 
-    const incomingDomain =
-      location.state.domain ||
-      "";
+    setDomain(newDomain);
 
-    // ✅ AUTO SET
-    setPlacement(
-      incomingPlacement
+    setPlacement(newPlacement);
+
+    // ✅ redux filters sync
+    dispatch(
+      setFilters({
+        placement: newPlacement,
+      })
     );
 
-    setDomain(
-      incomingDomain
-    );
-
-    // ✅ DATE
     const start =
-      startDate
-        ?.toISOString()
-        .split("T")[0];
+      formatDate(startDate);
 
     const end =
-      endDate
-        ?.toISOString()
-        .split("T")[0];
+      formatDate(endDate);
 
-    // ✅ PAYLOAD
-    const payload = {
-      start_date: start,
-      end_date: end,
-      placement:
-        incomingPlacement,
-      country: "ALL",
-    };
-
-    // ✅ SAVE FILTERS
+    // ✅ AUTO FETCH
     dispatch(
-      setFilters(payload)
+      fetchAdsterraStats({
+        start_date: start,
+        end_date: end,
+        placement: newPlacement,
+      })
     );
 
-    // ✅ AUTO API CALL
     dispatch(
-      getSmartLinkStats(
-        payload
-      )
+      getAdsterraStats({
+        domain: newDomain,
+        placement: newPlacement,
+        start_date: start,
+        end_date: end,
+      })
     );
   }, [location.state]);
 
-  // =====================================
-  // APPLY FILTERS
-  // =====================================
+  // ====================================
+  // AUTO FILTER WHEN COUNTRY CHANGES
+  // ====================================
 
-  const handleApply = async () => {
+  useEffect(() => {
+    if (!placement) return;
+
     const start =
-      startDate
-        ?.toISOString()
-        .split("T")[0];
+      formatDate(startDate);
 
     const end =
-      endDate
-        ?.toISOString()
-        .split("T")[0];
+      formatDate(endDate);
 
-    const payload = {
-      start_date: start,
-      end_date: end,
-      country:
-        countryCode || "ALL",
-      placement,
+    dispatch(
+      setFilters({
+        start_date: start,
+        end_date: end,
+        placement,
+        country:
+          selectedCountry ===
+            "ALL"
+            ? ""
+            : countryCode,
+      })
+    );
+
+    dispatch(
+      fetchAdsterraStats({
+        start_date: start,
+        end_date: end,
+        country: countryCode,
+        placement,
+      })
+    );
+
+    dispatch(
+      getAdsterraStats({
+        domain,
+        placement,
+        country: countryCode,
+        start_date: start,
+        end_date: end,
+      })
+    );
+  }, [selectedCountry]);
+
+  // ====================================
+  // APPLY FILTERS
+  // ====================================
+
+  const handleApply =
+    async () => {
+      if (!domain || !placement) {
+        alert(
+          "Domain & Placement required"
+        );
+
+        return;
+      }
+
+      const start =
+        formatDate(startDate);
+
+      const end =
+        formatDate(endDate);
+
+      try {
+        // ✅ redux filters sync
+        dispatch(
+          setFilters({
+            start_date: start,
+            end_date: end,
+            placement,
+            country:
+              selectedCountry ===
+                "ALL"
+                ? ""
+                : countryCode,
+          })
+        );
+
+        // 🔄 FETCH + STORE
+        await dispatch(
+          fetchAdsterraStats({
+            start_date: start,
+            end_date: end,
+            country:
+              countryCode,
+            placement,
+          })
+        );
+
+        // 📊 GET DB DATA
+        dispatch(
+          getAdsterraStats({
+            domain,
+            placement,
+            country:
+              countryCode,
+            start_date: start,
+            end_date: end,
+          })
+        );
+      } catch (err) {
+        console.error(err);
+      }
     };
 
-    try {
-      dispatch(
-        setFilters(payload)
-      );
-
-      await dispatch(
-        getSmartLinkStats(
-          payload
-        )
-      );
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  // =====================================
+  // ====================================
   // RESET
-  // =====================================
+  // ====================================
 
   const handleReset = () => {
-    setSelectedCountry("");
+    setSelectedCountry("ALL");
+
     setDomain("");
+
     setPlacement("");
 
     setDateRange([
@@ -232,105 +295,157 @@ const Statistics = () => {
       today,
     ]);
 
-    dispatch(
-      getSmartLinkStats({
-        country: "ALL",
-      })
-    );
+    dispatch(getAdsterraStats());
   };
 
-  // =====================================
+  // ====================================
   // GROUP DATA
-  // =====================================
+  // ====================================
 
   const groupedData = useMemo(() => {
+    if (groupBy !== "date") {
+      if (!Array.isArray(data))
+        return [];
 
-  // =====================================
-  // DATE GROUPING
-  // =====================================
+      return Object.values(
+        data.reduce(
+          (acc, item) => {
+            let key = "Unknown";
 
-  if (groupBy === "date") {
+            switch (groupBy) {
+              case "country":
+                key = item.country
+                  ? lookup.byIso(
+                    item.country
+                  )?.country ||
+                  item.country
+                  : "Unknown";
+                break;
 
-    const grouped = {};
+              case "device":
+                key =
+                  item.device ||
+                  "Unknown";
+                break;
 
-    // ✅ START DATE
-    const current =
-      new Date(startDate);
+              case "os":
+                key =
+                  item.osName ||
+                  "Unknown";
+                break;
 
-    // ✅ END DATE
-    const last =
-      new Date(endDate);
+              case "browser":
+                key =
+                  item.browserName ||
+                  "Unknown";
+                break;
 
-    // ✅ GENERATE ALL DATES
-    while (current <= last) {
+              default:
+                key = "Unknown";
+            }
 
-      const dateKey =
-        current.toLocaleDateString();
+            if (!acc[key]) {
+              acc[key] = {
+                label: key,
+                impressions: 0,
+                clicks: 0,
+                revenue: 0,
+              };
+            }
 
-      grouped[dateKey] = {
-        label: dateKey,
-        impressions: 0,
-        clicks: 0,
-        revenue: 0,
-      };
+            acc[key].impressions +=
+              Number(
+                item.impressions || 0
+              );
 
-      current.setDate(
-        current.getDate() + 1
+            acc[key].clicks += Number(
+              item.clicks || 0
+            );
+
+            acc[key].revenue +=
+              Number(
+                item.revenue || 0
+              );
+
+            return acc;
+          },
+          {}
+        )
       );
     }
 
-    // ✅ ADD API DATA
+    // ====================================
+    // 📅 DATE GROUPING WITH EMPTY DATES
+    // ====================================
+
+    const dateMap = {};
+
+    // ✅ create all dates in range
+    if (startDate && endDate) {
+      const current =
+        new Date(startDate);
+
+      while (
+        current <= endDate
+      ) {
+        const formatted =
+          current.toLocaleDateString();
+
+        dateMap[formatted] = {
+          label: formatted,
+          impressions: 0,
+          clicks: 0,
+          revenue: 0,
+        };
+
+        current.setDate(
+          current.getDate() + 1
+        );
+      }
+    }
+
+    // ✅ merge real API data
     if (Array.isArray(data)) {
-
       data.forEach((item) => {
-
-        const placementMatch =
-          !placement ||
-          item.placement === placement ||
-          item.placementId === placement;
-
-        const countryMatch =
-          countryCode === "ALL" ||
-          !countryCode ||
-          item.country === countryCode;
-
-        if (
-          !placementMatch ||
-          !countryMatch
-        ) {
-          return;
-        }
-
-        const dateKey =
+        const formattedDate =
           item.date
             ? new Date(
-                item.date
-              ).toLocaleDateString()
+              item.date
+            ).toLocaleDateString()
             : "Unknown";
 
-        if (!grouped[dateKey]) {
-          grouped[dateKey] = {
-            label: dateKey,
+        if (
+          !dateMap[
+          formattedDate
+          ]
+        ) {
+          dateMap[
+            formattedDate
+          ] = {
+            label:
+              formattedDate,
             impressions: 0,
             clicks: 0,
             revenue: 0,
           };
         }
 
-        grouped[
-          dateKey
-        ].impressions += Number(
-          item.impressions || 0
-        );
+        dateMap[
+          formattedDate
+        ].impressions +=
+          Number(
+            item.impressions ||
+            0
+          );
 
-        grouped[
-          dateKey
+        dateMap[
+          formattedDate
         ].clicks += Number(
           item.clicks || 0
         );
 
-        grouped[
-          dateKey
+        dateMap[
+          formattedDate
         ].revenue += Number(
           item.revenue || 0
         );
@@ -338,130 +453,27 @@ const Statistics = () => {
     }
 
     return Object.values(
-      grouped
+      dateMap
     );
-  }
+  }, [
+    data,
+    groupBy,
+    startDate,
+    endDate,
+  ]);
 
-  // =====================================
-  // OTHER GROUPS
-  // =====================================
-
-  if (!Array.isArray(data))
-    return [];
-
-  const filteredData =
-    data.filter((item) => {
-
-      const placementMatch =
-        !placement ||
-        item.placement ===
-          placement ||
-        item.placementId ===
-          placement;
-
-      const countryMatch =
-        countryCode ===
-          "ALL" ||
-        !countryCode ||
-        item.country ===
-          countryCode;
-
-      return (
-        placementMatch &&
-        countryMatch
-      );
-    });
-
-  return Object.values(
-    filteredData.reduce(
-      (acc, item) => {
-
-        let key = "Unknown";
-
-        switch (groupBy) {
-
-          case "country":
-            key = item.country
-              ? lookup.byIso(
-                  item.country
-                )?.country ||
-                item.country
-              : "Unknown";
-            break;
-
-          case "device":
-            key =
-              item.device ||
-              "Unknown";
-            break;
-
-          case "os":
-            key =
-              item.osName ||
-              "Unknown";
-            break;
-
-          case "browser":
-            key =
-              item.browserName ||
-              "Unknown";
-            break;
-
-          default:
-            key = "Unknown";
-        }
-
-        if (!acc[key]) {
-
-          acc[key] = {
-            label: key,
-            impressions: 0,
-            clicks: 0,
-            revenue: 0,
-          };
-        }
-
-        acc[
-          key
-        ].impressions += Number(
-          item.impressions || 0
-        );
-
-        acc[key].clicks += Number(
-          item.clicks || 0
-        );
-
-        acc[key].revenue += Number(
-          item.revenue || 0
-        );
-
-        return acc;
-
-      },
-      {}
-    )
-  );
-
-}, [
-  data,
-  groupBy,
-  placement,
-  countryCode,
-  startDate,
-  endDate,
-]);
-
-  // =====================================
+  // ====================================
   // TOTALS
-  // =====================================
+  // ====================================
 
   const calculatedTotals =
     useMemo(() => {
       return groupedData.reduce(
         (acc, item) => {
-          acc.impressions += Number(
-            item.impressions || 0
-          );
+          acc.impressions +=
+            Number(
+              item.impressions || 0
+            );
 
           acc.clicks += Number(
             item.clicks || 0
@@ -484,7 +496,6 @@ const Statistics = () => {
   return (
     <div className="space-y-6">
       {/* FILTERS */}
-
       <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-2xl p-4 md:p-6 shadow-sm">
         <h2 className="font-semibold text-lg mb-6">
           Filters
@@ -492,7 +503,6 @@ const Statistics = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
           {/* DATE */}
-
           <div>
             <label className="text-sm mb-2 block">
               Date Range
@@ -500,21 +510,16 @@ const Statistics = () => {
 
             <DatePicker
               selectsRange
-              startDate={
-                startDate
-              }
+              startDate={startDate}
               endDate={endDate}
               onChange={(update) =>
-                setDateRange(
-                  update
-                )
+                setDateRange(update)
               }
               className="w-full border border-gray-200 dark:border-slate-700 px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-slate-900 dark:text-gray-300 outline-none"
             />
           </div>
 
           {/* COUNTRY */}
-
           <div>
             <label className="text-sm mb-2 block">
               Country
@@ -531,17 +536,15 @@ const Statistics = () => {
               }
               className="w-full border border-gray-200 dark:border-slate-700 px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-slate-900 dark:text-gray-300 outline-none"
             >
-              <option value="">
-                All Countries
+              <option value="ALL">
+                ALL
               </option>
 
               {countries.map(
                 (country) => (
                   <option
                     key={country}
-                    value={
-                      country
-                    }
+                    value={country}
                   >
                     {country}
                   </option>
@@ -551,7 +554,6 @@ const Statistics = () => {
           </div>
 
           {/* DOMAIN */}
-
           <div>
             <label className="text-sm mb-2 block">
               Domain
@@ -570,7 +572,6 @@ const Statistics = () => {
           </div>
 
           {/* PLACEMENT */}
-
           <div>
             <label className="text-sm mb-2 block">
               Placement
@@ -590,18 +591,22 @@ const Statistics = () => {
         </div>
 
         {/* BUTTONS */}
-
         <div className="flex flex-wrap gap-3 mt-6">
           <button
             onClick={
               handleApply
             }
-            disabled={loading}
+            disabled={
+              loading ||
+              fetchLoading
+            }
             className="bg-green-600 hover:bg-green-700 text-white px-6 py-2.5 rounded-xl font-medium transition-all disabled:opacity-50"
           >
-            {loading
-              ? "Loading..."
-              : "APPLY"}
+            {fetchLoading
+              ? "Fetching..."
+              : loading
+                ? "Loading..."
+                : "APPLY"}
           </button>
 
           <button
@@ -615,7 +620,6 @@ const Statistics = () => {
         </div>
 
         {/* ERROR */}
-
         {error && (
           <div className="mt-4 text-red-500 text-sm">
             {error}
@@ -624,7 +628,6 @@ const Statistics = () => {
       </div>
 
       {/* GROUP TABS */}
-
       <div className="flex flex-wrap gap-2">
         {[
           {
@@ -632,12 +635,15 @@ const Statistics = () => {
             value: "date",
           },
           {
-            label: "Country",
+            label:
+              "Country",
             value:
               "country",
           },
+          
           {
-            label: "Device",
+            label:
+              "Device",
             value:
               "device",
           },
@@ -659,12 +665,11 @@ const Statistics = () => {
                 tab.value
               )
             }
-            className={`px-4 py-2 rounded-full text-sm transition-all ${
-              groupBy ===
-              tab.value
+            className={`px-4 py-2 rounded-full text-sm transition-all ${groupBy ===
+                tab.value
                 ? "bg-green-600 text-white"
                 : "bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700"
-            }`}
+              }`}
           >
             {tab.label}
           </button>
@@ -672,8 +677,13 @@ const Statistics = () => {
       </div>
 
       {/* TABLE */}
-
       <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-2xl overflow-hidden">
+        <div className="p-4 border-b border-gray-200 dark:border-slate-700">
+          <button className="text-green-500 font-medium">
+            EXPORT CSV
+          </button>
+        </div>
+
         <div className="overflow-x-auto">
           <table className="w-full min-w-[900px] text-left">
             <thead className="bg-gray-100 dark:bg-slate-900 text-gray-600 dark:text-gray-300 text-sm">
@@ -706,7 +716,7 @@ const Statistics = () => {
 
             <tbody>
               {groupedData.length >
-              0 ? (
+                0 ? (
                 groupedData.map(
                   (
                     item,
@@ -715,35 +725,35 @@ const Statistics = () => {
                     const impressions =
                       Number(
                         item.impressions ||
-                          0
+                        0
                       );
 
                     const clicks =
                       Number(
                         item.clicks ||
-                          0
+                        0
                       );
 
                     const revenue =
                       Number(
                         item.revenue ||
-                          0
+                        0
                       );
 
                     const ctr =
                       impressions >
-                      0
+                        0
                         ? (clicks /
-                            impressions) *
-                          100
+                          impressions) *
+                        100
                         : 0;
 
                     const cpm =
                       impressions >
-                      0
+                        0
                         ? (revenue /
-                            impressions) *
-                          1000
+                          impressions) *
+                        1000
                         : 0;
 
                     return (
@@ -798,14 +808,15 @@ const Statistics = () => {
                   >
                     {loading
                       ? "Loading..."
-                      : "No Data Found"}
+                      : groupBy === "date"
+                        ? "No stats available for selected dates"
+                        : "No Data Found"}
                   </td>
                 </tr>
               )}
             </tbody>
 
             {/* TOTALS */}
-
             <tfoot>
               <tr className="border-t border-gray-300 dark:border-slate-600 bg-gray-50 dark:bg-slate-900 font-bold">
                 <td className="p-4">
@@ -822,24 +833,28 @@ const Statistics = () => {
 
                 <td className="p-4 text-right">
                   {calculatedTotals.impressions >
-                  0
+                    0
                     ? (
-                        (calculatedTotals.clicks /
-                          calculatedTotals.impressions) *
-                        100
-                      ).toFixed(2)
+                      (calculatedTotals.clicks /
+                        calculatedTotals.impressions) *
+                      100
+                    ).toFixed(
+                      2
+                    )
                     : "0.00"}
                   %
                 </td>
 
                 <td className="p-4 text-right">
                   {calculatedTotals.impressions >
-                  0
+                    0
                     ? (
-                        (calculatedTotals.revenue /
-                          calculatedTotals.impressions) *
-                        1000
-                      ).toFixed(3)
+                      (calculatedTotals.revenue /
+                        calculatedTotals.impressions) *
+                      1000
+                    ).toFixed(
+                      3
+                    )
                     : "0.000"}
                 </td>
 
