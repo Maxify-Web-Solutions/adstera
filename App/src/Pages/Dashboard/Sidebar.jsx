@@ -71,6 +71,7 @@ const Sidebar = ({ isOpen, onClose }) => {
 
                     <NavItem to="/dashboard" icon={MdSpaceDashboard} label="Dashboard" />
                     <NavItem to="/dashboard/statistics" icon={IoStatsChart} label="Statistics" />
+                    <NavItem to="/dashboard/stats" icon={IoStatsChart} label="Stats" />
                     <NavItem to="/dashboard/smartlinks" icon={MdOutlineAttachment} label="Smartlinks" />
                     <NavItem to="/dashboard/websites" icon={BsGlobe} label="Websites" />
                     <NavItem to="/dashboard/referrals" icon={IoPeople} label="Referrals" />

@@ -28,6 +28,7 @@ import Payouts from "./Pages/Dashboard/DashboardPages/Payouts";
 import DashboardProfile from "./Pages/Dashboard/DashboardPages/DashboardProfile";
 import RedirectPage from "./Pages/RedirectPage";
 import { fetchPlacements } from "./redux/slice/adsterraPlacementSlice";
+import SmartlinkStatistics from "./Pages/Dashboard/DashboardPages/SmartlinkStatistics";
 
 function App() {
 
@@ -66,6 +67,7 @@ function App() {
       <Route index element={<Overview />} />
       <Route path="websites" element={<Websites />} />
       <Route path="statistics" element={<Statistics />} />
+      <Route path="stats" element={<SmartlinkStatistics />} />
       <Route path="smartlinks" element={<Smartlinks />} />
       <Route path="referrals" element={<Refrels />} />
       <Route path="api" element={<ApiPage />} />

@@ -1,57 +1,104 @@
 import React, { useEffect, useState } from "react";
-
-/* Timeline Data */
-const sections = [
-    {
-        date: "Today",
-        title: "Welcome to Adstorx",
-        content: [
-            "Choose traffic type",
-            "Add website & verify",
-            "Create ad unit",
-            "Start monetizing",
-        ],
-    },
-    {
-        date: "Yesterday",
-        title: "Ad Unit Created",
-        content: [
-            "Banner & Popunder ready",
-            "Ad code generated",
-        ],
-    },
-    {
-        date: "2 Days Ago",
-        title: "Traffic Started",
-        content: [
-            "Ads live on website",
-            "Tracking impressions & clicks",
-        ],
-    },
-];
-
-/* Fake Chart Data */
-const chartData = [40, 60, 55, 80, 120, 90, 140];
-const ctrData = [2, 3, 2.5, 4, 3.2, 4.5, 5];
-
-/* Countries */
-const countries = [
-    { name: "USA", value: "$540" },
-    { name: "India", value: "$320" },
-    { name: "UK", value: "$210" },
-    { name: "Canada", value: "$175" },
-];
+import { useDispatch, useSelector } from "react-redux";
+import { fetchAdsterraStats, getAdsterraStats } from "../../redux/slice/adsterraStatsSlice";
 
 const Overview = () => {
-    const [revenue, setRevenue] = useState(1245);
+    const dispatch = useDispatch();
+    const { data: stats, totals, loading } = useSelector((state) => state.adsterra);
+    const [chartData, setChartData] = useState([]);
+    const [ctrData, setCtrData] = useState([]);
+    const [countries, setCountries] = useState([]);
+    const [sections, setSections] = useState([]);
 
-    /* 🔥 Live Counter */
+    /* 📊 Fetch stats on component mount */
     useEffect(() => {
-        const interval = setInterval(() => {
-            setRevenue((prev) => prev + Math.random() * 2);
-        }, 2000);
-        return () => clearInterval(interval);
-    }, []);
+        dispatch(fetchAdsterraStats());
+        dispatch(getAdsterraStats());
+    }, [dispatch]);
+
+    /* 📈 Process data for charts and countries */
+    useEffect(() => {
+        if (stats && stats.length > 0) {
+            // Group by country for top countries
+            const countryMap = {};
+            stats.forEach((item) => {
+                if (!countryMap[item.country]) {
+                    countryMap[item.country] = 0;
+                }
+                countryMap[item.country] += parseFloat(item.revenue || 0);
+            });
+
+            // Get top 4 countries by revenue
+            const topCountries = Object.entries(countryMap)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 4)
+                .map(([country, revenue]) => ({
+                    name: country || "Unknown",
+                    value: `$${revenue.toFixed(2)}`,
+                }));
+
+            setCountries(topCountries.length > 0 ? topCountries : []);
+
+            // Group by date for chart data (last 7 days impressions)
+            const dateMap = {};
+            stats.forEach((item) => {
+                const date = item.date ? item.date.split("T")[0] : new Date().toISOString().split("T")[0];
+                if (!dateMap[date]) {
+                    dateMap[date] = { impressions: 0, clicks: 0 };
+                }
+                dateMap[date].impressions += parseFloat(item.impressions || 0);
+                dateMap[date].clicks += parseFloat(item.clicks || 0);
+            });
+
+            const sortedDates = Object.keys(dateMap).sort().slice(-7);
+            const impressionsData = sortedDates.map((date) => {
+                const max = Math.max(
+                    ...Object.values(dateMap).map((d) => d.impressions)
+                );
+                return (dateMap[date].impressions / (max || 1)) * 100;
+            });
+            const ctrDataValues = sortedDates.map((date) => {
+                const { impressions, clicks } = dateMap[date];
+                return impressions > 0 ? ((clicks / impressions) * 100) : 0;
+            });
+
+            setChartData(impressionsData.length > 0 ? impressionsData : [40, 60, 55, 80, 120, 90, 140]);
+            setCtrData(ctrDataValues.length > 0 ? ctrDataValues : [2, 3, 2.5, 4, 3.2, 4.5, 5]);
+
+            // Create timeline sections
+            const timelineSections = [
+                {
+                    date: "Today",
+                    title: "Dashboard Performance",
+                    content: [
+                        `Impressions: ${totals.totalImpressions || 0}`,
+                        `Clicks: ${totals.totalClicks || 0}`,
+                        `Revenue: $${(totals.totalRevenue || 0).toFixed(2)}`,
+                        "Tracking active",
+                    ],
+                },
+                {
+                    date: "Last 7 Days",
+                    title: "Campaign Performance",
+                    content: [
+                        `Countries targeted: ${Object.keys(countryMap).length}`,
+                        `Top performer: ${topCountries[0]?.name || "N/A"}`,
+                        "Data updated automatically",
+                    ],
+                },
+                {
+                    date: "Account Status",
+                    title: "Active Monitoring",
+                    content: [
+                        "Real-time tracking enabled",
+                        "All metrics up to date",
+                        "Performance optimized",
+                    ],
+                },
+            ];
+            setSections(timelineSections);
+        }
+    }, [stats, totals]);
 
     return (
         <div className="space-y-10">
@@ -69,9 +116,9 @@ const Overview = () => {
             {/* Stats */}
             <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 <StatCard title="Status" value="Active" />
-                <StatCard title="Impressions" value="124,580" />
-                <StatCard title="Clicks" value="8,942" />
-                <StatCard title="Revenue" value={`$${revenue.toFixed(2)}`} glow />
+                <StatCard title="Impressions" value={`${totals.totalImpressions ? totals.totalImpressions.toLocaleString() : "0"}`} />
+                <StatCard title="Clicks" value={`${totals.totalClicks ? totals.totalClicks.toLocaleString() : "0"}`} />
+                <StatCard title="Revenue" value={`$${totals.totalRevenue ? totals.totalRevenue.toFixed(2) : "0.00"}`} glow />
             </div>
 
             {/* Charts */}
@@ -80,34 +127,44 @@ const Overview = () => {
                 {/* Main Chart */}
                 <div className="lg:col-span-2 bg-white dark:bg-slate-800 p-6 rounded-2xl border dark:border-slate-700">
                     <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">
-                        Impressions vs Revenue
+                        Impressions vs Revenue (Last 7 Days)
                     </h3>
 
                     <div className="flex items-end gap-2 h-40">
-                        {chartData.map((val, i) => (
-                            <div
-                                key={i}
-                                className="flex-1 bg-gradient-to-t from-indigo-500 to-purple-500 rounded"
-                                style={{ height: `${val}%` }}
-                            ></div>
-                        ))}
+                        {chartData.length > 0 ? (
+                            chartData.map((val, i) => (
+                                <div
+                                    key={i}
+                                    className="flex-1 bg-gradient-to-t from-indigo-500 to-purple-500 rounded"
+                                    style={{ height: `${Math.max(val, 5)}%` }}
+                                    title={`Day ${i + 1}: ${val.toFixed(0)}%`}
+                                ></div>
+                            ))
+                        ) : (
+                            <p className="text-gray-400 text-sm">Loading chart data...</p>
+                        )}
                     </div>
                 </div>
 
                 {/* CTR Graph */}
                 <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border dark:border-slate-700">
                     <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">
-                        CTR Trend
+                        CTR Trend (%)
                     </h3>
 
                     <div className="flex items-end gap-2 h-40">
-                        {ctrData.map((val, i) => (
-                            <div
-                                key={i}
-                                className="flex-1 bg-green-500 rounded"
-                                style={{ height: `${val * 15}%` }}
-                            ></div>
-                        ))}
+                        {ctrData.length > 0 ? (
+                            ctrData.map((val, i) => (
+                                <div
+                                    key={i}
+                                    className="flex-1 bg-green-500 rounded"
+                                    style={{ height: `${Math.min(val * 15, 100)}%` }}
+                                    title={`Day ${i + 1}: ${val.toFixed(2)}%`}
+                                ></div>
+                            ))
+                        ) : (
+                            <p className="text-gray-400 text-sm">Loading CTR data...</p>
+                        )}
                     </div>
                 </div>
 
@@ -118,30 +175,36 @@ const Overview = () => {
 
                 {/* Timeline */}
                 <div className="lg:col-span-2 space-y-6">
-                    {sections.map((section, index) => (
-                        <div
-                            key={index}
-                            className="relative pl-10 p-6 bg-white dark:bg-slate-800 rounded-2xl border dark:border-slate-700"
-                        >
-                            <div className="absolute left-0 top-6 w-4 h-4 bg-indigo-500 rounded-full"></div>
+                    {sections.length > 0 ? (
+                        sections.map((section, index) => (
+                            <div
+                                key={index}
+                                className="relative pl-10 p-6 bg-white dark:bg-slate-800 rounded-2xl border dark:border-slate-700"
+                            >
+                                <div className="absolute left-0 top-6 w-4 h-4 bg-indigo-500 rounded-full"></div>
 
-                            {index !== sections.length - 1 && (
-                                <div className="absolute left-2 top-10 w-[2px] h-full bg-gray-300 dark:bg-slate-600"></div>
-                            )}
+                                {index !== sections.length - 1 && (
+                                    <div className="absolute left-2 top-10 w-[2px] h-full bg-gray-300 dark:bg-slate-600"></div>
+                                )}
 
-                            <p className="text-xs text-gray-400 mb-2">{section.date}</p>
+                                <p className="text-xs text-gray-400 mb-2">{section.date}</p>
 
-                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
-                                {section.title}
-                            </h3>
+                                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
+                                    {section.title}
+                                </h3>
 
-                            <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
-                                {section.content.map((item, i) => (
-                                    <li key={i}>• {item}</li>
-                                ))}
-                            </ul>
+                                <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
+                                    {section.content.map((item, i) => (
+                                        <li key={i}>• {item}</li>
+                                    ))}
+                                </ul>
+                            </div>
+                        ))
+                    ) : (
+                        <div className="p-6 bg-white dark:bg-slate-800 rounded-2xl border dark:border-slate-700">
+                            <p className="text-gray-400 text-center">No data available yet</p>
                         </div>
-                    ))}
+                    )}
                 </div>
 
                 {/* Country Earnings */}
@@ -151,16 +214,20 @@ const Overview = () => {
                     </h3>
 
                     <div className="space-y-4">
-                        {countries.map((c, i) => (
-                            <div key={i} className="flex justify-between text-sm">
-                                <span className="text-gray-600 dark:text-gray-400">
-                                    {c.name}
-                                </span>
-                                <span className="font-semibold text-gray-900 dark:text-white">
-                                    {c.value}
-                                </span>
-                            </div>
-                        ))}
+                        {countries.length > 0 ? (
+                            countries.map((c, i) => (
+                                <div key={i} className="flex justify-between text-sm">
+                                    <span className="text-gray-600 dark:text-gray-400">
+                                        {c.name}
+                                    </span>
+                                    <span className="font-semibold text-gray-900 dark:text-white">
+                                        {c.value}
+                                    </span>
+                                </div>
+                            ))
+                        ) : (
+                            <p className="text-gray-400 text-sm text-center">No country data available</p>
+                        )}
                     </div>
                 </div>
 

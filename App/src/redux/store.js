@@ -6,6 +6,7 @@ import smartLinkStatsReducer from "../redux/slice/smartLinkStatsSlice";
 import adsterraReducer from "../redux/slice/adsterraStatsSlice";
 import withdrawalReducer from "../redux/slice/withdrawalSlice";
 import adsterraPlacementReducer from "../redux/slice/adsterraPlacementSlice";
+import smartlinkFilterReducer from "../redux/slice/smartlinkFilterSlice";
 
 export const store = configureStore({
   reducer: {
@@ -15,6 +16,7 @@ export const store = configureStore({
     adsterra: adsterraReducer,
     withdrawal: withdrawalReducer,
     adsterraPlacements: adsterraPlacementReducer,
+    smartlinkFilter: smartlinkFilterReducer, // 🔥 rename for clarity
 
   },
 
