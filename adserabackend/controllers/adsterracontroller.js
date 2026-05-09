@@ -436,6 +436,7 @@ exports.fetchAndStoreAdsterraStats = async (req, res) => {
 
     const { country, start_date, finish_date } = req.query;
 
+    // ================= AUTH =================
     if (!userId) {
       return res.status(401).json({
         success: false,
@@ -443,6 +444,7 @@ exports.fetchAndStoreAdsterraStats = async (req, res) => {
       });
     }
 
+    // ================= LINKS =================
     const links = await SmartLink.find({ userId });
 
     if (!links.length) {
@@ -452,15 +454,22 @@ exports.fetchAndStoreAdsterraStats = async (req, res) => {
       });
     }
 
+    // ================= DATES =================
     const today = new Date();
 
-    const defaultFinishDate = today.toISOString().split("T")[0];
+    const defaultFinishDate = today
+      .toISOString()
+      .split("T")[0];
 
     const pastDate = new Date();
+
     pastDate.setDate(today.getDate() - 15);
 
-    const defaultStartDate = pastDate.toISOString().split("T")[0];
+    const defaultStartDate = pastDate
+      .toISOString()
+      .split("T")[0];
 
+    // ================= CONFIG =================
     const config = await Config.findOne();
 
     if (!config?.adsterraApiKey) {
@@ -470,26 +479,40 @@ exports.fetchAndStoreAdsterraStats = async (req, res) => {
       });
     }
 
+    // ================= DEVICE INFO =================
     const ua = req.headers["user-agent"];
+
     const parser = new UAParser(ua);
 
     const device = parser.getDevice();
+
     const os = parser.getOS();
+
     const browser = parser.getBrowser();
 
     let allOverallOps = [];
+
     let allCountryOps = [];
+
     let totalRevenue = 0;
 
     // ================= HELPERS =================
+
     const normalizeCountry = (c) =>
-      (c || "UNKNOWN").toString().trim().toUpperCase();
+      (c || "UNKNOWN")
+        .toString()
+        .trim()
+        .toUpperCase();
 
     const normalizeDate = (d) => {
-      if (!d) return today.toISOString().split("T")[0];
+      if (!d) {
+        return today.toISOString().split("T")[0];
+      }
 
       if (typeof d === "string") {
-        return d.includes("T") ? d.split("T")[0] : d;
+        return d.includes("T")
+          ? d.split("T")[0]
+          : d;
       }
 
       if (d instanceof Date) {
@@ -499,29 +522,37 @@ exports.fetchAndStoreAdsterraStats = async (req, res) => {
       return today.toISOString().split("T")[0];
     };
 
-    const toTime = (d) => new Date(d).getTime();
-
     // ================= LOOP LINKS =================
+
     for (const link of links) {
       const placementId = link.placementId;
+
       if (!placementId) continue;
 
-      const approvedAt = link.approvedAt
-        ? new Date(link.approvedAt)
+      // ✅ APPROVED DATE ONLY
+      const approvedDate = link.approvedAt
+        ? normalizeDate(link.approvedAt)
         : null;
 
-        console.log(approvedAt, "approved ")
-      const domain =
-        link.domain || link.redirectUrl || link.targetUrl || "unknown";
+      console.log("APPROVED DATE =>", approvedDate);
 
-      // ================= OVERALL =================
+      const domain =
+        link.domain ||
+        link.redirectUrl ||
+        link.targetUrl ||
+        "unknown";
+
+      // ================= OVERALL API =================
+
       const overallResponse = await axios.get(
         "https://api3.adsterratools.com/publisher/stats.json",
         {
           params: {
             placement: placementId,
-            start_date: start_date || defaultStartDate,
-            finish_date: finish_date || defaultFinishDate,
+            start_date:
+              start_date || defaultStartDate,
+            finish_date:
+              finish_date || defaultFinishDate,
             group_by: "date",
           },
           headers: {
@@ -532,23 +563,37 @@ exports.fetchAndStoreAdsterraStats = async (req, res) => {
         }
       );
 
-      let overallData = overallResponse.data?.items || [];
+      let overallData =
+        overallResponse.data?.items || [];
 
-      // 🔥 FILTER BY APPROVED DATE
+      console.log(
+        "OVERALL DATA =>",
+        overallData
+      );
+
+      // ✅ FILTER USING DATE ONLY
       overallData = overallData.filter((item) => {
-        if (!approvedAt) return true;
+        if (!approvedDate) return true;
 
-        return toTime(normalizeDate(item.date)) >= toTime(approvedAt);
+        const itemDate = normalizeDate(
+          item.date
+        );
+
+        // compare only dates
+        return itemDate >= approvedDate;
       });
 
-      // ================= COUNTRY =================
+      // ================= COUNTRY API =================
+
       const countryResponse = await axios.get(
         "https://api3.adsterratools.com/publisher/stats.json",
         {
           params: {
             placement: placementId,
-            start_date: start_date || defaultStartDate,
-            finish_date: finish_date || defaultFinishDate,
+            start_date:
+              start_date || defaultStartDate,
+            finish_date:
+              finish_date || defaultFinishDate,
             group_by: "country",
           },
           headers: {
@@ -559,119 +604,175 @@ exports.fetchAndStoreAdsterraStats = async (req, res) => {
         }
       );
 
-      let countryData = countryResponse.data?.items || [];
+      let countryData =
+        countryResponse.data?.items || [];
 
-      // REMOVE EMPTY
+      // ================= REMOVE EMPTY COUNTRY =================
+
       countryData = countryData.filter(
-        (item) => item?.country && item.country.trim() !== ""
+        (item) =>
+          item?.country &&
+          item.country.trim() !== ""
       );
 
-      // FILTER COUNTRY QUERY
+      // ================= COUNTRY FILTER =================
+
       if (country) {
         const countries = country
           .split(",")
-          .map((c) => c.trim().toUpperCase());
+          .map((c) =>
+            c.trim().toUpperCase()
+          );
 
         countryData = countryData.filter((item) =>
-          countries.includes(normalizeCountry(item.country))
+          countries.includes(
+            normalizeCountry(item.country)
+          )
         );
       }
 
-      // 🔥 FILTER BY APPROVED DATE
-      countryData = countryData.filter((item) => {
-        if (!approvedAt) return true;
-        return toTime(today) >= toTime(approvedAt);
+      // ✅ FILTER COUNTRY DATA USING DATE ONLY
+      countryData = countryData.filter(() => {
+        if (!approvedDate) return true;
+
+        const todayDate =
+          normalizeDate(today);
+
+        return todayDate >= approvedDate;
       });
 
       // ================= OVERALL OPS =================
-      const overallOps = overallData.map((item) => {
-        const impressions = Number(item.impression) || 0;
-        const clicks = Number(item.clicks) || 0;
-        const revenue = (Number(item.revenue) || 0) / 2;
 
-        const ctr = impressions ? (clicks / impressions) * 100 : 0;
-        const cpm = impressions ? (revenue / impressions) * 1000 : 0;
+      const overallOps = overallData.map(
+        (item) => {
+          const impressions =
+            Number(item.impression) || 0;
 
-        const statsDate = normalizeDate(item.date);
+          const clicks =
+            Number(item.clicks) || 0;
 
-        totalRevenue += revenue;
+          const revenue =
+            (Number(item.revenue) || 0) / 2;
 
-        return {
-          updateOne: {
-            filter: {
-              userId,
-              placement: placementId,
-              country: "ALL",
-              date: statsDate,
-            },
-            update: {
-              $set: {
+          const ctr = impressions
+            ? (clicks / impressions) * 100
+            : 0;
+
+          const cpm = impressions
+            ? (revenue / impressions) * 1000
+            : 0;
+
+          const statsDate = normalizeDate(
+            item.date
+          );
+
+          totalRevenue += revenue;
+
+          return {
+            updateOne: {
+              filter: {
                 userId,
-                domain,
                 placement: placementId,
                 country: "ALL",
                 date: statsDate,
-                device: device.type || "desktop",
-                osName: os.name || "",
-                browserName: browser.name || "",
-                impressions,
-                clicks,
-                revenue,
-                ctr,
-                cpm,
               },
+
+              update: {
+                $set: {
+                  userId,
+                  domain,
+                  placement: placementId,
+                  country: "ALL",
+                  date: statsDate,
+                  device:
+                    device.type || "desktop",
+                  osName: os.name || "",
+                  browserName:
+                    browser.name || "",
+                  impressions,
+                  clicks,
+                  revenue,
+                  ctr,
+                  cpm,
+                },
+              },
+
+              upsert: true,
             },
-            upsert: true,
-          },
-        };
-      });
+          };
+        }
+      );
 
       // ================= COUNTRY OPS =================
-      const countryOps = countryData.map((item) => {
-        const impressions = Number(item.impression) || 0;
-        const clicks = Number(item.clicks) || 0;
-        const revenue = (Number(item.revenue) || 0) / 2;
 
-        const ctr = impressions ? (clicks / impressions) * 100 : 0;
-        const cpm = impressions ? (revenue / impressions) * 1000 : 0;
+      const countryOps = countryData.map(
+        (item) => {
+          const impressions =
+            Number(item.impression) || 0;
 
-        const statsDate = normalizeDate(today);
+          const clicks =
+            Number(item.clicks) || 0;
 
-        return {
-          updateOne: {
-            filter: {
-              userId,
-              placement: placementId,
-              country: normalizeCountry(item.country),
-              date: statsDate,
-            },
-            update: {
-              $set: {
+          const revenue =
+            (Number(item.revenue) || 0) / 2;
+
+          const ctr = impressions
+            ? (clicks / impressions) * 100
+            : 0;
+
+          const cpm = impressions
+            ? (revenue / impressions) * 1000
+            : 0;
+
+          const statsDate =
+            normalizeDate(today);
+
+          return {
+            updateOne: {
+              filter: {
                 userId,
-                domain,
                 placement: placementId,
-                country: normalizeCountry(item.country),
+                country: normalizeCountry(
+                  item.country
+                ),
                 date: statsDate,
-                device: device.type || "desktop",
-                osName: os.name || "",
-                browserName: browser.name || "",
-                impressions,
-                clicks,
-                revenue,
-                ctr,
-                cpm,
               },
+
+              update: {
+                $set: {
+                  userId,
+                  domain,
+                  placement: placementId,
+                  country: normalizeCountry(
+                    item.country
+                  ),
+                  date: statsDate,
+                  device:
+                    device.type || "desktop",
+                  osName: os.name || "",
+                  browserName:
+                    browser.name || "",
+                  impressions,
+                  clicks,
+                  revenue,
+                  ctr,
+                  cpm,
+                },
+              },
+
+              upsert: true,
             },
-            upsert: true,
-          },
-        };
-      });
+          };
+        }
+      );
 
       allOverallOps.push(...overallOps);
+
       allCountryOps.push(...countryOps);
     }
 
     // ================= DEDUPE =================
+
     const dedupe = (ops) => {
       const map = new Map();
 
@@ -691,40 +792,60 @@ exports.fetchAndStoreAdsterraStats = async (req, res) => {
       return [...map.values()];
     };
 
-    const finalOverallOps = dedupe(allOverallOps);
-    const finalCountryOps = dedupe(allCountryOps);
+    const finalOverallOps =
+      dedupe(allOverallOps);
+
+    const finalCountryOps =
+      dedupe(allCountryOps);
 
     // ================= SAVE =================
+
     if (finalOverallOps.length) {
-      await AdsterraStats.bulkWrite(finalOverallOps);
+      await AdsterraStats.bulkWrite(
+        finalOverallOps
+      );
     }
 
     if (finalCountryOps.length) {
-      await SmartLinkStats.bulkWrite(finalCountryOps);
+      await SmartLinkStats.bulkWrite(
+        finalCountryOps
+      );
     }
 
     // ================= USER UPDATE =================
+
     await User.findByIdAndUpdate(userId, {
-      $set: { revenue: totalRevenue || 0 },
+      $set: {
+        revenue: totalRevenue || 0,
+      },
     });
+
+    // ================= RESPONSE =================
 
     return res.status(200).json({
       success: true,
-      message: "Stats fetched & stored successfully",
-      overallSaved: finalOverallOps.length,
-      countrySaved: finalCountryOps.length,
+      message:
+        "Stats fetched & stored successfully",
+      overallSaved:
+        finalOverallOps.length,
+      countrySaved:
+        finalCountryOps.length,
       totalRevenue,
     });
+
   } catch (error) {
     console.error(
       "ADSTERRA FETCH ERROR =>",
-      error?.response?.data || error.message
+      error?.response?.data ||
+      error.message
     );
 
     return res.status(500).json({
       success: false,
       message: "Failed to fetch stats",
-      error: error?.response?.data || error.message,
+      error:
+        error?.response?.data ||
+        error.message,
     });
   }
 };
