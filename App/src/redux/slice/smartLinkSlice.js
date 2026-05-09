@@ -128,25 +128,25 @@ const smartLinkSlice = createSlice({
             })
 
             /* ===== UPDATE NAME ===== */
-.addCase(updateSmartLink.pending, (state) => {
-    state.loading = true;
-    state.error = null;
-})
+            .addCase(updateSmartLink.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
 
-.addCase(updateSmartLink.fulfilled, (state, action) => {
-    state.loading = false;
+            .addCase(updateSmartLink.fulfilled, (state, action) => {
+                state.loading = false;
 
-    const updatedLink = action.payload;
+                const updatedLink = action.payload;
 
-    state.smartLinks = state.smartLinks.map((link) =>
-        link._id === updatedLink._id ? updatedLink : link
-    );
-})
+                state.smartLinks = state.smartLinks.map((link) =>
+                    link._id === updatedLink._id ? updatedLink : link
+                );
+            })
 
-.addCase(updateSmartLink.rejected, (state, action) => {
-    state.loading = false;
-    state.error = action.payload;
-})
+            .addCase(updateSmartLink.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload;
+            })
 
             /* ===== APPROVE ===== */
             .addCase(approveSmartLink.pending, (state) => {
