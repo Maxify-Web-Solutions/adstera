@@ -7,6 +7,10 @@ import {
   getAdsterraStats,
 } from "../../../redux/slice/adsterraStatsSlice";
 
+import {
+  setFilters,
+} from "../../../redux/slice/smartlinkFilterSlice";
+
 import { getNames } from "country-list";
 import lookup from "country-code-lookup";
 
@@ -17,13 +21,21 @@ const Statistics = () => {
   const dispatch = useDispatch();
   const location = useLocation();
 
-  const countries = getNames();
+  // 🌍 COUNTRIES
+  const countries = useMemo(
+    () => getNames().sort(),
+    []
+  );
 
+  // 📅 DATE SETUP
   // 📅 DATE SETUP
   const today = new Date();
 
   const twoDaysAgo = new Date();
-  twoDaysAgo.setDate(today.getDate() - 2);
+
+  twoDaysAgo.setDate(
+    today.getDate() - 2
+  );
 
   const [dateRange, setDateRange] = useState([
     twoDaysAgo,
@@ -33,7 +45,12 @@ const Statistics = () => {
   const [startDate, endDate] = dateRange;
 
   // 🎯 FILTERS
-  const [selectedCountry, setSelectedCountry] =
+  const [
+    selectedCountry,
+    setSelectedCountry,
+  ] = useState("ALL");
+
+  const [domain, setDomain] =
     useState("");
 
   const [domain, setDomain] = useState("");
@@ -42,107 +59,228 @@ const Statistics = () => {
     useState("");
 
   // 📊 GROUP BY
+  // 📊 GROUP BY
   const [groupBy, setGroupBy] =
     useState("country");
 
-  // 📦 REDUX STATE
+  // 📦 ADSTERRA STATE
   const {
     data,
     totals,
     loading,
+    fetchLoading,
     fetchLoading,
     error,
   } = useSelector(
     (state) => state.adsterra
   );
 
-  // ✅ INITIAL LOAD
-  useEffect(() => {
-    dispatch(getAdsterraStats())
-    dispatch(fetchAdsterraStats());
-  }, [dispatch]);
-
-  // ✅ GET DATA FROM LOCATION STATE
-  useEffect(() => {
-    if (location.state) {
-      setDomain(
-        location.state.domain || ""
-      );
-
-      setPlacement(
-        location.state.placementId ||
-          location.state.placement ||
-          ""
-      );
-
-      console.log(
-        "LOCATION STATE =>",
-        location.state
-      );
-    }
-  }, [location.state]);
+  // 📦 SMARTLINK FILTER STATE
+  const { filters } = useSelector(
+    (state) =>
+      state.smartlinkFilter
+  );
 
   // 🌍 COUNTRY NAME → ISO
   const countryCode = useMemo(() => {
-    if (!selectedCountry) return "";
+    if (
+      !selectedCountry ||
+      selectedCountry === "ALL"
+    ) {
+      return "";
+    }
 
     const country =
-      lookup.byCountry(selectedCountry);
+      lookup.byCountry(
+        selectedCountry
+      );
 
     return country?.iso2 || "";
   }, [selectedCountry]);
 
-  // 🚀 APPLY FILTERS
-  const handleApply = async () => {
-    if (!domain || !placement) {
-      alert(
-        "Domain & Placement required"
-      );
-
-      return;
-    }
-
-    const start =
-      startDate?.toISOString().split(
-        "T"
-      )[0];
-
-    const end =
-      endDate?.toISOString().split(
-        "T"
-      )[0];
-
-    try {
-      // 🔄 FETCH + STORE
-      await dispatch(
-        fetchAdsterraStats({
-          start_date: start,
-          end_date: end,
-          country: countryCode,
-          placement,
-        })
-      );
-
-      // 📊 GET DB DATA
-      dispatch(
-        getAdsterraStats({
-          domain,
-          placement,
-          country: countryCode,
-          start_date: start,
-          end_date: end,
-        })
-      );
-    } catch (err) {
-      console.error(err);
-    }
+  // 📅 FORMAT DATE
+  const formatDate = (date) => {
+    return date
+      ?.toISOString()
+      ?.split("T")[0];
   };
 
-  // 🔄 RESET
+  // ====================================
+  // INITIAL LOAD
+  // ====================================
+
+  useEffect(() => {
+    dispatch(getAdsterraStats());
+  }, [dispatch]);
+
+  // ====================================
+  // LOCATION STATE AUTO FILTER
+  // ====================================
+
+  useEffect(() => {
+    if (!location.state) return;
+
+    const newDomain =
+      location.state.domain || "";
+
+    const newPlacement =
+      location.state.placementId ||
+      location.state.placement ||
+      "";
+
+    setDomain(newDomain);
+
+    setPlacement(newPlacement);
+
+    // ✅ redux filters sync
+    dispatch(
+      setFilters({
+        placement: newPlacement,
+      })
+    );
+
+    const start =
+      formatDate(startDate);
+
+    const end =
+      formatDate(endDate);
+
+    // ✅ AUTO FETCH
+    dispatch(
+      fetchAdsterraStats({
+        start_date: start,
+        end_date: end,
+        placement: newPlacement,
+      })
+    );
+
+    dispatch(
+      getAdsterraStats({
+        domain: newDomain,
+        placement: newPlacement,
+        start_date: start,
+        end_date: end,
+      })
+    );
+  }, [location.state]);
+
+  // ====================================
+  // AUTO FILTER WHEN COUNTRY CHANGES
+  // ====================================
+
+  useEffect(() => {
+    if (!placement) return;
+
+    const start =
+      formatDate(startDate);
+
+    const end =
+      formatDate(endDate);
+
+    dispatch(
+      setFilters({
+        start_date: start,
+        end_date: end,
+        placement,
+        country:
+          selectedCountry ===
+            "ALL"
+            ? ""
+            : countryCode,
+      })
+    );
+
+    dispatch(
+      fetchAdsterraStats({
+        start_date: start,
+        end_date: end,
+        country: countryCode,
+        placement,
+      })
+    );
+
+    dispatch(
+      getAdsterraStats({
+        domain,
+        placement,
+        country: countryCode,
+        start_date: start,
+        end_date: end,
+      })
+    );
+  }, [selectedCountry]);
+
+  // ====================================
+  // APPLY FILTERS
+  // ====================================
+
+  const handleApply =
+    async () => {
+      if (!domain || !placement) {
+        alert(
+          "Domain & Placement required"
+        );
+
+        return;
+      }
+
+      const start =
+        formatDate(startDate);
+
+      const end =
+        formatDate(endDate);
+
+      try {
+        // ✅ redux filters sync
+        dispatch(
+          setFilters({
+            start_date: start,
+            end_date: end,
+            placement,
+            country:
+              selectedCountry ===
+                "ALL"
+                ? ""
+                : countryCode,
+          })
+        );
+
+        // 🔄 FETCH + STORE
+        await dispatch(
+          fetchAdsterraStats({
+            start_date: start,
+            end_date: end,
+            country:
+              countryCode,
+            placement,
+          })
+        );
+
+        // 📊 GET DB DATA
+        dispatch(
+          getAdsterraStats({
+            domain,
+            placement,
+            country:
+              countryCode,
+            start_date: start,
+            end_date: end,
+          })
+        );
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+  // ====================================
+  // RESET
+  // ====================================
+
   const handleReset = () => {
-    setSelectedCountry("");
+    setSelectedCountry("ALL");
 
     setDomain("");
+
 
     setPlacement("");
 
@@ -152,92 +290,185 @@ const Statistics = () => {
     ]);
 
     dispatch(getAdsterraStats());
+    dispatch(getAdsterraStats());
   };
 
-  // 📊 GROUP DATA
+  // ====================================
+  // GROUP DATA
+  // ====================================
+
   const groupedData = useMemo(() => {
-    if (!Array.isArray(data))
-      return [];
+    if (groupBy !== "date") {
+      if (!Array.isArray(data))
+        return [];
 
-    return Object.values(
-      data.reduce((acc, item) => {
-        let key = "Unknown";
+      return Object.values(
+        data.reduce(
+          (acc, item) => {
+            let key = "Unknown";
 
-        switch (groupBy) {
-          case "country":
-            key = item.country
-              ? lookup.byIso(
+            switch (groupBy) {
+              case "country":
+                key = item.country
+                  ? lookup.byIso(
+                    item.country
+                  )?.country ||
                   item.country
-                )?.country ||
-                item.country
-              : "Unknown";
-            break;
+                  : "Unknown";
+                break;
 
-          case "date":
-            key = item.date
-              ? new Date(
-                  item.date
-                ).toLocaleDateString()
-              : "Unknown";
-            break;
+              case "device":
+                key =
+                  item.device ||
+                  "Unknown";
+                break;
 
-          case "device":
-            key =
-              item.device ||
-              "Unknown";
-            break;
+              case "os":
+                key =
+                  item.osName ||
+                  "Unknown";
+                break;
 
-          case "os":
-            key =
-              item.osName ||
-              "Unknown";
-            break;
+              case "browser":
+                key =
+                  item.browserName ||
+                  "Unknown";
+                break;
 
-          case "browser":
-            key =
-              item.browserName ||
-              "Unknown";
-            break;
+              default:
+                key = "Unknown";
+            }
 
-          default:
-            key = "Unknown";
-        }
+            if (!acc[key]) {
+              acc[key] = {
+                label: key,
+                impressions: 0,
+                clicks: 0,
+                revenue: 0,
+              };
+            }
 
-        if (!acc[key]) {
-          acc[key] = {
-            label: key,
+            acc[key].impressions +=
+              Number(
+                item.impressions || 0
+              );
+
+            acc[key].clicks += Number(
+              item.clicks || 0
+            );
+
+            acc[key].revenue +=
+              Number(
+                item.revenue || 0
+              );
+
+            return acc;
+          },
+          {}
+        )
+      );
+    }
+
+    // ====================================
+    // 📅 DATE GROUPING WITH EMPTY DATES
+    // ====================================
+
+    const dateMap = {};
+
+    // ✅ create all dates in range
+    if (startDate && endDate) {
+      const current =
+        new Date(startDate);
+
+      while (
+        current <= endDate
+      ) {
+        const formatted =
+          current.toLocaleDateString();
+
+        dateMap[formatted] = {
+          label: formatted,
+          impressions: 0,
+          clicks: 0,
+          revenue: 0,
+        };
+
+        current.setDate(
+          current.getDate() + 1
+        );
+      }
+    }
+
+    // ✅ merge real API data
+    if (Array.isArray(data)) {
+      data.forEach((item) => {
+        const formattedDate =
+          item.date
+            ? new Date(
+              item.date
+            ).toLocaleDateString()
+            : "Unknown";
+
+        if (
+          !dateMap[
+          formattedDate
+          ]
+        ) {
+          dateMap[
+            formattedDate
+          ] = {
+            label:
+              formattedDate,
             impressions: 0,
             clicks: 0,
             revenue: 0,
           };
         }
 
-        acc[key].impressions +=
+        dateMap[
+          formattedDate
+        ].impressions +=
           Number(
-            item.impressions || 0
+            item.impressions ||
+            0
           );
 
-        acc[key].clicks += Number(
+        dateMap[
+          formattedDate
+        ].clicks += Number(
           item.clicks || 0
         );
 
-        acc[key].revenue += Number(
+        dateMap[
+          formattedDate
+        ].revenue += Number(
           item.revenue || 0
         );
+      });
+    }
 
-        return acc;
-      }, {})
+    return Object.values(
+      dateMap
     );
-  }, [data, groupBy]);
+  }, [
+    data,
+    groupBy,
+    startDate,
+    endDate,
+  ]);
 
-  // ✅ TOTALS
+  // ====================================
+  // TOTALS
+  // ====================================
+
   const calculatedTotals =
     useMemo(() => {
       return groupedData.reduce(
         (acc, item) => {
-          acc.impressions += Number(
-            item.impressions || 0
-          );
+          acc.impressions +=
+            Number(
+              item.impressions || 0
+            );
 
           acc.clicks += Number(
             item.clicks || 0
@@ -275,8 +506,10 @@ const Statistics = () => {
             <DatePicker
               selectsRange
               startDate={startDate}
+              startDate={startDate}
               endDate={endDate}
               onChange={(update) =>
+                setDateRange(update)
                 setDateRange(update)
               }
               className="w-full border border-gray-200 dark:border-slate-700 px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-slate-900 dark:text-gray-300 outline-none"
@@ -298,14 +531,15 @@ const Statistics = () => {
               }
               className="w-full border border-gray-200 dark:border-slate-700 px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-slate-900 dark:text-gray-300 outline-none"
             >
-              <option value="">
-                All Countries
+              <option value="ALL">
+                ALL
               </option>
 
               {countries.map(
                 (country) => (
                   <option
                     key={country}
+                    value={country}
                     value={country}
                   >
                     {country}
@@ -355,7 +589,9 @@ const Statistics = () => {
         {/* BUTTONS */}
         <div className="flex flex-wrap gap-3 mt-6">
           <button
-            onClick={handleApply}
+            onClick={
+              handleApply
+            }
             disabled={
               loading ||
               fetchLoading
@@ -365,8 +601,8 @@ const Statistics = () => {
             {fetchLoading
               ? "Fetching..."
               : loading
-              ? "Loading..."
-              : "APPLY"}
+                ? "Loading..."
+                : "APPLY"}
           </button>
 
           <button
@@ -397,8 +633,17 @@ const Statistics = () => {
             value: "date",
           },
           {
-            label: "Device",
-            value: "device",
+            label:
+              "Country",
+            value:
+              "country",
+          },
+          
+          {
+            label:
+              "Device",
+            value:
+              "device",
           },
           {
             label: "OS",
@@ -414,11 +659,11 @@ const Statistics = () => {
             onClick={() =>
               setGroupBy(tab.value)
             }
-            className={`px-4 py-2 rounded-full text-sm transition-all ${
-              groupBy === tab.value
+            className={`px-4 py-2 rounded-full text-sm transition-all ${groupBy ===
+                tab.value
                 ? "bg-green-600 text-white"
                 : "bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700"
-            }`}
+              }`}
           >
             {tab.label}
           </button>
@@ -427,6 +672,12 @@ const Statistics = () => {
 
       {/* TABLE */}
       <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-2xl overflow-hidden">
+        <div className="p-4 border-b border-gray-200 dark:border-slate-700">
+          <button className="text-green-500 font-medium">
+            EXPORT CSV
+          </button>
+        </div>
+
         <div className="p-4 border-b border-gray-200 dark:border-slate-700">
           <button className="text-green-500 font-medium">
             EXPORT CSV
@@ -465,38 +716,41 @@ const Statistics = () => {
 
             <tbody>
               {groupedData.length >
-              0 ? (
+                0 ? (
                 groupedData.map(
                   (item, index) => {
                     const impressions =
                       Number(
                         item.impressions ||
-                          0
+                        0
                       );
 
                     const clicks =
                       Number(
-                        item.clicks || 0
+                        item.clicks ||
+                        0
                       );
 
                     const revenue =
                       Number(
                         item.revenue ||
-                          0
+                        0
                       );
 
                     const ctr =
-                      impressions > 0
+                      impressions >
+                        0
                         ? (clicks /
-                            impressions) *
-                          100
+                          impressions) *
+                        100
                         : 0;
 
                     const cpm =
-                      impressions > 0
+                      impressions >
+                        0
                         ? (revenue /
-                            impressions) *
-                          1000
+                          impressions) *
+                        1000
                         : 0;
 
                     return (
@@ -549,7 +803,9 @@ const Statistics = () => {
                   >
                     {loading
                       ? "Loading..."
-                      : "No Data Found"}
+                      : groupBy === "date"
+                        ? "No stats available for selected dates"
+                        : "No Data Found"}
                   </td>
                 </tr>
               )}
@@ -572,24 +828,28 @@ const Statistics = () => {
 
                 <td className="p-4 text-right">
                   {calculatedTotals.impressions >
-                  0
+                    0
                     ? (
-                        (calculatedTotals.clicks /
-                          calculatedTotals.impressions) *
-                        100
-                      ).toFixed(2)
+                      (calculatedTotals.clicks /
+                        calculatedTotals.impressions) *
+                      100
+                    ).toFixed(
+                      2
+                    )
                     : "0.00"}
                   %
                 </td>
 
                 <td className="p-4 text-right">
                   {calculatedTotals.impressions >
-                  0
+                    0
                     ? (
-                        (calculatedTotals.revenue /
-                          calculatedTotals.impressions) *
-                        1000
-                      ).toFixed(3)
+                      (calculatedTotals.revenue /
+                        calculatedTotals.impressions) *
+                      1000
+                    ).toFixed(
+                      3
+                    )
                     : "0.000"}
                 </td>
 
