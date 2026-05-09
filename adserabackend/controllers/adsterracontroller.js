@@ -247,6 +247,12 @@ exports.fetchAndStoreAdsterraStats = async (req, res) => {
         countryResponse.data?.items ||
         [];
 
+        console.log(
+        "COUNTRY DATA =>",
+        countryData
+      );
+
+
       // =============================================
       // REMOVE EMPTY COUNTRY
       // =============================================

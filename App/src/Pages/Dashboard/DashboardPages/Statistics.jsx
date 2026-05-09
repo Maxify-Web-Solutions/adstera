@@ -1,14 +1,5 @@
-import React, {
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
-
-import {
-  useDispatch,
-  useSelector,
-} from "react-redux";
-
+import React, { useEffect, useMemo, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { useLocation } from "react-router-dom";
 
 import {
@@ -28,7 +19,6 @@ import "react-datepicker/dist/react-datepicker.css";
 
 const Statistics = () => {
   const dispatch = useDispatch();
-
   const location = useLocation();
 
   // 🌍 COUNTRIES
@@ -38,6 +28,7 @@ const Statistics = () => {
   );
 
   // 📅 DATE SETUP
+  // 📅 DATE SETUP
   const today = new Date();
 
   const twoDaysAgo = new Date();
@@ -46,14 +37,12 @@ const Statistics = () => {
     today.getDate() - 2
   );
 
-  const [dateRange, setDateRange] =
-    useState([
-      twoDaysAgo,
-      today,
-    ]);
+  const [dateRange, setDateRange] = useState([
+    twoDaysAgo,
+    today,
+  ]);
 
-  const [startDate, endDate] =
-    dateRange;
+  const [startDate, endDate] = dateRange;
 
   // 🎯 FILTERS
   const [
@@ -64,18 +53,22 @@ const Statistics = () => {
   const [domain, setDomain] =
     useState("");
 
+  const [domain, setDomain] = useState("");
+
   const [placement, setPlacement] =
     useState("");
 
   // 📊 GROUP BY
+  // 📊 GROUP BY
   const [groupBy, setGroupBy] =
-    useState("date");
+    useState("country");
 
   // 📦 ADSTERRA STATE
   const {
     data,
     totals,
     loading,
+    fetchLoading,
     fetchLoading,
     error,
   } = useSelector(
@@ -288,6 +281,7 @@ const Statistics = () => {
 
     setDomain("");
 
+
     setPlacement("");
 
     setDateRange([
@@ -295,6 +289,7 @@ const Statistics = () => {
       today,
     ]);
 
+    dispatch(getAdsterraStats());
     dispatch(getAdsterraStats());
   };
 
@@ -511,8 +506,10 @@ const Statistics = () => {
             <DatePicker
               selectsRange
               startDate={startDate}
+              startDate={startDate}
               endDate={endDate}
               onChange={(update) =>
+                setDateRange(update)
                 setDateRange(update)
               }
               className="w-full border border-gray-200 dark:border-slate-700 px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-slate-900 dark:text-gray-300 outline-none"
@@ -526,9 +523,7 @@ const Statistics = () => {
             </label>
 
             <select
-              value={
-                selectedCountry
-              }
+              value={selectedCountry}
               onChange={(e) =>
                 setSelectedCountry(
                   e.target.value
@@ -544,6 +539,7 @@ const Statistics = () => {
                 (country) => (
                   <option
                     key={country}
+                    value={country}
                     value={country}
                   >
                     {country}
@@ -610,9 +606,7 @@ const Statistics = () => {
           </button>
 
           <button
-            onClick={
-              handleReset
-            }
+            onClick={handleReset}
             className="border border-gray-300 dark:border-slate-600 px-6 py-2.5 rounded-xl"
           >
             RESET
@@ -630,6 +624,10 @@ const Statistics = () => {
       {/* GROUP TABS */}
       <div className="flex flex-wrap gap-2">
         {[
+          {
+            label: "Country",
+            value: "country",
+          },
           {
             label: "Date",
             value: "date",
@@ -652,18 +650,14 @@ const Statistics = () => {
             value: "os",
           },
           {
-            label:
-              "Browser",
-            value:
-              "browser",
+            label: "Browser",
+            value: "browser",
           },
         ].map((tab) => (
           <button
             key={tab.value}
             onClick={() =>
-              setGroupBy(
-                tab.value
-              )
+              setGroupBy(tab.value)
             }
             className={`px-4 py-2 rounded-full text-sm transition-all ${groupBy ===
                 tab.value
@@ -678,6 +672,12 @@ const Statistics = () => {
 
       {/* TABLE */}
       <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-2xl overflow-hidden">
+        <div className="p-4 border-b border-gray-200 dark:border-slate-700">
+          <button className="text-green-500 font-medium">
+            EXPORT CSV
+          </button>
+        </div>
+
         <div className="p-4 border-b border-gray-200 dark:border-slate-700">
           <button className="text-green-500 font-medium">
             EXPORT CSV
@@ -718,10 +718,7 @@ const Statistics = () => {
               {groupedData.length >
                 0 ? (
                 groupedData.map(
-                  (
-                    item,
-                    index
-                  ) => {
+                  (item, index) => {
                     const impressions =
                       Number(
                         item.impressions ||
@@ -758,9 +755,7 @@ const Statistics = () => {
 
                     return (
                       <tr
-                        key={
-                          index
-                        }
+                        key={index}
                         className="border-t border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700/40"
                       >
                         <td className="p-4 font-medium">
