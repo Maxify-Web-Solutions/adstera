@@ -43,13 +43,14 @@ const Statistics = () => {
   useEffect(() => {
     if (location.state) {
       setDomain(location.state.domain || "");
-      setPlacement(location.state.placement || "");
+      setPlacement(location.state.placementId || "");
+      console.log(location.state);
     }
   }, [location.state]);
 
 
   useEffect(() => {
-    if (location.state?.domain && location.state?.placement) {
+    if (location.state?.domain && location.state?.placementId) {
       const start = startDate?.toISOString().split("T")[0];
       const end = endDate?.toISOString().split("T")[0];
 
@@ -64,7 +65,7 @@ const Statistics = () => {
       dispatch(
         getAdsterraStats({
           domain: location.state.domain,
-          placement: location.state.placement,
+          placement: location.state.placementId,
           country: selectedCountry,
           start_date: start,
           end_date: end,
@@ -75,8 +76,8 @@ const Statistics = () => {
 
   // 🚀 APPLY
   const handleApply = async () => {
-    if (!domain || !placement) {
-      alert("Domain & Placement required");
+    if (!domain || !placementId) {
+      alert("Domain & placementId required");
       return;
     }
 

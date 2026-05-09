@@ -248,50 +248,50 @@ const Smartlinks = () => {
                                             onClick={() =>
                                                 navigate("/dashboard/statistics", {
                                                     state: {
-                                                        domain: link.linkId,
-                                                        placement: link._id,
+                                                        placementId: link.placementId,   // ✅ main id now
+                                                        domain: link.smartCode,          // optional
+                                                        linkId: link.linkId,             // keep only if needed for reference
                                                     },
                                                 })
-                                            }
-                                        >
-                                            STATISTICS
+                                            }                                        >
+                                        STATISTICS
+                                    </button>
+
+                                    <button
+                                        onClick={() => {
+                                            setEditingLink(link);
+                                            setIsEditModalOpen(true);
+                                        }}
+                                    >
+                                        EDIT
+                                    </button>
+
+                                    <button onClick={() => handleCopy(link)}>
+                                        COPY LINK
+                                    </button>
+
+                                    {link.status !== "Active" && (
+                                        <button onClick={() => handleReactivate(link)}>
+                                            REACTIVATE
                                         </button>
+                                    )}
 
-                                        <button
-                                            onClick={() => {
-                                                setEditingLink(link);
-                                                setIsEditModalOpen(true);
-                                            }}
-                                        >
-                                            EDIT
-                                        </button>
-
-                                        <button onClick={() => handleCopy(link)}>
-                                            COPY LINK
-                                        </button>
-
-                                        {link.status !== "Active" && (
-                                            <button onClick={() => handleReactivate(link)}>
-                                                REACTIVATE
-                                            </button>
-                                        )}
-
-                                    </td>
-                                </tr>
-                            ))
-                        ) : (
-                            <tr>
-                                <td colSpan="4" className="text-center py-6 text-gray-500">
-                                    No Smartlinks Found
                                 </td>
-                            </tr>
+                                </tr>
+                    ))
+                    ) : (
+                    <tr>
+                        <td colSpan="4" className="text-center py-6 text-gray-500">
+                            No Smartlinks Found
+                        </td>
+                    </tr>
                         )}
-                    </tbody>
-                </table>
-
-            </div>
+                </tbody>
+            </table>
 
         </div>
+
+        </div >
     );
 };
 
