@@ -19,6 +19,7 @@ import {
 
 import {
   setFilters,
+  getSmartLinkStats,
 } from "../../../redux/slice/smartlinkFilterSlice";
 
 import { getNames } from "country-list";
@@ -85,6 +86,15 @@ const Statistics = () => {
     error,
   } = useSelector(
     (state) => state.adsterra
+
+
+  );
+
+  const {
+    data: groupedReducerData,
+    totals,
+  } = useSelector(
+    (state) => state.smartlinkFilter
   );
 
   // 🌍 COUNTRY NAME → ISO
@@ -133,6 +143,7 @@ const Statistics = () => {
       const dbParams = {
         start_date: start,
         end_date: end,
+        groupBy,
       };
 
       if (customDomain && customDomain !== "") dbParams.domain = customDomain;
@@ -140,17 +151,35 @@ const Statistics = () => {
       if (customCountry && customCountry !== "") dbParams.country = customCountry;
 
       dispatch(getAdsterraStats(dbParams));
+      dispatch(
+        getSmartLinkStats(dbParams)
+      );
     },
-    [dispatch, startDate, endDate]
-  );
+    [
+      dispatch,
+      startDate,
+      endDate,
+      groupBy,
+    ]);
 
   // ====================================
   // INITIAL LOAD
   // ====================================
   useEffect(() => {
-    dispatch(getAdsterraStats());
-  }, [dispatch]);
 
+    dispatch(
+      getAdsterraStats({
+        groupBy,
+      })
+    );
+
+    dispatch(
+      getSmartLinkStats({
+        groupBy,
+      })
+    );
+
+  }, [dispatch, groupBy]);
   // ====================================
   // LOCATION STATE AUTO FILTER
   // ====================================
@@ -192,37 +221,67 @@ const Statistics = () => {
     setDomain("");
     setPlacement("");
     setDateRange([twoDaysAgo, today]);
-    dispatch(getAdsterraStats());
+    dispatch(
+      getAdsterraStats({
+        groupBy,
+      })
+    );
+
+    dispatch(
+      getSmartLinkStats({
+        groupBy,
+      })
+    );
   };
 
   // ====================================
   // GROUP DATA
   // ====================================
   const groupedData = useMemo(() => {
+
+    // ====================================
+    // DATE => OLD DB DATA
+    // ====================================
+
     if (groupBy === "date") {
+
       const dateMap = {};
 
       if (startDate && endDate) {
+
         const current = new Date(startDate);
+
         while (current <= endDate) {
-          const formatted = current.toLocaleDateString();
+
+          const formatted =
+            current.toLocaleDateString();
+
           dateMap[formatted] = {
             label: formatted,
             impressions: 0,
             clicks: 0,
             revenue: 0,
           };
-          current.setDate(current.getDate() + 1);
+
+          current.setDate(
+            current.getDate() + 1
+          );
         }
       }
 
       if (Array.isArray(data)) {
+
         data.forEach((item) => {
-          const formattedDate = item.date
-            ? new Date(item.date).toLocaleDateString()
-            : "Unknown";
+
+          const formattedDate =
+            item.date
+              ? new Date(
+                item.date
+              ).toLocaleDateString()
+              : "Unknown";
 
           if (!dateMap[formattedDate]) {
+
             dateMap[formattedDate] = {
               label: formattedDate,
               impressions: 0,
@@ -231,72 +290,108 @@ const Statistics = () => {
             };
           }
 
-          dateMap[formattedDate].impressions += Number(item.impressions || 0);
-          dateMap[formattedDate].clicks += Number(item.clicks || 0);
-          dateMap[formattedDate].revenue += Number(item.revenue || 0);
+          dateMap[formattedDate].impressions +=
+            Number(item.impressions || 0);
+
+          dateMap[formattedDate].clicks +=
+            Number(item.clicks || 0);
+
+          dateMap[formattedDate].revenue +=
+            Number(item.revenue || 0);
         });
       }
 
       return Object.values(dateMap);
     }
 
-    if (!Array.isArray(data)) return [];
+    // ====================================
+    // COUNTRY / DEVICE / OS / BROWSER
+    // => REDUCER GROUPED DATA
+    // ====================================
 
-    return Object.values(
-      data.reduce((acc, item) => {
-        let key = "Unknown";
+    if (
+      !Array.isArray(
+        groupedReducerData
+      )
+    ) {
+      return [];
+    }
 
-        switch (groupBy) {
-          case "country":
-            key = item.country
-              ? lookup.byIso(item.country)?.country || item.country
-              : "Unknown";
-            break;
-          case "device":
-            key = item.device || "Unknown";
-            break;
-          case "os":
-            key = item.osName || "Unknown";
-            break;
-          case "browser":
-            key = item.browserName || "Unknown";
-            break;
-          default:
-            key = "Unknown";
-        }
+    return groupedReducerData.map(
+      (item) => ({
+        label:
+          item.label ||
+          item.country ||
+          item.device ||
+          item.osName ||
+          item.browserName ||
+          "Unknown",
 
-        if (!acc[key]) {
-          acc[key] = {
-            label: key,
-            impressions: 0,
-            clicks: 0,
-            revenue: 0,
-          };
-        }
+        impressions:
+          Number(
+            item.impressions || 0
+          ),
 
-        acc[key].impressions += Number(item.impressions || 0);
-        acc[key].clicks += Number(item.clicks || 0);
-        acc[key].revenue += Number(item.revenue || 0);
+        clicks:
+          Number(
+            item.clicks || 0
+          ),
 
-        return acc;
-      }, {})
+        revenue:
+          Number(
+            item.revenue || 0
+          ),
+      })
     );
-  }, [data, groupBy, startDate, endDate]);
+
+  }, [
+    data,
+    groupedReducerData,
+    groupBy,
+    startDate,
+    endDate,
+  ]);
 
   // ====================================
   // TOTALS
   // ====================================
-  const calculatedTotals = useMemo(() => {
-    return groupedData.reduce(
-      (acc, item) => {
-        acc.impressions += Number(item.impressions || 0);
-        acc.clicks += Number(item.clicks || 0);
-        acc.revenue += Number(item.revenue || 0);
-        return acc;
-      },
-      { impressions: 0, clicks: 0, revenue: 0 }
-    );
-  }, [groupedData]);
+  const calculatedTotals =
+    groupBy === "date"
+      ? groupedData.reduce(
+        (acc, item) => {
+          acc.impressions += Number(
+            item.impressions || 0
+          );
+
+          acc.clicks += Number(
+            item.clicks || 0
+          );
+
+          acc.revenue += Number(
+            item.revenue || 0
+          );
+
+          return acc;
+        },
+        {
+          impressions: 0,
+          clicks: 0,
+          revenue: 0,
+        }
+      )
+      : {
+        impressions: Number(
+          totals?.totalImpressions || 0
+        ),
+
+        clicks: Number(
+          totals?.totalClicks || 0
+        ),
+
+        revenue: Number(
+          totals?.totalRevenue || 0
+        ),
+      };
 
   // ====================================
   // EXPORT CSV
@@ -428,16 +523,14 @@ const Statistics = () => {
               )}
             </div>
             <ChevronDown
-              className={`w-5 h-5 text-gray-500 transition-transform duration-300 ${
-                isFilterVisible ? "rotate-180" : ""
-              }`}
+              className={`w-5 h-5 text-gray-500 transition-transform duration-300 ${isFilterVisible ? "rotate-180" : ""
+                }`}
             />
           </button>
 
           <div
-            className={`transition-all duration-300 ease-in-out ${
-              isFilterVisible ? "max-h-[800px] opacity-100" : "max-h-0 opacity-0"
-            } overflow-hidden`}
+            className={`transition-all duration-300 ease-in-out ${isFilterVisible ? "max-h-[800px] opacity-100" : "max-h-0 opacity-0"
+              } overflow-hidden`}
           >
             <div className="p-6 pt-0 border-t border-gray-200 dark:border-slate-700">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mt-6">
@@ -547,11 +640,10 @@ const Statistics = () => {
             <button
               key={tab.value}
               onClick={() => setGroupBy(tab.value)}
-              className={`px-5 py-2.5 rounded-xl text-sm font-medium transition-all duration-300 flex items-center gap-2 ${
-                groupBy === tab.value
-                  ? "bg-gradient-to-r from-green-500 to-green-600 text-white shadow-lg shadow-green-500/25 scale-105"
-                  : "bg-white dark:bg-slate-800 border-2 border-gray-200 dark:border-slate-700 text-gray-600 dark:text-gray-400 hover:border-green-500 hover:scale-105"
-              }`}
+              className={`px-5 py-2.5 rounded-xl text-sm font-medium transition-all duration-300 flex items-center gap-2 ${groupBy === tab.value
+                ? "bg-gradient-to-r from-green-500 to-green-600 text-white shadow-lg shadow-green-500/25 scale-105"
+                : "bg-white dark:bg-slate-800 border-2 border-gray-200 dark:border-slate-700 text-gray-600 dark:text-gray-400 hover:border-green-500 hover:scale-105"
+                }`}
             >
               <tab.icon className="w-4 h-4" />
               {tab.label}
@@ -665,8 +757,8 @@ const Statistics = () => {
                           {loading
                             ? "Loading statistics..."
                             : groupBy === "date"
-                            ? "No stats available for selected dates"
-                            : "No data found"}
+                              ? "No stats available for selected dates"
+                              : "No data found"}
                         </p>
                       </div>
                     </td>
