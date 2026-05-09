@@ -27,14 +27,12 @@ router.post("/update-data", smartLinkController.updateSmartLinkData);
 
 // ================= STATS =================
 
-router.post("/track-impression", smartLinkController.trackImpression);
 
-router.get("/stats/:linkId", smartLinkController.getSmartLinkStats);
+router.get("/smartlink-stats", smartLinkController.getSmartLinkStats);
 
 
 // ================= PUBLIC =================
 
-router.get("/s/:code", smartLinkController.redirectSmartLink);
 
 
 module.exports = router;

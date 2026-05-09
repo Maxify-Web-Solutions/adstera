@@ -1,6 +1,7 @@
 const SmartLink = require("../models/SmartLink");
-const SmartLinkStats = require("../models/SmartLinkStats"); // ✅ ADD
 const crypto = require("crypto");
+const mongoose = require("mongoose");
+const SmartLinkStats = require("../models/SmartLinkStats");
 
 
 // ================= CREATE =================
@@ -156,139 +157,310 @@ exports.updateSmartLinkData = async (req, res) => {
 
 
 // ================= TRACK IMPRESSION =================
-exports.trackImpression = async (req, res) => {
-    try {
-        const { linkId } = req.body;
+exports.getSmartLinkStats = async (
+  req,
+  res
+) => {
+  try {
+    const userId = "69fb85655ec7a1321ccd5c13";
 
-        const today = new Date().toISOString().split("T")[0];
+    const {
+      start_date,
+      end_date,
+      placement,
+      country,
+      page = 1,
+      limit = 20,
+    } = req.query;
 
-        await SmartLinkStats.findOneAndUpdate(
-            { linkId, date: today },
-            {
-                $inc: { impressions: 1 },
-            },
-            { upsert: true }
-        );
-
-        res.json({ success: true });
-
-    } catch (err) {
-        res.status(500).json({ error: err.message });
+    // ✅ AUTH
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized",
+      });
     }
-};
 
-exports.getSmartLinkStats = async (req, res) => {
-    try {
-        const { linkId } = req.params;
+    // ✅ FILTER
+    const filter = {
+      userId:
+        new mongoose.Types.ObjectId(
+          userId
+        ),
+    };
 
-        const stats = await SmartLinkStats.find({ linkId })
-            .sort({ date: -1 });
-
-        const formatted = stats.map((item) => {
-            const ctr =
-                item.impressions > 0
-                    ? ((item.clicks / item.impressions) * 100).toFixed(2)
-                    : 0;
-
-            const cpm =
-                item.impressions > 0
-                    ? ((item.revenue / item.impressions) * 1000).toFixed(2)
-                    : 0;
-
-            return {
-                date: item.date,
-                impressions: item.impressions,
-                clicks: item.clicks,
-                ctr: `${ctr}%`,
-                cpm: `$${cpm}`,
-                revenue: `$${item.revenue.toFixed(2)}`,
-            };
-        });
-
-        // TOTAL
-        const total = stats.reduce(
-            (acc, item) => {
-                acc.impressions += item.impressions;
-                acc.clicks += item.clicks;
-                acc.revenue += item.revenue;
-                return acc;
-            },
-            { impressions: 0, clicks: 0, revenue: 0 }
-        );
-
-        const totalCTR =
-            total.impressions > 0
-                ? ((total.clicks / total.impressions) * 100).toFixed(2)
-                : 0;
-
-        const totalCPM =
-            total.impressions > 0
-                ? ((total.revenue / total.impressions) * 1000).toFixed(2)
-                : 0;
-
-        res.json({
-            success: true,
-            data: formatted,
-            total: {
-                impressions: total.impressions,
-                clicks: total.clicks,
-                ctr: `${totalCTR}%`,
-                cpm: `$${totalCPM}`,
-                revenue: `$${total.revenue.toFixed(2)}`,
-            },
-        });
-
-    } catch (err) {
-        res.status(500).json({ error: err.message });
+    // ✅ DATE FILTER
+    if (
+      start_date &&
+      end_date
+    ) {
+      filter.date = {
+        $gte: start_date,
+        $lte: end_date,
+      };
     }
-};
 
-// ================= REDIRECT (CLICK + REVENUE) =================
-exports.redirectSmartLink = async (req, res) => {
-    try {
-        const { code } = req.params;
-        const { key } = req.query; // ✅ GET KEY
+    // ✅ PLACEMENT FILTER
+    if (placement) {
+      filter.placement =
+        placement;
+    }
 
-        const link = await SmartLink.findOne({ smartCode: code });
+    // ✅ COUNTRY FILTER
+    if (
+      country &&
+      country.toUpperCase() !==
+        "ALL"
+    ) {
+      filter.country = {
+        $in: country
+          .split(",")
+          .map((c) =>
+            c
+              .trim()
+              .toUpperCase()
+          ),
+      };
+    }
 
-        if (!link) return res.status(404).send("Link not found");
+    // ✅ PAGINATION
+    const currentPage =
+      Number(page) || 1;
 
-        if (link.key !== key) {   // ✅ VALIDATION
-            return res.status(403).send("Invalid key");
-        }
+    const perPage =
+      Number(limit) || 20;
 
-        if (link.status !== "approved") {
-            return res.send("Waiting for approval...");
-        }
+    const skip =
+      (currentPage - 1) *
+      perPage;
 
-        if (!link.redirectUrl) {
-            return res.send("Redirect not ready");
-        }
+    // ✅ FETCH DATA
+    const stats =
+      await SmartLinkStats
+        .find(filter)
+        .sort({
+          date: -1,
+          createdAt: -1,
+        })
+        .skip(skip)
+        .limit(perPage)
+        .lean();
 
-        const today = new Date().toISOString().split("T")[0];
+    // ✅ TOTAL RECORDS
+    const totalRecords =
+      await SmartLinkStats.countDocuments(
+        filter
+      );
 
-        const revenuePerClick = 0.01;
+    // ✅ TOTALS
+    const totalsAgg =
+      await SmartLinkStats.aggregate(
+        [
+          {
+            $match: filter,
+          },
 
-        await SmartLinkStats.findOneAndUpdate(
-            { linkId: link.linkId, date: today },
-            {
-                $inc: {
-                    clicks: 1,
-                    revenue: revenuePerClick,
+          {
+            $group: {
+              _id: null,
+
+              totalImpressions:
+                {
+                  $sum:
+                    "$impressions",
                 },
+
+              totalClicks: {
+                $sum: "$clicks",
+              },
+
+              totalRevenue: {
+                $sum: "$revenue",
+              },
             },
-            { upsert: true }
-        );
+          },
+        ]
+      );
 
-        link.clicks += 1;
-        await link.save();
+    const totals =
+      totalsAgg[0] || {
+        totalImpressions: 0,
+        totalClicks: 0,
+        totalRevenue: 0,
+      };
 
-        return res.redirect(link.redirectUrl);
+    // ✅ CTR
+    const ctr =
+      totals.totalImpressions >
+      0
+        ? (totals.totalClicks /
+            totals.totalImpressions) *
+          100
+        : 0;
 
-    } catch (err) {
-        res.status(500).send(err.message);
-    }
+    // ✅ CPM
+    const cpm =
+      totals.totalImpressions >
+      0
+        ? (totals.totalRevenue /
+            totals.totalImpressions) *
+          1000
+        : 0;
+
+    // ✅ COUNTRY WISE SUMMARY
+    const countrySummary =
+      await SmartLinkStats.aggregate(
+        [
+          {
+            $match: filter,
+          },
+
+          {
+            $group: {
+              _id: "$country",
+
+              impressions: {
+                $sum:
+                  "$impressions",
+              },
+
+              clicks: {
+                $sum: "$clicks",
+              },
+
+              revenue: {
+                $sum: "$revenue",
+              },
+            },
+          },
+
+          {
+            $project: {
+              _id: 0,
+
+              country: "$_id",
+
+              impressions: 1,
+
+              clicks: 1,
+
+              revenue: {
+                $round: [
+                  "$revenue",
+                  6,
+                ],
+              },
+
+              ctr: {
+                $cond: [
+                  {
+                    $gt: [
+                      "$impressions",
+                      0,
+                    ],
+                  },
+
+                  {
+                    $multiply: [
+                      {
+                        $divide: [
+                          "$clicks",
+                          "$impressions",
+                        ],
+                      },
+                      100,
+                    ],
+                  },
+
+                  0,
+                ],
+              },
+            },
+          },
+
+          {
+            $sort: {
+              impressions: -1,
+            },
+          },
+        ]
+      );
+
+    // ✅ RESPONSE
+    return res.status(200).json({
+      success: true,
+
+      page: currentPage,
+
+      limit: perPage,
+
+      totalPages: Math.ceil(
+        totalRecords /
+          perPage
+      ),
+
+      totalRecords,
+
+      filters: {
+        start_date:
+          start_date || null,
+
+        end_date:
+          end_date || null,
+
+        placement:
+          placement || null,
+
+        country:
+          country || "ALL",
+      },
+
+      totals: {
+        totalImpressions:
+          Number(
+            totals.totalImpressions ||
+              0
+          ),
+
+        totalClicks: Number(
+          totals.totalClicks ||
+            0
+        ),
+
+        totalRevenue: Number(
+          (
+            totals.totalRevenue ||
+            0
+          ).toFixed(6)
+        ),
+
+        ctr: Number(
+          ctr.toFixed(2)
+        ),
+
+        cpm: Number(
+          cpm.toFixed(6)
+        ),
+      },
+
+      countrySummary,
+
+      data: stats,
+    });
+  } catch (error) {
+    console.error(
+      "SMARTLINK STATS ERROR =>",
+      error
+    );
+
+    return res.status(500).json({
+      success: false,
+
+      message:
+        "Failed to fetch smartlink stats",
+
+      error: error.message,
+    });
+  }
 };
-
-
 
