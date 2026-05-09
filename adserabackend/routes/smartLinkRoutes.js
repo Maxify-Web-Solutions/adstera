@@ -28,7 +28,7 @@ router.post("/update-data", smartLinkController.updateSmartLinkData);
 // ================= STATS =================
 
 
-router.get("/smartlink-stats", smartLinkController.getSmartLinkStats);
+router.get("/smartlink-stats",authMiddleware, smartLinkController.getSmartLinkStats);
 
 
 // ================= PUBLIC =================
