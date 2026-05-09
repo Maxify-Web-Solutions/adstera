@@ -17,6 +17,7 @@ import EditSmartlinkModal from "../EditSmartlinkModal";
 const Smartlinks = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
+    const [showTips, setShowTips] = useState(true);
 
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [editingLink, setEditingLink] = useState(null);
@@ -105,51 +106,57 @@ const Smartlinks = () => {
 
             {/* Guide Section */}
             <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-2xl p-6 md:p-8 shadow-sm">
-
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
                     <h2 className="text-gray-900 dark:text-white font-semibold text-lg">
                         Monetize any traffic with a Smartlink
                     </h2>
-
-                    <button className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white flex-shrink-0">
-                        HIDE TIPS
+                    <button
+                        onClick={() => setShowTips(!showTips)}
+                        className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white flex-shrink-0 transition-colors"
+                    >
+                        {showTips ? "HIDE TIPS" : "SHOW TIPS"}
                     </button>
                 </div>
 
-                <p className="text-gray-500 dark:text-gray-400 mb-8 max-w-3xl">
-                    Whether you manage a social media group, YouTube channel, or mobile app,
-                    our Smartlink is your tool for monetization.
-                </p>
+                {/* Animated content wrapper */}
+                <div
+                    className={`transition-all duration-500 ease-in-out overflow-hidden`}
+                    style={{
+                        maxHeight: showTips ? "500px" : "0px",
+                        opacity: showTips ? 1 : 0,
+                    }}
+                >
+                    <p className="text-gray-500 dark:text-gray-400 mb-8 max-w-3xl">
+                        Whether you manage a social media group, YouTube channel, or mobile app,
+                        our Smartlink is your tool for monetization.
+                    </p>
 
-                <div className="grid md:grid-cols-3 gap-8">
-
-                    <div>
-                        <h3 className="text-gray-900 dark:text-white font-semibold mb-2">
-                            1 Create Smartlink
-                        </h3>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">
-                            Click ADD SMARTLINK button below.
-                        </p>
+                    <div className="grid md:grid-cols-3 gap-8">
+                        <div>
+                            <h3 className="text-gray-900 dark:text-white font-semibold mb-2">
+                                1 Create Smartlink
+                            </h3>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">
+                                Click ADD SMARTLINK button below.
+                            </p>
+                        </div>
+                        <div>
+                            <h3 className="text-gray-900 dark:text-white font-semibold mb-2">
+                                2 Add Link
+                            </h3>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">
+                                Paste it anywhere.
+                            </p>
+                        </div>
+                        <div>
+                            <h3 className="text-gray-900 dark:text-white font-semibold mb-2">
+                                3 Track Results
+                            </h3>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">
+                                Monitor performance easily.
+                            </p>
+                        </div>
                     </div>
-
-                    <div>
-                        <h3 className="text-gray-900 dark:text-white font-semibold mb-2">
-                            2 Add Link
-                        </h3>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">
-                            Paste it anywhere.
-                        </p>
-                    </div>
-
-                    <div>
-                        <h3 className="text-gray-900 dark:text-white font-semibold mb-2">
-                            3 Track Results
-                        </h3>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">
-                            Monitor performance easily.
-                        </p>
-                    </div>
-
                 </div>
             </div>
 
@@ -254,42 +261,42 @@ const Smartlinks = () => {
                                                     },
                                                 })
                                             }                                        >
-                                        STATISTICS
-                                    </button>
-
-                                    <button
-                                        onClick={() => {
-                                            setEditingLink(link);
-                                            setIsEditModalOpen(true);
-                                        }}
-                                    >
-                                        EDIT
-                                    </button>
-
-                                    <button onClick={() => handleCopy(link)}>
-                                        COPY LINK
-                                    </button>
-
-                                    {link.status !== "Active" && (
-                                        <button onClick={() => handleReactivate(link)}>
-                                            REACTIVATE
+                                            STATISTICS
                                         </button>
-                                    )}
 
-                                </td>
+                                        <button
+                                            onClick={() => {
+                                                setEditingLink(link);
+                                                setIsEditModalOpen(true);
+                                            }}
+                                        >
+                                            EDIT
+                                        </button>
+
+                                        <button onClick={() => handleCopy(link)}>
+                                            COPY LINK
+                                        </button>
+
+                                        {link.status !== "Active" && (
+                                            <button onClick={() => handleReactivate(link)}>
+                                                REACTIVATE
+                                            </button>
+                                        )}
+
+                                    </td>
                                 </tr>
-                    ))
-                    ) : (
-                    <tr>
-                        <td colSpan="4" className="text-center py-6 text-gray-500">
-                            No Smartlinks Found
-                        </td>
-                    </tr>
+                            ))
+                        ) : (
+                            <tr>
+                                <td colSpan="4" className="text-center py-6 text-gray-500">
+                                    No Smartlinks Found
+                                </td>
+                            </tr>
                         )}
-                </tbody>
-            </table>
+                    </tbody>
+                </table>
 
-        </div>
+            </div>
 
         </div >
     );

@@ -1,5 +1,15 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import React, {
+  useEffect,
+  useMemo,
+  useState,
+  useCallback,
+} from "react";
+
+import {
+  useDispatch,
+  useSelector,
+} from "react-redux";
+
 import { useLocation } from "react-router-dom";
 
 import {
@@ -17,6 +27,29 @@ import lookup from "country-code-lookup";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 
+// Icons (using lucide-react - install: npm install lucide-react)
+import {
+  Calendar,
+  Globe,
+  Globe2,
+  MousePointerClick,
+  TrendingUp,
+  DollarSign,
+  BarChart3,
+  Download,
+  RefreshCw,
+  Filter,
+  ChevronDown,
+  Smartphone,
+  Monitor,
+  Clock,
+  MapPin,
+  Link2,
+  Code2,
+  Eye,
+  Zap,
+} from "lucide-react";
+
 const Statistics = () => {
   const dispatch = useDispatch();
   const location = useLocation();
@@ -28,87 +61,92 @@ const Statistics = () => {
   );
 
   // 📅 DATE SETUP
-  // 📅 DATE SETUP
   const today = new Date();
-
   const twoDaysAgo = new Date();
+  twoDaysAgo.setDate(today.getDate() - 2);
 
-  twoDaysAgo.setDate(
-    today.getDate() - 2
-  );
-
-  const [dateRange, setDateRange] = useState([
-    twoDaysAgo,
-    today,
-  ]);
-
+  const [dateRange, setDateRange] = useState([twoDaysAgo, today]);
   const [startDate, endDate] = dateRange;
 
   // 🎯 FILTERS
-  const [
-    selectedCountry,
-    setSelectedCountry,
-  ] = useState("ALL");
-
-  const [domain, setDomain] =
-    useState("");
-
+  const [selectedCountry, setSelectedCountry] = useState("");
   const [domain, setDomain] = useState("");
-
-  const [placement, setPlacement] =
-    useState("");
+  const [placement, setPlacement] = useState("");
+  const [isFilterVisible, setIsFilterVisible] = useState(true);
 
   // 📊 GROUP BY
-  // 📊 GROUP BY
-  const [groupBy, setGroupBy] =
-    useState("country");
+  const [groupBy, setGroupBy] = useState("country");
 
   // 📦 ADSTERRA STATE
   const {
     data,
-    totals,
     loading,
-    fetchLoading,
     fetchLoading,
     error,
   } = useSelector(
     (state) => state.adsterra
   );
 
-  // 📦 SMARTLINK FILTER STATE
-  const { filters } = useSelector(
-    (state) =>
-      state.smartlinkFilter
-  );
-
   // 🌍 COUNTRY NAME → ISO
   const countryCode = useMemo(() => {
-    if (
-      !selectedCountry ||
-      selectedCountry === "ALL"
-    ) {
-      return "";
-    }
-
-    const country =
-      lookup.byCountry(
-        selectedCountry
-      );
-
+    if (!selectedCountry) return "";
+    const country = lookup.byCountry(selectedCountry);
     return country?.iso2 || "";
   }, [selectedCountry]);
 
   // 📅 FORMAT DATE
   const formatDate = (date) => {
-    return date
-      ?.toISOString()
-      ?.split("T")[0];
+    return date?.toISOString()?.split("T")[0];
   };
+
+  // ====================================
+  // AUTO FETCH FUNCTION
+  // ====================================
+  const autoFetchStats = useCallback(
+    (customPlacement = null, customDomain = null, customCountry = null) => {
+      const start = formatDate(startDate);
+      const end = formatDate(endDate);
+
+      const params = {
+        start_date: start,
+        end_date: end,
+      };
+
+      if (customPlacement && customPlacement !== "") {
+        params.placement = customPlacement;
+      }
+      if (customCountry && customCountry !== "") {
+        params.country = customCountry;
+      }
+
+      dispatch(
+        setFilters({
+          start_date: start,
+          end_date: end,
+          placement: customPlacement,
+          country: customCountry,
+        })
+      );
+
+      dispatch(fetchAdsterraStats(params));
+
+      const dbParams = {
+        start_date: start,
+        end_date: end,
+      };
+
+      if (customDomain && customDomain !== "") dbParams.domain = customDomain;
+      if (customPlacement && customPlacement !== "") dbParams.placement = customPlacement;
+      if (customCountry && customCountry !== "") dbParams.country = customCountry;
+
+      dispatch(getAdsterraStats(dbParams));
+    },
+    [dispatch, startDate, endDate]
+  );
 
   // ====================================
   // INITIAL LOAD
   // ====================================
-
   useEffect(() => {
     dispatch(getAdsterraStats());
   }, [dispatch]);
@@ -116,752 +154,556 @@ const Statistics = () => {
   // ====================================
   // LOCATION STATE AUTO FILTER
   // ====================================
-
   useEffect(() => {
     if (!location.state) return;
 
-    const newDomain =
-      location.state.domain || "";
-
-    const newPlacement =
-      location.state.placementId ||
-      location.state.placement ||
-      "";
+    const newDomain = location.state.domain || "";
+    const newPlacement = location.state.placementId || location.state.placement || "";
 
     setDomain(newDomain);
-
     setPlacement(newPlacement);
-
-    // ✅ redux filters sync
-    dispatch(
-      setFilters({
-        placement: newPlacement,
-      })
-    );
-
-    const start =
-      formatDate(startDate);
-
-    const end =
-      formatDate(endDate);
-
-    // ✅ AUTO FETCH
-    dispatch(
-      fetchAdsterraStats({
-        start_date: start,
-        end_date: end,
-        placement: newPlacement,
-      })
-    );
-
-    dispatch(
-      getAdsterraStats({
-        domain: newDomain,
-        placement: newPlacement,
-        start_date: start,
-        end_date: end,
-      })
-    );
-  }, [location.state]);
+    autoFetchStats(newPlacement, newDomain, countryCode);
+  }, [location.state, autoFetchStats, countryCode]);
 
   // ====================================
-  // AUTO FILTER WHEN COUNTRY CHANGES
+  // AUTO FILTER ON COUNTRY CHANGE
   // ====================================
-
   useEffect(() => {
     if (!placement) return;
-
-    const start =
-      formatDate(startDate);
-
-    const end =
-      formatDate(endDate);
-
-    dispatch(
-      setFilters({
-        start_date: start,
-        end_date: end,
-        placement,
-        country:
-          selectedCountry ===
-            "ALL"
-            ? ""
-            : countryCode,
-      })
-    );
-
-    dispatch(
-      fetchAdsterraStats({
-        start_date: start,
-        end_date: end,
-        country: countryCode,
-        placement,
-      })
-    );
-
-    dispatch(
-      getAdsterraStats({
-        domain,
-        placement,
-        country: countryCode,
-        start_date: start,
-        end_date: end,
-      })
-    );
-  }, [selectedCountry]);
+    autoFetchStats(placement, domain, countryCode);
+  }, [selectedCountry, autoFetchStats, placement, domain, countryCode]);
 
   // ====================================
   // APPLY FILTERS
   // ====================================
-
-  const handleApply =
-    async () => {
-      if (!domain || !placement) {
-        alert(
-          "Domain & Placement required"
-        );
-
-        return;
-      }
-
-      const start =
-        formatDate(startDate);
-
-      const end =
-        formatDate(endDate);
-
-      try {
-        // ✅ redux filters sync
-        dispatch(
-          setFilters({
-            start_date: start,
-            end_date: end,
-            placement,
-            country:
-              selectedCountry ===
-                "ALL"
-                ? ""
-                : countryCode,
-          })
-        );
-
-        // 🔄 FETCH + STORE
-        await dispatch(
-          fetchAdsterraStats({
-            start_date: start,
-            end_date: end,
-            country:
-              countryCode,
-            placement,
-          })
-        );
-
-        // 📊 GET DB DATA
-        dispatch(
-          getAdsterraStats({
-            domain,
-            placement,
-            country:
-              countryCode,
-            start_date: start,
-            end_date: end,
-          })
-        );
-      } catch (err) {
-        console.error(err);
-      }
-    };
+  const handleApply = async () => {
+    try {
+      autoFetchStats(placement, domain, countryCode);
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   // ====================================
   // RESET
   // ====================================
-
   const handleReset = () => {
-    setSelectedCountry("ALL");
-
+    setSelectedCountry("");
     setDomain("");
-
-
     setPlacement("");
-
-    setDateRange([
-      twoDaysAgo,
-      today,
-    ]);
-
-    dispatch(getAdsterraStats());
+    setDateRange([twoDaysAgo, today]);
     dispatch(getAdsterraStats());
   };
 
   // ====================================
   // GROUP DATA
   // ====================================
-
   const groupedData = useMemo(() => {
-    if (groupBy !== "date") {
-      if (!Array.isArray(data))
-        return [];
+    if (groupBy === "date") {
+      const dateMap = {};
 
-      return Object.values(
-        data.reduce(
-          (acc, item) => {
-            let key = "Unknown";
-
-            switch (groupBy) {
-              case "country":
-                key = item.country
-                  ? lookup.byIso(
-                    item.country
-                  )?.country ||
-                  item.country
-                  : "Unknown";
-                break;
-
-              case "device":
-                key =
-                  item.device ||
-                  "Unknown";
-                break;
-
-              case "os":
-                key =
-                  item.osName ||
-                  "Unknown";
-                break;
-
-              case "browser":
-                key =
-                  item.browserName ||
-                  "Unknown";
-                break;
-
-              default:
-                key = "Unknown";
-            }
-
-            if (!acc[key]) {
-              acc[key] = {
-                label: key,
-                impressions: 0,
-                clicks: 0,
-                revenue: 0,
-              };
-            }
-
-            acc[key].impressions +=
-              Number(
-                item.impressions || 0
-              );
-
-            acc[key].clicks += Number(
-              item.clicks || 0
-            );
-
-            acc[key].revenue +=
-              Number(
-                item.revenue || 0
-              );
-
-            return acc;
-          },
-          {}
-        )
-      );
-    }
-
-    // ====================================
-    // 📅 DATE GROUPING WITH EMPTY DATES
-    // ====================================
-
-    const dateMap = {};
-
-    // ✅ create all dates in range
-    if (startDate && endDate) {
-      const current =
-        new Date(startDate);
-
-      while (
-        current <= endDate
-      ) {
-        const formatted =
-          current.toLocaleDateString();
-
-        dateMap[formatted] = {
-          label: formatted,
-          impressions: 0,
-          clicks: 0,
-          revenue: 0,
-        };
-
-        current.setDate(
-          current.getDate() + 1
-        );
+      if (startDate && endDate) {
+        const current = new Date(startDate);
+        while (current <= endDate) {
+          const formatted = current.toLocaleDateString();
+          dateMap[formatted] = {
+            label: formatted,
+            impressions: 0,
+            clicks: 0,
+            revenue: 0,
+          };
+          current.setDate(current.getDate() + 1);
+        }
       }
-    }
 
-    // ✅ merge real API data
-    if (Array.isArray(data)) {
-      data.forEach((item) => {
-        const formattedDate =
-          item.date
-            ? new Date(
-              item.date
-            ).toLocaleDateString()
+      if (Array.isArray(data)) {
+        data.forEach((item) => {
+          const formattedDate = item.date
+            ? new Date(item.date).toLocaleDateString()
             : "Unknown";
 
-        if (
-          !dateMap[
-          formattedDate
-          ]
-        ) {
-          dateMap[
-            formattedDate
-          ] = {
-            label:
-              formattedDate,
+          if (!dateMap[formattedDate]) {
+            dateMap[formattedDate] = {
+              label: formattedDate,
+              impressions: 0,
+              clicks: 0,
+              revenue: 0,
+            };
+          }
+
+          dateMap[formattedDate].impressions += Number(item.impressions || 0);
+          dateMap[formattedDate].clicks += Number(item.clicks || 0);
+          dateMap[formattedDate].revenue += Number(item.revenue || 0);
+        });
+      }
+
+      return Object.values(dateMap);
+    }
+
+    if (!Array.isArray(data)) return [];
+
+    return Object.values(
+      data.reduce((acc, item) => {
+        let key = "Unknown";
+
+        switch (groupBy) {
+          case "country":
+            key = item.country
+              ? lookup.byIso(item.country)?.country || item.country
+              : "Unknown";
+            break;
+          case "device":
+            key = item.device || "Unknown";
+            break;
+          case "os":
+            key = item.osName || "Unknown";
+            break;
+          case "browser":
+            key = item.browserName || "Unknown";
+            break;
+          default:
+            key = "Unknown";
+        }
+
+        if (!acc[key]) {
+          acc[key] = {
+            label: key,
             impressions: 0,
             clicks: 0,
             revenue: 0,
           };
         }
 
-        dateMap[
-          formattedDate
-        ].impressions +=
-          Number(
-            item.impressions ||
-            0
-          );
+        acc[key].impressions += Number(item.impressions || 0);
+        acc[key].clicks += Number(item.clicks || 0);
+        acc[key].revenue += Number(item.revenue || 0);
 
-        dateMap[
-          formattedDate
-        ].clicks += Number(
-          item.clicks || 0
-        );
-
-        dateMap[
-          formattedDate
-        ].revenue += Number(
-          item.revenue || 0
-        );
-      });
-    }
-
-    return Object.values(
-      dateMap
+        return acc;
+      }, {})
     );
-  }, [
-    data,
-    groupBy,
-    startDate,
-    endDate,
-  ]);
+  }, [data, groupBy, startDate, endDate]);
 
   // ====================================
   // TOTALS
   // ====================================
+  const calculatedTotals = useMemo(() => {
+    return groupedData.reduce(
+      (acc, item) => {
+        acc.impressions += Number(item.impressions || 0);
+        acc.clicks += Number(item.clicks || 0);
+        acc.revenue += Number(item.revenue || 0);
+        return acc;
+      },
+      { impressions: 0, clicks: 0, revenue: 0 }
+    );
+  }, [groupedData]);
 
-  const calculatedTotals =
-    useMemo(() => {
-      return groupedData.reduce(
-        (acc, item) => {
-          acc.impressions +=
-            Number(
-              item.impressions || 0
-            );
+  // ====================================
+  // EXPORT CSV
+  // ====================================
+  const exportToCSV = () => {
+    const headers = [groupBy.toUpperCase(), "Impressions", "Clicks", "CTR", "CPM", "Revenue"];
+    const rows = groupedData.map((item) => {
+      const impressions = Number(item.impressions || 0);
+      const clicks = Number(item.clicks || 0);
+      const revenue = Number(item.revenue || 0);
+      const ctr = impressions > 0 ? (clicks / impressions) * 100 : 0;
+      const cpm = impressions > 0 ? (revenue / impressions) * 1000 : 0;
 
-          acc.clicks += Number(
-            item.clicks || 0
-          );
+      return [
+        item.label,
+        impressions,
+        clicks,
+        ctr.toFixed(2) + "%",
+        cpm.toFixed(3),
+        "$" + revenue.toFixed(4),
+      ];
+    });
 
-          acc.revenue += Number(
-            item.revenue || 0
-          );
+    const csvContent = [headers, ...rows].map((row) => row.join(",")).join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `statistics_${groupBy}_${new Date().toISOString()}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
 
-          return acc;
-        },
-        {
-          impressions: 0,
-          clicks: 0,
-          revenue: 0,
-        }
-      );
-    }, [groupedData]);
+  // Stats Cards Data
+  const statsCards = [
+    {
+      title: "Total Impressions",
+      value: calculatedTotals.impressions.toLocaleString(),
+      icon: Eye,
+      color: "from-blue-500 to-blue-600",
+      bgGradient: "bg-gradient-to-br",
+    },
+    {
+      title: "Total Clicks",
+      value: calculatedTotals.clicks.toLocaleString(),
+      icon: MousePointerClick,
+      color: "from-green-500 to-green-600",
+      bgGradient: "bg-gradient-to-br",
+    },
+    {
+      title: "CTR",
+      value: `${calculatedTotals.impressions > 0
+        ? ((calculatedTotals.clicks / calculatedTotals.impressions) * 100).toFixed(2)
+        : "0.00"}%`,
+      icon: TrendingUp,
+      color: "from-purple-500 to-purple-600",
+      bgGradient: "bg-gradient-to-br",
+    },
+    {
+      title: "CPM",
+      value: `$${calculatedTotals.impressions > 0
+        ? ((calculatedTotals.revenue / calculatedTotals.impressions) * 1000).toFixed(3)
+        : "0.000"}`,
+      icon: DollarSign,
+      color: "from-orange-500 to-orange-600",
+      bgGradient: "bg-gradient-to-br",
+    },
+    {
+      title: "Total Revenue",
+      value: `$${calculatedTotals.revenue.toFixed(4)}`,
+      icon: Zap,
+      color: "from-yellow-500 to-yellow-600",
+      bgGradient: "bg-gradient-to-br",
+    },
+  ];
 
   return (
-    <div className="space-y-6">
-      {/* FILTERS */}
-      <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-2xl p-4 md:p-6 shadow-sm">
-        <h2 className="font-semibold text-lg mb-6">
-          Filters
-        </h2>
+    <div className="min-h-screen p-4 md:p-8">
+      <div className="max-w-[1600px] mx-auto space-y-6">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-400 bg-clip-text text-transparent">
+            Statistics Dashboard
+          </h1>
+          <p className="text-gray-500 dark:text-gray-400 mt-2">
+            Track your ad performance and revenue metrics
+          </p>
+        </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-          {/* DATE */}
-          <div>
-            <label className="text-sm mb-2 block">
-              Date Range
-            </label>
-
-            <DatePicker
-              selectsRange
-              startDate={startDate}
-              startDate={startDate}
-              endDate={endDate}
-              onChange={(update) =>
-                setDateRange(update)
-                setDateRange(update)
-              }
-              className="w-full border border-gray-200 dark:border-slate-700 px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-slate-900 dark:text-gray-300 outline-none"
-            />
-          </div>
-
-          {/* COUNTRY */}
-          <div>
-            <label className="text-sm mb-2 block">
-              Country
-            </label>
-
-            <select
-              value={selectedCountry}
-              onChange={(e) =>
-                setSelectedCountry(
-                  e.target.value
-                )
-              }
-              className="w-full border border-gray-200 dark:border-slate-700 px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-slate-900 dark:text-gray-300 outline-none"
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+          {statsCards.map((card, idx) => (
+            <div
+              key={idx}
+              className="relative overflow-hidden bg-white dark:bg-slate-800 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 group"
             >
-              <option value="ALL">
-                ALL
-              </option>
+              <div className="absolute top-0 right-0 w-32 h-32 -mr-8 -mt-8 bg-gradient-to-br opacity-10 rounded-full group-hover:scale-150 transition-transform duration-500"></div>
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className={`p-3 rounded-xl ${card.bgGradient} ${card.color} shadow-lg`}>
+                    <card.icon className="w-6 h-6 text-white" />
+                  </div>
+                  <ChevronDown className="w-5 h-5 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                </div>
+                <p className="text-gray-500 dark:text-gray-400 text-sm mb-1">{card.title}</p>
+                <p className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">
+                  {card.value}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
 
-              {countries.map(
-                (country) => (
-                  <option
-                    key={country}
-                    value={country}
-                    value={country}
-                  >
-                    {country}
-                  </option>
-                )
+        {/* FILTERS SECTION - Collapsible */}
+        <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-gray-200 dark:border-slate-700 overflow-hidden">
+          <button
+            onClick={() => setIsFilterVisible(!isFilterVisible)}
+            className="w-full px-6 py-4 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors"
+          >
+            <div className="flex items-center gap-3">
+              <Filter className="w-5 h-5 text-green-500" />
+              <h2 className="font-semibold text-lg text-gray-900 dark:text-white">
+                Advanced Filters
+              </h2>
+              {!isFilterVisible && (
+                <span className="text-xs text-gray-500 dark:text-gray-400">
+                  {placement || domain || selectedCountry ? "Active filters" : "No filters"}
+                </span>
               )}
-            </select>
-          </div>
-
-          {/* DOMAIN */}
-          <div>
-            <label className="text-sm mb-2 block">
-              Domain
-            </label>
-
-            <input
-              value={domain}
-              onChange={(e) =>
-                setDomain(
-                  e.target.value
-                )
-              }
-              placeholder="Enter domain"
-              className="w-full border border-gray-200 dark:border-slate-700 px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-slate-900 dark:text-gray-300 outline-none"
-            />
-          </div>
-
-          {/* PLACEMENT */}
-          <div>
-            <label className="text-sm mb-2 block">
-              Placement
-            </label>
-
-            <input
-              value={placement}
-              onChange={(e) =>
-                setPlacement(
-                  e.target.value
-                )
-              }
-              placeholder="Enter placement"
-              className="w-full border border-gray-200 dark:border-slate-700 px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-slate-900 dark:text-gray-300 outline-none"
-            />
-          </div>
-        </div>
-
-        {/* BUTTONS */}
-        <div className="flex flex-wrap gap-3 mt-6">
-          <button
-            onClick={
-              handleApply
-            }
-            disabled={
-              loading ||
-              fetchLoading
-            }
-            className="bg-green-600 hover:bg-green-700 text-white px-6 py-2.5 rounded-xl font-medium transition-all disabled:opacity-50"
-          >
-            {fetchLoading
-              ? "Fetching..."
-              : loading
-                ? "Loading..."
-                : "APPLY"}
-          </button>
-
-          <button
-            onClick={handleReset}
-            className="border border-gray-300 dark:border-slate-600 px-6 py-2.5 rounded-xl"
-          >
-            RESET
-          </button>
-        </div>
-
-        {/* ERROR */}
-        {error && (
-          <div className="mt-4 text-red-500 text-sm">
-            {error}
-          </div>
-        )}
-      </div>
-
-      {/* GROUP TABS */}
-      <div className="flex flex-wrap gap-2">
-        {[
-          {
-            label: "Country",
-            value: "country",
-          },
-          {
-            label: "Date",
-            value: "date",
-          },
-          {
-            label:
-              "Country",
-            value:
-              "country",
-          },
-          
-          {
-            label:
-              "Device",
-            value:
-              "device",
-          },
-          {
-            label: "OS",
-            value: "os",
-          },
-          {
-            label: "Browser",
-            value: "browser",
-          },
-        ].map((tab) => (
-          <button
-            key={tab.value}
-            onClick={() =>
-              setGroupBy(tab.value)
-            }
-            className={`px-4 py-2 rounded-full text-sm transition-all ${groupBy ===
-                tab.value
-                ? "bg-green-600 text-white"
-                : "bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700"
+            </div>
+            <ChevronDown
+              className={`w-5 h-5 text-gray-500 transition-transform duration-300 ${
+                isFilterVisible ? "rotate-180" : ""
               }`}
+            />
+          </button>
+
+          <div
+            className={`transition-all duration-300 ease-in-out ${
+              isFilterVisible ? "max-h-[800px] opacity-100" : "max-h-0 opacity-0"
+            } overflow-hidden`}
           >
-            {tab.label}
-          </button>
-        ))}
-      </div>
+            <div className="p-6 pt-0 border-t border-gray-200 dark:border-slate-700">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mt-6">
+                {/* DATE */}
+                <div>
+                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
+                    <Calendar className="w-4 h-4" />
+                    Date Range
+                  </label>
+                  <DatePicker
+                    selectsRange
+                    startDate={startDate}
+                    endDate={endDate}
+                    onChange={(update) => setDateRange(update)}
+                    className="w-full border-2 border-gray-200 dark:border-slate-700 px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-slate-900 dark:text-gray-300 outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all"
+                  />
+                </div>
 
-      {/* TABLE */}
-      <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-2xl overflow-hidden">
-        <div className="p-4 border-b border-gray-200 dark:border-slate-700">
-          <button className="text-green-500 font-medium">
-            EXPORT CSV
-          </button>
+                {/* COUNTRY */}
+                <div>
+                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
+                    <MapPin className="w-4 h-4" />
+                    Country
+                  </label>
+                  <select
+                    value={selectedCountry}
+                    onChange={(e) => setSelectedCountry(e.target.value)}
+                    className="w-full border-2 border-gray-200 dark:border-slate-700 px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-slate-900 dark:text-gray-300 outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all"
+                  >
+                    <option value="">All Countries</option>
+                    {countries.map((country) => (
+                      <option key={country} value={country}>
+                        {country}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* DOMAIN */}
+                <div>
+                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
+                    <Link2 className="w-4 h-4" />
+                    Domain
+                  </label>
+                  <input
+                    value={domain}
+                    onChange={(e) => setDomain(e.target.value)}
+                    placeholder="yourdomain.com"
+                    className="w-full border-2 border-gray-200 dark:border-slate-700 px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-slate-900 dark:text-gray-300 outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all"
+                  />
+                </div>
+
+                {/* PLACEMENT */}
+                <div>
+                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
+                    <Code2 className="w-4 h-4" />
+                    Placement ID
+                  </label>
+                  <input
+                    value={placement}
+                    onChange={(e) => setPlacement(e.target.value)}
+                    placeholder="Enter placement ID"
+                    className="w-full border-2 border-gray-200 dark:border-slate-700 px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-slate-900 dark:text-gray-300 outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all"
+                  />
+                </div>
+              </div>
+
+              {/* BUTTONS */}
+              <div className="flex flex-wrap gap-3 mt-6">
+                <button
+                  onClick={handleApply}
+                  disabled={loading || fetchLoading}
+                  className="relative overflow-hidden group bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white px-8 py-2.5 rounded-xl font-medium transition-all duration-300 shadow-lg hover:shadow-xl disabled:opacity-50"
+                >
+                  <span className="relative z-10">
+                    {fetchLoading ? "Fetching..." : loading ? "Loading..." : "APPLY FILTERS"}
+                  </span>
+                </button>
+
+                <button
+                  onClick={handleReset}
+                  className="flex items-center gap-2 border-2 border-gray-300 dark:border-slate-600 hover:border-gray-400 dark:hover:border-slate-500 px-6 py-2.5 rounded-xl font-medium transition-all hover:bg-gray-50 dark:hover:bg-slate-700"
+                >
+                  <RefreshCw className="w-4 h-4" />
+                  RESET
+                </button>
+              </div>
+
+              {error && (
+                <div className="mt-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl text-red-600 dark:text-red-400 text-sm">
+                  {error}
+                </div>
+              )}
+            </div>
+          </div>
         </div>
 
-        <div className="p-4 border-b border-gray-200 dark:border-slate-700">
-          <button className="text-green-500 font-medium">
-            EXPORT CSV
-          </button>
+        {/* GROUP TABS */}
+        <div className="flex flex-wrap gap-2">
+          {[
+            { label: "Country", value: "country", icon: Globe },
+            { label: "Date", value: "date", icon: Calendar },
+            { label: " Device", value: "device", icon: Smartphone },
+            { label: "OS", value: "os", icon: Monitor },
+            { label: " Browser", value: "browser", icon: Globe2 },
+          ].map((tab) => (
+            <button
+              key={tab.value}
+              onClick={() => setGroupBy(tab.value)}
+              className={`px-5 py-2.5 rounded-xl text-sm font-medium transition-all duration-300 flex items-center gap-2 ${
+                groupBy === tab.value
+                  ? "bg-gradient-to-r from-green-500 to-green-600 text-white shadow-lg shadow-green-500/25 scale-105"
+                  : "bg-white dark:bg-slate-800 border-2 border-gray-200 dark:border-slate-700 text-gray-600 dark:text-gray-400 hover:border-green-500 hover:scale-105"
+              }`}
+            >
+              <tab.icon className="w-4 h-4" />
+              {tab.label}
+            </button>
+          ))}
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[900px] text-left">
-            <thead className="bg-gray-100 dark:bg-slate-900 text-gray-600 dark:text-gray-300 text-sm">
-              <tr>
-                <th className="p-4">
-                  {groupBy.toUpperCase()}
-                </th>
+        {/* TABLE CARD */}
+        <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-gray-200 dark:border-slate-700 overflow-hidden">
+          <div className="p-6 border-b border-gray-200 dark:border-slate-700 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                Performance Metrics
+              </h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                Grouped by {groupBy}
+              </p>
+            </div>
+            <button
+              onClick={exportToCSV}
+              className="flex items-center gap-2 px-4 py-2 bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 rounded-xl hover:bg-green-100 dark:hover:bg-green-900/30 transition-all font-medium"
+            >
+              <Download className="w-4 h-4" />
+              EXPORT CSV
+            </button>
+          </div>
 
-                <th className="p-4 text-right">
-                  Impressions
-                </th>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50 dark:bg-slate-900/50">
+                <tr>
+                  <th className="p-4 text-left text-sm font-semibold text-gray-600 dark:text-gray-400">
+                    {groupBy.toUpperCase()}
+                  </th>
+                  <th className="p-4 text-right text-sm font-semibold text-gray-600 dark:text-gray-400">
+                    <div className="flex items-center justify-end gap-1">
+                      <Eye className="w-4 h-4" />
+                      Impressions
+                    </div>
+                  </th>
+                  <th className="p-4 text-right text-sm font-semibold text-gray-600 dark:text-gray-400">
+                    <div className="flex items-center justify-end gap-1">
+                      <MousePointerClick className="w-4 h-4" />
+                      Clicks
+                    </div>
+                  </th>
+                  <th className="p-4 text-right text-sm font-semibold text-gray-600 dark:text-gray-400">
+                    <div className="flex items-center justify-end gap-1">
+                      <TrendingUp className="w-4 h-4" />
+                      CTR
+                    </div>
+                  </th>
+                  <th className="p-4 text-right text-sm font-semibold text-gray-600 dark:text-gray-400">
+                    <div className="flex items-center justify-end gap-1">
+                      <DollarSign className="w-4 h-4" />
+                      CPM
+                    </div>
+                  </th>
+                  <th className="p-4 text-right text-sm font-semibold text-gray-600 dark:text-gray-400">
+                    <div className="flex items-center justify-end gap-1">
+                      <Zap className="w-4 h-4" />
+                      Revenue
+                    </div>
+                  </th>
+                </tr>
+              </thead>
 
-                <th className="p-4 text-right">
-                  Clicks
-                </th>
-
-                <th className="p-4 text-right">
-                  CTR
-                </th>
-
-                <th className="p-4 text-right">
-                  CPM
-                </th>
-
-                <th className="p-4 text-right">
-                  Revenue
-                </th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {groupedData.length >
-                0 ? (
-                groupedData.map(
-                  (item, index) => {
-                    const impressions =
-                      Number(
-                        item.impressions ||
-                        0
-                      );
-
-                    const clicks =
-                      Number(
-                        item.clicks ||
-                        0
-                      );
-
-                    const revenue =
-                      Number(
-                        item.revenue ||
-                        0
-                      );
-
-                    const ctr =
-                      impressions >
-                        0
-                        ? (clicks /
-                          impressions) *
-                        100
-                        : 0;
-
-                    const cpm =
-                      impressions >
-                        0
-                        ? (revenue /
-                          impressions) *
-                        1000
-                        : 0;
+              <tbody>
+                {groupedData.length > 0 ? (
+                  groupedData.map((item, index) => {
+                    const impressions = Number(item.impressions || 0);
+                    const clicks = Number(item.clicks || 0);
+                    const revenue = Number(item.revenue || 0);
+                    const ctr = impressions > 0 ? (clicks / impressions) * 100 : 0;
+                    const cpm = impressions > 0 ? (revenue / impressions) * 1000 : 0;
 
                     return (
                       <tr
                         key={index}
-                        className="border-t border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700/40"
+                        className="border-t border-gray-100 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors group"
                       >
-                        <td className="p-4 font-medium">
-                          {
-                            item.label
-                          }
+                        <td className="p-4 font-medium text-gray-900 dark:text-white">
+                          {item.label}
                         </td>
-
-                        <td className="p-4 text-right">
+                        <td className="p-4 text-right font-mono text-gray-700 dark:text-gray-300">
                           {impressions.toLocaleString()}
                         </td>
-
-                        <td className="p-4 text-right">
+                        <td className="p-4 text-right font-mono text-gray-700 dark:text-gray-300">
                           {clicks.toLocaleString()}
                         </td>
-
-                        <td className="p-4 text-right">
-                          {ctr.toFixed(
-                            2
-                          )}
-                          %
+                        <td className="p-4 text-right font-mono text-gray-700 dark:text-gray-300">
+                          <span className={ctr > 2 ? "text-green-600 dark:text-green-400" : "text-gray-600 dark:text-gray-400"}>
+                            {ctr.toFixed(2)}%
+                          </span>
                         </td>
-
-                        <td className="p-4 text-right">
-                          {cpm.toFixed(
-                            3
-                          )}
+                        <td className="p-4 text-right font-mono text-gray-700 dark:text-gray-300">
+                          ${cpm.toFixed(3)}
                         </td>
-
-                        <td className="p-4 text-right">
-                          $
-                          {revenue.toFixed(
-                            4
-                          )}
+                        <td className="p-4 text-right font-mono text-green-600 dark:text-green-400 font-semibold">
+                          ${revenue.toFixed(4)}
                         </td>
                       </tr>
                     );
-                  }
-                )
-              ) : (
-                <tr>
-                  <td
-                    colSpan="6"
-                    className="p-10 text-center text-gray-500"
-                  >
-                    {loading
-                      ? "Loading..."
-                      : groupBy === "date"
-                        ? "No stats available for selected dates"
-                        : "No Data Found"}
-                  </td>
-                </tr>
+                  })
+                ) : (
+                  <tr>
+                    <td colSpan="6" className="p-12 text-center">
+                      <div className="flex flex-col items-center gap-3">
+                        <BarChart3 className="w-12 h-12 text-gray-400" />
+                        <p className="text-gray-500 dark:text-gray-400">
+                          {loading
+                            ? "Loading statistics..."
+                            : groupBy === "date"
+                            ? "No stats available for selected dates"
+                            : "No data found"}
+                        </p>
+                      </div>
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+
+              {groupedData.length > 0 && (
+                <tfoot>
+                  <tr className="border-t-2 border-gray-200 dark:border-slate-600 bg-gray-50 dark:bg-slate-900/50">
+                    <td className="p-4 font-bold text-gray-900 dark:text-white">Total</td>
+                    <td className="p-4 text-right font-bold font-mono text-gray-900 dark:text-white">
+                      {calculatedTotals.impressions.toLocaleString()}
+                    </td>
+                    <td className="p-4 text-right font-bold font-mono text-gray-900 dark:text-white">
+                      {calculatedTotals.clicks.toLocaleString()}
+                    </td>
+                    <td className="p-4 text-right font-bold text-gray-900 dark:text-white">
+                      {calculatedTotals.impressions > 0
+                        ? ((calculatedTotals.clicks / calculatedTotals.impressions) * 100).toFixed(2)
+                        : "0.00"}
+                      %
+                    </td>
+                    <td className="p-4 text-right font-bold font-mono text-gray-900 dark:text-white">
+                      $
+                      {calculatedTotals.impressions > 0
+                        ? ((calculatedTotals.revenue / calculatedTotals.impressions) * 1000).toFixed(3)
+                        : "0.000"}
+                    </td>
+                    <td className="p-4 text-right font-bold font-mono text-green-600 dark:text-green-400">
+                      ${calculatedTotals.revenue.toFixed(4)}
+                    </td>
+                  </tr>
+                </tfoot>
               )}
-            </tbody>
-
-            {/* TOTALS */}
-            <tfoot>
-              <tr className="border-t border-gray-300 dark:border-slate-600 bg-gray-50 dark:bg-slate-900 font-bold">
-                <td className="p-4">
-                  Total
-                </td>
-
-                <td className="p-4 text-right">
-                  {calculatedTotals.impressions.toLocaleString()}
-                </td>
-
-                <td className="p-4 text-right">
-                  {calculatedTotals.clicks.toLocaleString()}
-                </td>
-
-                <td className="p-4 text-right">
-                  {calculatedTotals.impressions >
-                    0
-                    ? (
-                      (calculatedTotals.clicks /
-                        calculatedTotals.impressions) *
-                      100
-                    ).toFixed(
-                      2
-                    )
-                    : "0.00"}
-                  %
-                </td>
-
-                <td className="p-4 text-right">
-                  {calculatedTotals.impressions >
-                    0
-                    ? (
-                      (calculatedTotals.revenue /
-                        calculatedTotals.impressions) *
-                      1000
-                    ).toFixed(
-                      3
-                    )
-                    : "0.000"}
-                </td>
-
-                <td className="p-4 text-right">
-                  $
-                  {calculatedTotals.revenue.toFixed(
-                    4
-                  )}
-                </td>
-              </tr>
-            </tfoot>
-          </table>
+            </table>
+          </div>
         </div>
       </div>
     </div>
