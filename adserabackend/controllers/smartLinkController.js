@@ -162,7 +162,7 @@ exports.getSmartLinkStats = async (
   res
 ) => {
   try {
-    const userId = "69fb85655ec7a1321ccd5c13";
+    const userId = req.user?.id;
 
     const {
       start_date,

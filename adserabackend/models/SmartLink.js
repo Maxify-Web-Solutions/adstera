@@ -41,7 +41,7 @@ const smartLinkSchema = new mongoose.Schema({
     type: String
   },
 
-  // approvedAt: Date,
+  approvedAt: Date,
 
   finalUrl: String,
 
