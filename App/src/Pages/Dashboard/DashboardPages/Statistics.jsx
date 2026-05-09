@@ -1,230 +1,149 @@
-import React, {
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
-
-import {
-  useDispatch,
-  useSelector,
-} from "react-redux";
-
+import React, { useEffect, useMemo, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { useLocation } from "react-router-dom";
 
 import {
-  getSmartLinkStats,
-  setFilters,
-} from "../../../redux/slice/smartlinkFilterSlice";
+  fetchAdsterraStats,
+  getAdsterraStats,
+} from "../../../redux/slice/adsterraStatsSlice";
 
 import { getNames } from "country-list";
-
 import lookup from "country-code-lookup";
 
 import DatePicker from "react-datepicker";
-
 import "react-datepicker/dist/react-datepicker.css";
 
 const Statistics = () => {
   const dispatch = useDispatch();
-
   const location = useLocation();
 
   const countries = getNames();
 
-  // =====================================
-  // DATE SETUP
-  // =====================================
-
+  // 📅 DATE SETUP
   const today = new Date();
 
-  const twoDaysAgo =
-    new Date();
+  const twoDaysAgo = new Date();
+  twoDaysAgo.setDate(today.getDate() - 2);
 
-  twoDaysAgo.setDate(
-    today.getDate() - 2
-  );
+  const [dateRange, setDateRange] = useState([
+    twoDaysAgo,
+    today,
+  ]);
 
-  const [dateRange, setDateRange] =
-    useState([
-      twoDaysAgo,
-      today,
-    ]);
+  const [startDate, endDate] = dateRange;
 
-  const [startDate, endDate] =
-    dateRange;
-
-  // =====================================
-  // FILTERS
-  // =====================================
-
-  const [
-    selectedCountry,
-    setSelectedCountry,
-  ] = useState("");
-
-  const [domain, setDomain] =
+  // 🎯 FILTERS
+  const [selectedCountry, setSelectedCountry] =
     useState("");
+
+  const [domain, setDomain] = useState("");
 
   const [placement, setPlacement] =
     useState("");
 
-  // =====================================
-  // GROUP BY
-  // =====================================
-
+  // 📊 GROUP BY
   const [groupBy, setGroupBy] =
-    useState("date");
+    useState("country");
 
-  // =====================================
-  // REDUX STATE
-  // =====================================
-
+  // 📦 REDUX STATE
   const {
     data,
     totals,
     loading,
+    fetchLoading,
     error,
   } = useSelector(
-    (state) =>
-      state.smartlinkFilter
+    (state) => state.adsterra
   );
 
-  // =====================================
-  // COUNTRY NAME → ISO
-  // =====================================
-
-  const countryCode = useMemo(() => {
-    if (!selectedCountry)
-      return "ALL";
-
-    const country =
-      lookup.byCountry(
-        selectedCountry
-      );
-
-    return (
-      country?.iso2 || "ALL"
-    );
-  }, [selectedCountry]);
-
-  // =====================================
-  // INITIAL LOAD
-  // =====================================
-
+  // ✅ INITIAL LOAD
   useEffect(() => {
-    dispatch(
-      getSmartLinkStats({
-        country: "ALL",
-      })
-    );
+    dispatch(getAdsterraStats())
+    dispatch(fetchAdsterraStats());
   }, [dispatch]);
 
-  // =====================================
-  // AUTO FILTER FROM SMARTLINK PAGE
-  // =====================================
-
+  // ✅ GET DATA FROM LOCATION STATE
   useEffect(() => {
-    if (!location.state)
-      return;
-
-    const incomingPlacement =
-      location.state
-        .placementId ||
-      location.state
-        .placement ||
-      "";
-
-    const incomingDomain =
-      location.state.domain ||
-      "";
-
-    // ✅ AUTO SET
-    setPlacement(
-      incomingPlacement
-    );
-
-    setDomain(
-      incomingDomain
-    );
-
-    // ✅ DATE
-    const start =
-      startDate
-        ?.toISOString()
-        .split("T")[0];
-
-    const end =
-      endDate
-        ?.toISOString()
-        .split("T")[0];
-
-    // ✅ PAYLOAD
-    const payload = {
-      start_date: start,
-      end_date: end,
-      placement:
-        incomingPlacement,
-      country: "ALL",
-    };
-
-    // ✅ SAVE FILTERS
-    dispatch(
-      setFilters(payload)
-    );
-
-    // ✅ AUTO API CALL
-    dispatch(
-      getSmartLinkStats(
-        payload
-      )
-    );
-  }, [location.state]);
-
-  // =====================================
-  // APPLY FILTERS
-  // =====================================
-
-  const handleApply = async () => {
-    const start =
-      startDate
-        ?.toISOString()
-        .split("T")[0];
-
-    const end =
-      endDate
-        ?.toISOString()
-        .split("T")[0];
-
-    const payload = {
-      start_date: start,
-      end_date: end,
-      country:
-        countryCode || "ALL",
-      placement,
-    };
-
-    try {
-      dispatch(
-        setFilters(payload)
+    if (location.state) {
+      setDomain(
+        location.state.domain || ""
       );
 
+      setPlacement(
+        location.state.placementId ||
+          location.state.placement ||
+          ""
+      );
+
+      console.log(
+        "LOCATION STATE =>",
+        location.state
+      );
+    }
+  }, [location.state]);
+
+  // 🌍 COUNTRY NAME → ISO
+  const countryCode = useMemo(() => {
+    if (!selectedCountry) return "";
+
+    const country =
+      lookup.byCountry(selectedCountry);
+
+    return country?.iso2 || "";
+  }, [selectedCountry]);
+
+  // 🚀 APPLY FILTERS
+  const handleApply = async () => {
+    if (!domain || !placement) {
+      alert(
+        "Domain & Placement required"
+      );
+
+      return;
+    }
+
+    const start =
+      startDate?.toISOString().split(
+        "T"
+      )[0];
+
+    const end =
+      endDate?.toISOString().split(
+        "T"
+      )[0];
+
+    try {
+      // 🔄 FETCH + STORE
       await dispatch(
-        getSmartLinkStats(
-          payload
-        )
+        fetchAdsterraStats({
+          start_date: start,
+          end_date: end,
+          country: countryCode,
+          placement,
+        })
+      );
+
+      // 📊 GET DB DATA
+      dispatch(
+        getAdsterraStats({
+          domain,
+          placement,
+          country: countryCode,
+          start_date: start,
+          end_date: end,
+        })
       );
     } catch (err) {
       console.error(err);
     }
   };
 
-  // =====================================
-  // RESET
-  // =====================================
-
+  // 🔄 RESET
   const handleReset = () => {
     setSelectedCountry("");
+
     setDomain("");
+
     setPlacement("");
 
     setDateRange([
@@ -232,160 +151,33 @@ const Statistics = () => {
       today,
     ]);
 
-    dispatch(
-      getSmartLinkStats({
-        country: "ALL",
-      })
-    );
+    dispatch(getAdsterraStats());
   };
 
-  // =====================================
-  // GROUP DATA
-  // =====================================
-
+  // 📊 GROUP DATA
   const groupedData = useMemo(() => {
-
-  // =====================================
-  // DATE GROUPING
-  // =====================================
-
-  if (groupBy === "date") {
-
-    const grouped = {};
-
-    // ✅ START DATE
-    const current =
-      new Date(startDate);
-
-    // ✅ END DATE
-    const last =
-      new Date(endDate);
-
-    // ✅ GENERATE ALL DATES
-    while (current <= last) {
-
-      const dateKey =
-        current.toLocaleDateString();
-
-      grouped[dateKey] = {
-        label: dateKey,
-        impressions: 0,
-        clicks: 0,
-        revenue: 0,
-      };
-
-      current.setDate(
-        current.getDate() + 1
-      );
-    }
-
-    // ✅ ADD API DATA
-    if (Array.isArray(data)) {
-
-      data.forEach((item) => {
-
-        const placementMatch =
-          !placement ||
-          item.placement === placement ||
-          item.placementId === placement;
-
-        const countryMatch =
-          countryCode === "ALL" ||
-          !countryCode ||
-          item.country === countryCode;
-
-        if (
-          !placementMatch ||
-          !countryMatch
-        ) {
-          return;
-        }
-
-        const dateKey =
-          item.date
-            ? new Date(
-                item.date
-              ).toLocaleDateString()
-            : "Unknown";
-
-        if (!grouped[dateKey]) {
-          grouped[dateKey] = {
-            label: dateKey,
-            impressions: 0,
-            clicks: 0,
-            revenue: 0,
-          };
-        }
-
-        grouped[
-          dateKey
-        ].impressions += Number(
-          item.impressions || 0
-        );
-
-        grouped[
-          dateKey
-        ].clicks += Number(
-          item.clicks || 0
-        );
-
-        grouped[
-          dateKey
-        ].revenue += Number(
-          item.revenue || 0
-        );
-      });
-    }
+    if (!Array.isArray(data))
+      return [];
 
     return Object.values(
-      grouped
-    );
-  }
-
-  // =====================================
-  // OTHER GROUPS
-  // =====================================
-
-  if (!Array.isArray(data))
-    return [];
-
-  const filteredData =
-    data.filter((item) => {
-
-      const placementMatch =
-        !placement ||
-        item.placement ===
-          placement ||
-        item.placementId ===
-          placement;
-
-      const countryMatch =
-        countryCode ===
-          "ALL" ||
-        !countryCode ||
-        item.country ===
-          countryCode;
-
-      return (
-        placementMatch &&
-        countryMatch
-      );
-    });
-
-  return Object.values(
-    filteredData.reduce(
-      (acc, item) => {
-
+      data.reduce((acc, item) => {
         let key = "Unknown";
 
         switch (groupBy) {
-
           case "country":
             key = item.country
               ? lookup.byIso(
                   item.country
                 )?.country ||
                 item.country
+              : "Unknown";
+            break;
+
+          case "date":
+            key = item.date
+              ? new Date(
+                  item.date
+                ).toLocaleDateString()
               : "Unknown";
             break;
 
@@ -412,7 +204,6 @@ const Statistics = () => {
         }
 
         if (!acc[key]) {
-
           acc[key] = {
             label: key,
             impressions: 0,
@@ -421,11 +212,10 @@ const Statistics = () => {
           };
         }
 
-        acc[
-          key
-        ].impressions += Number(
-          item.impressions || 0
-        );
+        acc[key].impressions +=
+          Number(
+            item.impressions || 0
+          );
 
         acc[key].clicks += Number(
           item.clicks || 0
@@ -436,25 +226,11 @@ const Statistics = () => {
         );
 
         return acc;
+      }, {})
+    );
+  }, [data, groupBy]);
 
-      },
-      {}
-    )
-  );
-
-}, [
-  data,
-  groupBy,
-  placement,
-  countryCode,
-  startDate,
-  endDate,
-]);
-
-  // =====================================
-  // TOTALS
-  // =====================================
-
+  // ✅ TOTALS
   const calculatedTotals =
     useMemo(() => {
       return groupedData.reduce(
@@ -484,7 +260,6 @@ const Statistics = () => {
   return (
     <div className="space-y-6">
       {/* FILTERS */}
-
       <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-2xl p-4 md:p-6 shadow-sm">
         <h2 className="font-semibold text-lg mb-6">
           Filters
@@ -492,7 +267,6 @@ const Statistics = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
           {/* DATE */}
-
           <div>
             <label className="text-sm mb-2 block">
               Date Range
@@ -500,30 +274,23 @@ const Statistics = () => {
 
             <DatePicker
               selectsRange
-              startDate={
-                startDate
-              }
+              startDate={startDate}
               endDate={endDate}
               onChange={(update) =>
-                setDateRange(
-                  update
-                )
+                setDateRange(update)
               }
               className="w-full border border-gray-200 dark:border-slate-700 px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-slate-900 dark:text-gray-300 outline-none"
             />
           </div>
 
           {/* COUNTRY */}
-
           <div>
             <label className="text-sm mb-2 block">
               Country
             </label>
 
             <select
-              value={
-                selectedCountry
-              }
+              value={selectedCountry}
               onChange={(e) =>
                 setSelectedCountry(
                   e.target.value
@@ -539,9 +306,7 @@ const Statistics = () => {
                 (country) => (
                   <option
                     key={country}
-                    value={
-                      country
-                    }
+                    value={country}
                   >
                     {country}
                   </option>
@@ -551,7 +316,6 @@ const Statistics = () => {
           </div>
 
           {/* DOMAIN */}
-
           <div>
             <label className="text-sm mb-2 block">
               Domain
@@ -570,7 +334,6 @@ const Statistics = () => {
           </div>
 
           {/* PLACEMENT */}
-
           <div>
             <label className="text-sm mb-2 block">
               Placement
@@ -590,24 +353,24 @@ const Statistics = () => {
         </div>
 
         {/* BUTTONS */}
-
         <div className="flex flex-wrap gap-3 mt-6">
           <button
-            onClick={
-              handleApply
+            onClick={handleApply}
+            disabled={
+              loading ||
+              fetchLoading
             }
-            disabled={loading}
             className="bg-green-600 hover:bg-green-700 text-white px-6 py-2.5 rounded-xl font-medium transition-all disabled:opacity-50"
           >
-            {loading
+            {fetchLoading
+              ? "Fetching..."
+              : loading
               ? "Loading..."
               : "APPLY"}
           </button>
 
           <button
-            onClick={
-              handleReset
-            }
+            onClick={handleReset}
             className="border border-gray-300 dark:border-slate-600 px-6 py-2.5 rounded-xl"
           >
             RESET
@@ -615,7 +378,6 @@ const Statistics = () => {
         </div>
 
         {/* ERROR */}
-
         {error && (
           <div className="mt-4 text-red-500 text-sm">
             {error}
@@ -624,44 +386,36 @@ const Statistics = () => {
       </div>
 
       {/* GROUP TABS */}
-
       <div className="flex flex-wrap gap-2">
         {[
+          {
+            label: "Country",
+            value: "country",
+          },
           {
             label: "Date",
             value: "date",
           },
           {
-            label: "Country",
-            value:
-              "country",
-          },
-          {
             label: "Device",
-            value:
-              "device",
+            value: "device",
           },
           {
             label: "OS",
             value: "os",
           },
           {
-            label:
-              "Browser",
-            value:
-              "browser",
+            label: "Browser",
+            value: "browser",
           },
         ].map((tab) => (
           <button
             key={tab.value}
             onClick={() =>
-              setGroupBy(
-                tab.value
-              )
+              setGroupBy(tab.value)
             }
             className={`px-4 py-2 rounded-full text-sm transition-all ${
-              groupBy ===
-              tab.value
+              groupBy === tab.value
                 ? "bg-green-600 text-white"
                 : "bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700"
             }`}
@@ -672,8 +426,13 @@ const Statistics = () => {
       </div>
 
       {/* TABLE */}
-
       <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-2xl overflow-hidden">
+        <div className="p-4 border-b border-gray-200 dark:border-slate-700">
+          <button className="text-green-500 font-medium">
+            EXPORT CSV
+          </button>
+        </div>
+
         <div className="overflow-x-auto">
           <table className="w-full min-w-[900px] text-left">
             <thead className="bg-gray-100 dark:bg-slate-900 text-gray-600 dark:text-gray-300 text-sm">
@@ -708,10 +467,7 @@ const Statistics = () => {
               {groupedData.length >
               0 ? (
                 groupedData.map(
-                  (
-                    item,
-                    index
-                  ) => {
+                  (item, index) => {
                     const impressions =
                       Number(
                         item.impressions ||
@@ -720,8 +476,7 @@ const Statistics = () => {
 
                     const clicks =
                       Number(
-                        item.clicks ||
-                          0
+                        item.clicks || 0
                       );
 
                     const revenue =
@@ -731,16 +486,14 @@ const Statistics = () => {
                       );
 
                     const ctr =
-                      impressions >
-                      0
+                      impressions > 0
                         ? (clicks /
                             impressions) *
                           100
                         : 0;
 
                     const cpm =
-                      impressions >
-                      0
+                      impressions > 0
                         ? (revenue /
                             impressions) *
                           1000
@@ -748,9 +501,7 @@ const Statistics = () => {
 
                     return (
                       <tr
-                        key={
-                          index
-                        }
+                        key={index}
                         className="border-t border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700/40"
                       >
                         <td className="p-4 font-medium">
@@ -805,7 +556,6 @@ const Statistics = () => {
             </tbody>
 
             {/* TOTALS */}
-
             <tfoot>
               <tr className="border-t border-gray-300 dark:border-slate-600 bg-gray-50 dark:bg-slate-900 font-bold">
                 <td className="p-4">
