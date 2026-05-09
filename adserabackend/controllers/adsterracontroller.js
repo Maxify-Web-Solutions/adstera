@@ -200,6 +200,236 @@ const SmartLinkStats = require("../models/SmartLinkStats");
 //   }
 // };
 
+// exports.getAdsterraStatsFromDB =
+//   async (req, res) => {
+//     try {
+//       const userId =
+//         req.user?.id;
+
+//       const {
+//         country,
+//         start_date,
+//         end_date,
+//         page = 1,
+//         limit = 20,
+//         placement,
+//       } = req.query;
+
+//       // ✅ AUTH
+//       if (!userId) {
+//         return res.status(401).json({
+//           success: false,
+//           message: "Unauthorized",
+//         });
+//       }
+
+//       // ✅ FILTER
+//       const filter = {
+//         userId:
+//           new mongoose.Types.ObjectId(
+//             userId
+//           ),
+//       };
+
+//       // ✅ Placement filter
+//       if (placement) {
+//         filter.placement =
+//           placement;
+//       }
+
+//       // ✅ Country filter
+//       if (country) {
+//         filter.country = {
+//           $in: country
+//             .split(",")
+//             .map((c) =>
+//               c
+//                 .trim()
+//                 .toLowerCase()
+//             ),
+//         };
+//       }
+
+//       // ✅ Date filter
+//       if (
+//         start_date &&
+//         end_date
+//       ) {
+//         filter.date = {
+//           $gte: start_date,
+//           $lte: end_date,
+//         };
+//       }
+
+//       // ✅ PAGINATION
+//       const currentPage =
+//         Number(page) || 1;
+
+//       const perPage =
+//         Number(limit) || 20;
+
+//       const skip =
+//         (currentPage - 1) *
+//         perPage;
+
+//       // ✅ FETCH DATA
+//       const stats =
+//         await AdsterraStats.find(
+//           filter
+//         )
+//           .sort({
+//             date: -1,
+//           })
+//           .skip(skip)
+//           .limit(perPage)
+//           .lean();
+
+//       // ✅ COUNT
+//       const totalRecords =
+//         await AdsterraStats.countDocuments(
+//           filter
+//         );
+
+//       // ✅ TOTALS
+//       const totalsAgg =
+//         await AdsterraStats.aggregate(
+//           [
+//             {
+//               $match: filter,
+//             },
+
+//             {
+//               $group: {
+//                 _id: null,
+
+//                 totalImpressions:
+//                 {
+//                   $sum: {
+//                     $toDouble:
+//                       "$impressions",
+//                   },
+//                 },
+
+//                 totalClicks: {
+//                   $sum: {
+//                     $toDouble:
+//                       "$clicks",
+//                   },
+//                 },
+
+//                 totalRevenue: {
+//                   $sum: {
+//                     $toDouble:
+//                       "$revenue",
+//                   },
+//                 },
+//               },
+//             },
+//           ]
+//         );
+
+//       const totals =
+//         totalsAgg[0] || {
+//           totalImpressions: 0,
+//           totalClicks: 0,
+//           totalRevenue: 0,
+//         };
+
+//       // ✅ CTR
+//       const ctr =
+//         totals.totalImpressions >
+//           0
+//           ? (totals.totalClicks /
+//             totals.totalImpressions) *
+//           100
+//           : 0;
+
+//       // ✅ CPM
+//       const cpm =
+//         totals.totalImpressions >
+//           0
+//           ? (totals.totalRevenue /
+//             totals.totalImpressions) *
+//           1000
+//           : 0;
+
+//       // ✅ UPDATE USER REVENUE
+//       await User.findByIdAndUpdate(
+//         userId,
+//         {
+//           $set: {
+//             revenue:
+//               totals.totalRevenue ||
+//               0,
+//           },
+//         }
+//       );
+
+//       // ✅ RESPONSE
+//       return res.status(200).json({
+//         success: true,
+
+//         page: currentPage,
+
+//         limit: perPage,
+
+//         totalPages: Math.ceil(
+//           totalRecords /
+//           perPage
+//         ),
+
+//         totalRecords,
+
+//         totals: {
+//           totalImpressions:
+//             Number(
+//               totals.totalImpressions ||
+//               0
+//             ),
+
+//           totalClicks: Number(
+//             totals.totalClicks ||
+//             0
+//           ),
+
+//           totalRevenue: Number(
+//             (
+//               totals.totalRevenue ||
+//               0
+//             ).toFixed(6)
+//           ),
+
+//           ctr: Number(
+//             ctr.toFixed(2)
+//           ),
+
+//           cpm: Number(
+//             cpm.toFixed(6)
+//           ),
+//         },
+
+//         data: stats,
+//       });
+//     } catch (error) {
+//       console.error(
+//         "DB GET ERROR =>",
+//         error
+//       );
+
+//       return res.status(500).json({
+//         success: false,
+
+//         message:
+//           "Failed to fetch stats",
+
+//         error: error.message,
+//       });
+//     }
+//   };
+
+
+
+
 exports.fetchAndStoreAdsterraStats = async (req, res) => {
   try {
     const userId = req.user?.id;
@@ -499,232 +729,6 @@ exports.fetchAndStoreAdsterraStats = async (req, res) => {
   }
 };
 
-// exports.getAdsterraStatsFromDB =
-//   async (req, res) => {
-//     try {
-//       const userId =
-//         req.user?.id;
-
-//       const {
-//         country,
-//         start_date,
-//         end_date,
-//         page = 1,
-//         limit = 20,
-//         placement,
-//       } = req.query;
-
-//       // ✅ AUTH
-//       if (!userId) {
-//         return res.status(401).json({
-//           success: false,
-//           message: "Unauthorized",
-//         });
-//       }
-
-//       // ✅ FILTER
-//       const filter = {
-//         userId:
-//           new mongoose.Types.ObjectId(
-//             userId
-//           ),
-//       };
-
-//       // ✅ Placement filter
-//       if (placement) {
-//         filter.placement =
-//           placement;
-//       }
-
-//       // ✅ Country filter
-//       if (country) {
-//         filter.country = {
-//           $in: country
-//             .split(",")
-//             .map((c) =>
-//               c
-//                 .trim()
-//                 .toLowerCase()
-//             ),
-//         };
-//       }
-
-//       // ✅ Date filter
-//       if (
-//         start_date &&
-//         end_date
-//       ) {
-//         filter.date = {
-//           $gte: start_date,
-//           $lte: end_date,
-//         };
-//       }
-
-//       // ✅ PAGINATION
-//       const currentPage =
-//         Number(page) || 1;
-
-//       const perPage =
-//         Number(limit) || 20;
-
-//       const skip =
-//         (currentPage - 1) *
-//         perPage;
-
-//       // ✅ FETCH DATA
-//       const stats =
-//         await AdsterraStats.find(
-//           filter
-//         )
-//           .sort({
-//             date: -1,
-//           })
-//           .skip(skip)
-//           .limit(perPage)
-//           .lean();
-
-//       // ✅ COUNT
-//       const totalRecords =
-//         await AdsterraStats.countDocuments(
-//           filter
-//         );
-
-//       // ✅ TOTALS
-//       const totalsAgg =
-//         await AdsterraStats.aggregate(
-//           [
-//             {
-//               $match: filter,
-//             },
-
-//             {
-//               $group: {
-//                 _id: null,
-
-//                 totalImpressions:
-//                 {
-//                   $sum: {
-//                     $toDouble:
-//                       "$impressions",
-//                   },
-//                 },
-
-//                 totalClicks: {
-//                   $sum: {
-//                     $toDouble:
-//                       "$clicks",
-//                   },
-//                 },
-
-//                 totalRevenue: {
-//                   $sum: {
-//                     $toDouble:
-//                       "$revenue",
-//                   },
-//                 },
-//               },
-//             },
-//           ]
-//         );
-
-//       const totals =
-//         totalsAgg[0] || {
-//           totalImpressions: 0,
-//           totalClicks: 0,
-//           totalRevenue: 0,
-//         };
-
-//       // ✅ CTR
-//       const ctr =
-//         totals.totalImpressions >
-//           0
-//           ? (totals.totalClicks /
-//             totals.totalImpressions) *
-//           100
-//           : 0;
-
-//       // ✅ CPM
-//       const cpm =
-//         totals.totalImpressions >
-//           0
-//           ? (totals.totalRevenue /
-//             totals.totalImpressions) *
-//           1000
-//           : 0;
-
-//       // ✅ UPDATE USER REVENUE
-//       await User.findByIdAndUpdate(
-//         userId,
-//         {
-//           $set: {
-//             revenue:
-//               totals.totalRevenue ||
-//               0,
-//           },
-//         }
-//       );
-
-//       // ✅ RESPONSE
-//       return res.status(200).json({
-//         success: true,
-
-//         page: currentPage,
-
-//         limit: perPage,
-
-//         totalPages: Math.ceil(
-//           totalRecords /
-//           perPage
-//         ),
-
-//         totalRecords,
-
-//         totals: {
-//           totalImpressions:
-//             Number(
-//               totals.totalImpressions ||
-//               0
-//             ),
-
-//           totalClicks: Number(
-//             totals.totalClicks ||
-//             0
-//           ),
-
-//           totalRevenue: Number(
-//             (
-//               totals.totalRevenue ||
-//               0
-//             ).toFixed(6)
-//           ),
-
-//           ctr: Number(
-//             ctr.toFixed(2)
-//           ),
-
-//           cpm: Number(
-//             cpm.toFixed(6)
-//           ),
-//         },
-
-//         data: stats,
-//       });
-//     } catch (error) {
-//       console.error(
-//         "DB GET ERROR =>",
-//         error
-//       );
-
-//       return res.status(500).json({
-//         success: false,
-
-//         message:
-//           "Failed to fetch stats",
-
-//         error: error.message,
-//       });
-//     }
-//   };
 
 
 exports.getAdsterraStatsFromDB = async (
