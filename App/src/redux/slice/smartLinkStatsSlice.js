@@ -1,100 +1,99 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { api } from "./axiosConfig";
+import axios from "axios";
 
-// 🚀 FETCH + STORE (API CALL)
-export const fetchAdsterraStats = createAsyncThunk(
-    "adsterra/fetchStats",
-    async (params = {}, { rejectWithValue }) => {
+// ==============================
+// ✅ API BASE URL
+// ==============================
+const API = "/api/stats"; // apne backend route ke hisab se change kar lena
+
+// ==============================
+// ✅ THUNKS
+// ==============================
+
+// 👉 Track Impression
+export const trackImpression = createAsyncThunk(
+    "stats/trackImpression",
+    async (linkId, { rejectWithValue }) => {
         try {
-            const { data } = await api.get("/adsterra/fetch", {
-                params,
-            });
-
-            return data;
-        } catch (error) {
-            return rejectWithValue(
-                error.response?.data || {
-                    message: error.message,
-                }
-            );
+            const res = await axios.post(`${API}/impression`, { linkId });
+            return res.data;
+        } catch (err) {
+            return rejectWithValue(err.response?.data || err.message);
         }
     }
 );
 
-// 📊 GET DB DATA
-export const getAdsterraStats = createAsyncThunk(
-    "adsterra/getStats",
-    async (params = {}, { rejectWithValue }) => {
+// 👉 Get Smart Link Stats (with filters)
+export const getSmartLinkStats = createAsyncThunk(
+    "stats/getSmartLinkStats",
+    async (queryParams, { rejectWithValue }) => {
         try {
-            const { data } = await api.get("/adsterra/stats", {
-                params,
+            // queryParams can be { start_date, end_date, placement, country, page, limit }
+            const res = await axios.get(`${API}/smartlink-stats`, { 
+                params: queryParams 
             });
-
-            console.log("ADSTERRA STATS =>", data);
-
-            return data;
-        } catch (error) {
-            return rejectWithValue(
-                error.response?.data || {
-                    message: error.message,
-                }
-            );
+            return res.data;
+        } catch (err) {
+            return rejectWithValue(err.response?.data || err.message);
         }
     }
 );
 
-// 🎯 SLICE
-const adsterraSlice = createSlice({
-    name: "adsterra",
-
+// ==============================
+// ✅ SLICE
+// ==============================
+const smartLinkStatsSlice = createSlice({
+    name: "smartLinkStats",
     initialState: {
         loading: false,
-        fetchLoading: false,
-
-        // table data
-        data: [],
-
-        // totals
-        totals: {
-            totalImpressions: 0,
-            totalClicks: 0,
-            totalRevenue: 0,
-            ctr: 0,
-            cpm: 0,
-        },
-
-        // country summary
-        countrySummary: [],
-
-        // pagination
+        success: false,
+        error: null,
+        
+        // 📊 Stats Data
+        data: [],           // main stats array (daily/weekly data)
+        
+        // 📄 Pagination
         page: 1,
         limit: 20,
-        totalPages: 1,
+        totalPages: 0,
         totalRecords: 0,
-
-        // filters
+        
+        // 🎯 Filters Applied
         filters: {
             start_date: null,
             end_date: null,
             placement: null,
             country: "ALL",
         },
-
-        error: null,
-        success: false,
-    },
-
-    reducers: {
-        clearAdsterraError: (state) => {
-            state.error = null;
+        
+        // 💰 Totals Summary
+        totals: {
+            totalImpressions: 0,
+            totalClicks: 0,
+            totalRevenue: 0,
+            ctr: 0,      // Click Through Rate (%)
+            cpm: 0,      // Cost Per Mille (per 1000 impressions)
         },
-
-        resetAdsterra: (state) => {
+        
+        // 🌍 Country wise breakdown
+        countrySummary: [],
+    },
+    reducers: {
+        resetStats: (state) => {
             state.loading = false;
-            state.fetchLoading = false;
-
+            state.success = false;
+            state.error = null;
             state.data = [];
-
+            state.page = 1;
+            state.limit = 20;
+            state.totalPages = 0;
+            state.totalRecords = 0;
+            state.filters = {
+                start_date: null,
+                end_date: null,
+                placement: null,
+                country: "ALL",
+            };
             state.totals = {
                 totalImpressions: 0,
                 totalClicks: 0,
@@ -102,117 +101,93 @@ const adsterraSlice = createSlice({
                 ctr: 0,
                 cpm: 0,
             };
-
             state.countrySummary = [];
-
-            state.page = 1;
-            state.limit = 20;
-            state.totalPages = 1;
-            state.totalRecords = 0;
-
+        },
+        
+        // Manual filter update (without API call)
+        setFilters: (state, action) => {
+            state.filters = { ...state.filters, ...action.payload };
+        },
+        
+        // Reset filters only
+        resetFilters: (state) => {
             state.filters = {
                 start_date: null,
                 end_date: null,
                 placement: null,
                 country: "ALL",
             };
-
-            state.error = null;
-            state.success = false;
         },
     },
-
     extraReducers: (builder) => {
         builder
 
-            // 🚀 FETCH API
-            .addCase(fetchAdsterraStats.pending, (state) => {
-                state.fetchLoading = true;
-                state.error = null;
-                state.success = false;
-            })
-
-            .addCase(fetchAdsterraStats.fulfilled, (state, action) => {
-                state.fetchLoading = false;
-                state.success = action.payload?.success || true;
-            })
-
-            .addCase(fetchAdsterraStats.rejected, (state, action) => {
-                state.fetchLoading = false;
-
-                state.error =
-                    action.payload?.message ||
-                    "Fetch failed";
-
-                state.success = false;
-            })
-
-            // 📊 GET STATS
-            .addCase(getAdsterraStats.pending, (state) => {
+            // ================= TRACK IMPRESSION =================
+            .addCase(trackImpression.pending, (state) => {
                 state.loading = true;
                 state.error = null;
             })
-
-            .addCase(getAdsterraStats.fulfilled, (state, action) => {
+            .addCase(trackImpression.fulfilled, (state) => {
                 state.loading = false;
-
-                // ✅ main data
-                state.data = action.payload?.data || [];
-
-                // ✅ totals
-                state.totals =
-                    action.payload?.totals || {
-                        totalImpressions: 0,
-                        totalClicks: 0,
-                        totalRevenue: 0,
-                        ctr: 0,
-                        cpm: 0,
-                    };
-
-                // ✅ country summary
-                state.countrySummary =
-                    action.payload?.countrySummary || [];
-
-                // ✅ pagination
-                state.page = action.payload?.page || 1;
-
-                state.limit =
-                    action.payload?.limit || 20;
-
-                state.totalPages =
-                    action.payload?.totalPages || 1;
-
-                state.totalRecords =
-                    action.payload?.totalRecords || 0;
-
-                // ✅ filters
-                state.filters =
-                    action.payload?.filters || {
-                        start_date: null,
-                        end_date: null,
-                        placement: null,
-                        country: "ALL",
-                    };
-
-                state.success =
-                    action.payload?.success || true;
+                state.success = true;
+            })
+            .addCase(trackImpression.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload;
             })
 
-            .addCase(getAdsterraStats.rejected, (state, action) => {
+            // ================= GET SMART LINK STATS =================
+            .addCase(getSmartLinkStats.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(getSmartLinkStats.fulfilled, (state, action) => {
                 state.loading = false;
-
-                state.error =
-                    action.payload?.message ||
-                    "Failed to load stats";
-
-                state.success = false;
+                state.success = true;
+                
+                const { payload } = action;
+                
+                if (payload?.success) {
+                    // 📄 Pagination
+                    state.page = payload.page || 1;
+                    state.limit = payload.limit || 20;
+                    state.totalPages = payload.totalPages || 0;
+                    state.totalRecords = payload.totalRecords || 0;
+                    
+                    // 🎯 Filters
+                    if (payload.filters) {
+                        state.filters = payload.filters;
+                    }
+                    
+                    // 💰 Totals
+                    if (payload.totals) {
+                        state.totals = {
+                            totalImpressions: payload.totals.totalImpressions || 0,
+                            totalClicks: payload.totals.totalClicks || 0,
+                            totalRevenue: payload.totals.totalRevenue || 0,
+                            ctr: payload.totals.ctr || 0,
+                            cpm: payload.totals.cpm || 0,
+                        };
+                    }
+                    
+                    // 🌍 Country Summary
+                    state.countrySummary = payload.countrySummary || [];
+                    
+                    // 📊 Main Stats Data
+                    state.data = payload.data || [];
+                } else {
+                    state.error = payload?.message || "Failed to fetch stats";
+                }
+            })
+            .addCase(getSmartLinkStats.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload?.message || "Failed to fetch smartlink stats";
             });
     },
 });
 
-export const {
-    clearAdsterraError,
-    resetAdsterra,
-} = adsterraSlice.actions;
+// ✅ EXPORT ALL ACTIONS (Yeh sabse important hai)
+export const { resetStats, setFilters, resetFilters } = smartLinkStatsSlice.actions;
 
-export default adsterraSlice.reducer;
+// ✅ EXPORT REDUCER AS DEFAULT
+export default smartLinkStatsSlice.reducer;
