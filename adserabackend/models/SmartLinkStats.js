@@ -1,80 +1,19 @@
 const mongoose = require("mongoose");
 
-const smartLinkStatsSchema = new mongoose.Schema(
+const statsItemSchema = new mongoose.Schema(
   {
-    userId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "users",
-      required: true,
-      index: true,
-    },
+    placement: String,
 
-    domain: {
-      type: String,
-      required: true,
-      index: true,
-    },
+    domain: String,
 
-    placement: {
-      type: String,
-      required: true,
-      index: true,
-    },
-
-    // 🌍 COUNTRY
     country: {
       type: String,
       default: "ALL",
-      uppercase: true,
-      index: true,
     },
 
-    // 📱 DEVICE INFO
-    device: {
-      type: String,
-      default: "desktop",
-      index: true,
-    },
-
-    deviceModel: {
-      type: String,
-      default: "",
-    },
-
-    deviceVendor: {
-      type: String,
-      default: "",
-    },
-
-    // 💻 OS INFO
-    osName: {
-      type: String,
-      default: "",
-      index: true,
-    },
-
-    osVersion: {
-      type: String,
-      default: "",
-    },
-
-    // 🌐 BROWSER INFO
-    browserName: {
-      type: String,
-      default: "",
-      index: true,
-    },
-
-    browserVersion: {
-      type: String,
-      default: "",
-    },
-
-    // 📊 STATS
     impressions: {
       type: Number,
       default: 0,
-      index: true,
     },
 
     clicks: {
@@ -96,43 +35,59 @@ const smartLinkStatsSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+  },
+  { _id: false }
+);
 
-    // 📅 DATE
+const smartLinkStatsSchema = new mongoose.Schema(
+  {
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "users",
+      required: true,
+      index: true,
+    },
+
+    device: {
+      type: String,
+      default: "desktop",
+      index: true,
+    },
+
+    osName: {
+      type: String,
+      default: "",
+    },
+
+    browserName: {
+      type: String,
+      default: "",
+    },
+
     date: {
       type: String,
       required: true,
       index: true,
     },
+
+    stats: [statsItemSchema],
   },
   {
     timestamps: true,
   }
 );
 
-// ✅ DUPLICATE PREVENTION
+// ✅ ONE DOC PER USER + DEVICE + DATE
 smartLinkStatsSchema.index(
   {
     userId: 1,
-    placement: 1,
-    country: 1,
+    device: 1,
     date: 1,
   },
   {
     unique: true,
   }
 );
-
-// ✅ FAST FILTER QUERIES
-smartLinkStatsSchema.index({
-  userId: 1,
-  date: -1,
-});
-
-smartLinkStatsSchema.index({
-  placement: 1,
-  country: 1,
-  date: -1,
-});
 
 module.exports = mongoose.model(
   "smartLinkStats",

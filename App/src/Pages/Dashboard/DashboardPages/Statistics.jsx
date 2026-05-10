@@ -138,7 +138,6 @@ const Statistics = () => {
         })
       );
 
-      dispatch(fetchAdsterraStats(params));
 
       const dbParams = {
         start_date: start,
@@ -166,6 +165,9 @@ const Statistics = () => {
   // INITIAL LOAD
   // ====================================
   useEffect(() => {
+
+    dispatch(fetchAdsterraStats());
+
 
     dispatch(
       getAdsterraStats({
