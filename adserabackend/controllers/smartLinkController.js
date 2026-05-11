@@ -6,157 +6,159 @@ const SmartLinkStats = require("../models/SmartLinkStats");
 
 // ================= CREATE =================
 exports.createSmartLink = async (req, res) => {
-    try {
-        const { type } = req.body;
+  try {
+    const { type } = req.body;
 
-        if (!type || !["adult", "maisteram"].includes(type)) {
-            return res.status(400).json({
-                success: false,
-                message: "Invalid type (adult / maisteram required)"
-            });
-        }
-
-        const totalLinks = await SmartLink.countDocuments({
-            userId: req.user.id,
-        });
-
-        // ✅ TYPE BASED NAME
-        const name = type === "adult"
-            ? `Adultlink_${totalLinks + 1}`
-            : `Smartlink_${totalLinks + 1}`;
-
-        // ✅ SAME LOGIC (UNCHANGED)
-        const numericId = Math.floor(10000000 + Math.random() * 90000000);
-        const smartCode = crypto.randomBytes(4).toString("hex");
-        const key = crypto.randomBytes(16).toString("hex");
-
-        const baseUrl = "https://adstorx.com";
-        // const baseUrl = "https://bestprofitablecpmhike.tech";
-
-
-        const finalUrl = `${baseUrl}/s/${smartCode}?key=${key}`;
-
-        const smartLink = await SmartLink.create({
-            userId: req.user.id,
-            name,
-            linkId: numericId,
-            smartCode,
-            key,
-            finalUrl,
-            type,
-            status: "pending",
-        });
-
-        res.status(201).json({
-            success: true,
-            message: "Smart link created",
-            smartLink,
-        });
-
-    } catch (err) {
-        res.status(500).json({ error: err.message });
+    if (!type || !["adult", "maisteram"].includes(type)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid type (adult / maisteram required)"
+      });
     }
+
+    const totalLinks = await SmartLink.countDocuments({
+      userId: req.user.id,
+    });
+
+    // ✅ TYPE BASED NAME
+    const name = type === "adult"
+      ? `Adultlink_${totalLinks + 1}`
+      : `Smartlink_${totalLinks + 1}`;
+
+    // ✅ SAME LOGIC (UNCHANGED)
+    const numericId = Math.floor(10000000 + Math.random() * 90000000);
+    const smartCode = crypto.randomBytes(4).toString("hex");
+    const key = crypto.randomBytes(16).toString("hex");
+
+    const baseUrl = "https://adstorx.com";
+    // const baseUrl = "https://bestprofitablecpmhike.tech";
+
+
+    const finalUrl = `${baseUrl}/s/${smartCode}?key=${key}`;
+
+    const smartLink = await SmartLink.create({
+      userId: req.user.id,
+      name,
+      linkId: numericId,
+      smartCode,
+      key,
+      finalUrl,
+      type,
+      status: "pending",
+    });
+
+    res.status(201).json({
+      success: true,
+      message: "Smart link created",
+      smartLink,
+    });
+
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 };
 
 
 
 // ================= GET USER LINKS =================
 exports.getSmartLinksByUser = async (req, res) => {
-    try {
-        const smartLinks = await SmartLink.find({
-            userId: req.user.id,
-        })
-            .populate("userId", "name email mobile")
-            .sort({ createdAt: -1 });
+  try {
+    const smartLinks = await SmartLink.find({
+      userId: req.user.id,
+    })
+      .populate("userId", "name email mobile")
+      .sort({ createdAt: -1 });
 
-        res.json({
-            success: true,
-            count: smartLinks.length,
-            data: smartLinks,
-        });
+    res.json({
+      success: true,
+      count: smartLinks.length,
+      data: smartLinks,
+    });
 
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 };
 
 
 
 // ================= APPROVE =================
 exports.approveSmartLink = async (req, res) => {
-    try {
-        const { id } = req.params;
-        const { redirectUrl } = req.body;
+  try {
+    const { id } = req.params;
+    const { redirectUrl } = req.body;
 
-        const updateData = {
-            status: "approved",
-        };
+    const updateData = {
+      status: "approved",
+    };
 
-        if (redirectUrl) {
-            updateData.redirectUrl = redirectUrl;
-        }
-
-        const smartLink = await SmartLink.findByIdAndUpdate(
-            id,
-            updateData,
-            { new: true }
-        );
-
-        if (!smartLink) {
-            return res.status(404).json({
-                success: false,
-                message: "Smart link not found",
-            });
-        }
-
-        res.json({
-            success: true,
-            message: "Approved successfully",
-            smartLink,
-        });
-
-    } catch (err) {
-        res.status(500).json({ error: err.message });
+    if (redirectUrl) {
+      updateData.redirectUrl = redirectUrl;
     }
+
+    const smartLink = await SmartLink.findByIdAndUpdate(
+      id,
+      updateData,
+      { new: true }
+    );
+
+    if (!smartLink) {
+      return res.status(404).json({
+        success: false,
+        message: "Smart link not found",
+      });
+    }
+
+    res.json({
+      success: true,
+      message: "Approved successfully",
+      smartLink,
+    });
+
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 };
 
 
 
 // ================= EXTERNAL UPDATE =================
 exports.updateSmartLinkData = async (req, res) => {
-    try {
-        const { linkId, redirectUrl, status } = req.body;
+  try {
+    const { linkId, redirectUrl, status } = req.body;
 
-        const link = await SmartLink.findOneAndUpdate(
-            { linkId },
-            {
-                redirectUrl,
-                status: status || "approved",
-            },
-            { new: true }
-        );
+    const link = await SmartLink.findOneAndUpdate(
+      { linkId },
+      {
+        redirectUrl,
+        status: status || "approved",
+      },
+      { new: true }
+    );
 
-        if (!link) {
-            return res.status(404).json({
-                success: false,
-                message: "Link not found",
-            });
-        }
-
-        res.json({
-            success: true,
-            message: "Updated from external system",
-            link,
-        });
-
-    } catch (err) {
-        res.status(500).json({ error: err.message });
+    if (!link) {
+      return res.status(404).json({
+        success: false,
+        message: "Link not found",
+      });
     }
+
+    res.json({
+      success: true,
+      message: "Updated from external system",
+      link,
+    });
+
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 };
 
 
 
 // ================= TRACK IMPRESSION =================
+
+
 exports.getSmartLinkStats = async (
   req,
   res
@@ -223,7 +225,7 @@ exports.getSmartLinkStats = async (
     if (
       country &&
       country.toUpperCase() !==
-        "ALL"
+      "ALL"
     ) {
       statsFilter[
         "stats.country"
@@ -306,12 +308,26 @@ exports.getSmartLinkStats = async (
               clicks:
                 "$stats.clicks",
 
-              ctr: "$stats.ctr",
+              ctr: {
+                $round: [
+                  "$stats.ctr",
+                  2,
+                ],
+              },
 
-              cpm: "$stats.cpm",
+              cpm: {
+                $round: [
+                  "$stats.cpm",
+                  2,
+                ],
+              },
 
-              revenue:
-                "$stats.revenue",
+              revenue: {
+                $round: [
+                  "$stats.revenue",
+                  2,
+                ],
+              },
             },
           },
 
@@ -390,10 +406,10 @@ exports.getSmartLinkStats = async (
               _id: null,
 
               totalImpressions:
-                {
-                  $sum:
-                    "$stats.impressions",
-                },
+              {
+                $sum:
+                  "$stats.impressions",
+              },
 
               totalClicks: {
                 $sum:
@@ -422,10 +438,10 @@ exports.getSmartLinkStats = async (
 
     const ctr =
       totals.totalImpressions >
-      0
+        0
         ? (totals.totalClicks /
-            totals.totalImpressions) *
-          100
+          totals.totalImpressions) *
+        100
         : 0;
 
     // =====================================================
@@ -434,10 +450,10 @@ exports.getSmartLinkStats = async (
 
     const cpm =
       totals.totalImpressions >
-      0
+        0
         ? (totals.totalRevenue /
-            totals.totalImpressions) *
-          1000
+          totals.totalImpressions) *
+        1000
         : 0;
 
     // =====================================================
@@ -495,57 +511,67 @@ exports.getSmartLinkStats = async (
               revenue: {
                 $round: [
                   "$revenue",
-                  6,
+                  2,
                 ],
               },
 
               ctr: {
-                $cond: [
+                $round: [
                   {
-                    $gt: [
-                      "$impressions",
+                    $cond: [
+                      {
+                        $gt: [
+                          "$impressions",
+                          0,
+                        ],
+                      },
+
+                      {
+                        $multiply: [
+                          {
+                            $divide: [
+                              "$clicks",
+                              "$impressions",
+                            ],
+                          },
+                          100,
+                        ],
+                      },
+
                       0,
                     ],
                   },
-
-                  {
-                    $multiply: [
-                      {
-                        $divide: [
-                          "$clicks",
-                          "$impressions",
-                        ],
-                      },
-                      100,
-                    ],
-                  },
-
-                  0,
+                  2,
                 ],
               },
 
               cpm: {
-                $cond: [
+                $round: [
                   {
-                    $gt: [
-                      "$impressions",
+                    $cond: [
+                      {
+                        $gt: [
+                          "$impressions",
+                          0,
+                        ],
+                      },
+
+                      {
+                        $multiply: [
+                          {
+                            $divide: [
+                              "$revenue",
+                              "$impressions",
+                            ],
+                          },
+                          1000,
+                        ],
+                      },
+
                       0,
                     ],
                   },
-
-                  {
-                    $multiply: [
-                      {
-                        $divide: [
-                          "$revenue",
-                          "$impressions",
-                        ],
-                      },
-                      1000,
-                    ],
-                  },
-
-                  0,
+                  2,
                 ],
               },
             },
@@ -615,57 +641,67 @@ exports.getSmartLinkStats = async (
               revenue: {
                 $round: [
                   "$revenue",
-                  6,
+                  2,
                 ],
               },
 
               ctr: {
-                $cond: [
+                $round: [
                   {
-                    $gt: [
-                      "$impressions",
+                    $cond: [
+                      {
+                        $gt: [
+                          "$impressions",
+                          0,
+                        ],
+                      },
+
+                      {
+                        $multiply: [
+                          {
+                            $divide: [
+                              "$clicks",
+                              "$impressions",
+                            ],
+                          },
+                          100,
+                        ],
+                      },
+
                       0,
                     ],
                   },
-
-                  {
-                    $multiply: [
-                      {
-                        $divide: [
-                          "$clicks",
-                          "$impressions",
-                        ],
-                      },
-                      100,
-                    ],
-                  },
-
-                  0,
+                  2,
                 ],
               },
 
               cpm: {
-                $cond: [
+                $round: [
                   {
-                    $gt: [
-                      "$impressions",
+                    $cond: [
+                      {
+                        $gt: [
+                          "$impressions",
+                          0,
+                        ],
+                      },
+
+                      {
+                        $multiply: [
+                          {
+                            $divide: [
+                              "$revenue",
+                              "$impressions",
+                            ],
+                          },
+                          1000,
+                        ],
+                      },
+
                       0,
                     ],
                   },
-
-                  {
-                    $multiply: [
-                      {
-                        $divide: [
-                          "$revenue",
-                          "$impressions",
-                        ],
-                      },
-                      1000,
-                    ],
-                  },
-
-                  0,
+                  2,
                 ],
               },
             },
@@ -692,7 +728,7 @@ exports.getSmartLinkStats = async (
 
       totalPages: Math.ceil(
         totalRecords /
-          perPage
+        perPage
       ),
 
       totalRecords,
@@ -715,19 +751,19 @@ exports.getSmartLinkStats = async (
         totalImpressions:
           Number(
             totals.totalImpressions ||
-              0
+            0
           ),
 
         totalClicks: Number(
           totals.totalClicks ||
-            0
+          0
         ),
 
         totalRevenue: Number(
           (
             totals.totalRevenue ||
             0
-          ).toFixed(6)
+          ).toFixed(2)
         ),
 
         ctr: Number(
@@ -735,7 +771,7 @@ exports.getSmartLinkStats = async (
         ),
 
         cpm: Number(
-          cpm.toFixed(6)
+          cpm.toFixed(2)
         ),
       },
 

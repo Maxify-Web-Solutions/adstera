@@ -166,7 +166,7 @@ const Statistics = () => {
   // ====================================
   useEffect(() => {
 
-          dispatch(fetchAdsterraStats());
+    dispatch(fetchAdsterraStats());
 
 
     dispatch(
@@ -247,69 +247,52 @@ const Statistics = () => {
 
     if (groupBy === "date") {
 
-      const dateMap = {};
+      if (!Array.isArray(data)) {
+        return [];
+      }
 
-      if (startDate && endDate) {
+      return data
+        .map((item, index) => ({
 
-        const current = new Date(startDate);
+          id: index,
 
-        while (current <= endDate) {
+          label: item.date
+            ? new Date(item.date).toLocaleDateString("en-GB")
+            : "Unknown",
 
-          const formatted =
-            current.toLocaleDateString();
+          impressions: Number(
+            item.impressions || 0
+          ),
 
-          dateMap[formatted] = {
-            label: formatted,
-            impressions: 0,
-            clicks: 0,
-            revenue: 0,
-          };
+          clicks: Number(
+            item.clicks || 0
+          ),
 
-          current.setDate(
-            current.getDate() + 1
+          revenue: Number(
+            item.revenue || 0
+          ),
+
+          placement: item.placement || "",
+        }))
+
+        .sort((a, b) => {
+
+          const [dayA, monthA, yearA] =
+            a.label.split("/");
+
+          const [dayB, monthB, yearB] =
+            b.label.split("/");
+
+          return (
+            new Date(
+              `${yearB}-${monthB}-${dayB}`
+            ) -
+            new Date(
+              `${yearA}-${monthA}-${dayA}`
+            )
           );
-        }
-      }
-
-      if (Array.isArray(data)) {
-
-        data.forEach((item) => {
-
-          const formattedDate =
-            item.date
-              ? new Date(
-                item.date
-              ).toLocaleDateString()
-              : "Unknown";
-
-          if (!dateMap[formattedDate]) {
-
-            dateMap[formattedDate] = {
-              label: formattedDate,
-              impressions: 0,
-              clicks: 0,
-              revenue: 0,
-            };
-          }
-
-          dateMap[formattedDate].impressions +=
-            Number(item.impressions || 0);
-
-          dateMap[formattedDate].clicks +=
-            Number(item.clicks || 0);
-
-          dateMap[formattedDate].revenue +=
-            Number(item.revenue || 0);
         });
-      }
-
-      return Object.values(dateMap);
     }
-
-    // ====================================
-    // COUNTRY / DEVICE / OS / BROWSER
-    // => REDUCER GROUPED DATA
-    // ====================================
 
     if (
       !Array.isArray(
@@ -412,8 +395,8 @@ const Statistics = () => {
         impressions,
         clicks,
         ctr.toFixed(2) + "%",
-        cpm.toFixed(3),
-        "$" + revenue.toFixed(4),
+        cpm.toFixed(2),
+        "$" + revenue.toFixed(2),
       ];
     });
 
@@ -455,7 +438,7 @@ const Statistics = () => {
     {
       title: "CPM",
       value: `$${calculatedTotals.impressions > 0
-        ? ((calculatedTotals.revenue / calculatedTotals.impressions) * 1000).toFixed(3)
+        ? ((calculatedTotals.revenue / calculatedTotals.impressions) * 1000).toFixed(2)
         : "0.000"}`,
       icon: DollarSign,
       color: "from-orange-500 to-orange-600",
@@ -463,7 +446,7 @@ const Statistics = () => {
     },
     {
       title: "Total Revenue",
-      value: `$${calculatedTotals.revenue.toFixed(4)}`,
+      value: `$${calculatedTotals.revenue.toFixed(2)}`,
       icon: Zap,
       color: "from-yellow-500 to-yellow-600",
       bgGradient: "bg-gradient-to-br",
@@ -742,10 +725,10 @@ const Statistics = () => {
                           </span>
                         </td>
                         <td className="p-4 text-right font-mono text-gray-700 dark:text-gray-300">
-                          ${cpm.toFixed(3)}
+                          ${cpm.toFixed(2)}
                         </td>
                         <td className="p-4 text-right font-mono text-green-600 dark:text-green-400 font-semibold">
-                          ${revenue.toFixed(4)}
+                          ${revenue.toFixed(2)}
                         </td>
                       </tr>
                     );
@@ -787,11 +770,11 @@ const Statistics = () => {
                     <td className="p-4 text-right font-bold font-mono text-gray-900 dark:text-white">
                       $
                       {calculatedTotals.impressions > 0
-                        ? ((calculatedTotals.revenue / calculatedTotals.impressions) * 1000).toFixed(3)
+                        ? ((calculatedTotals.revenue / calculatedTotals.impressions) * 1000).toFixed(2)
                         : "0.000"}
                     </td>
                     <td className="p-4 text-right font-bold font-mono text-green-600 dark:text-green-400">
-                      ${calculatedTotals.revenue.toFixed(4)}
+                      ${calculatedTotals.revenue.toFixed(2)}
                     </td>
                   </tr>
                 </tfoot>
