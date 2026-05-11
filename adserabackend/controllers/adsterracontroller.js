@@ -155,7 +155,7 @@ exports.fetchAndStoreAdsterraStats =
       const ua =
         req.headers[
         "user-agent"
-        ];
+        ] || "";
 
       const parser =
         new UAParser(ua);
@@ -182,8 +182,6 @@ exports.fetchAndStoreAdsterraStats =
       // =====================================================
       // STORAGE
       // =====================================================
-
-      let totalRevenue = 0;
 
       const overallOps = [];
 
@@ -378,9 +376,11 @@ exports.fetchAndStoreAdsterraStats =
 
             const ctr =
               impressions > 0
-                ? (clicks /
-                  impressions) *
-                100
+                ? (
+                  (clicks /
+                    impressions) *
+                  100
+                ).toFixed(2)
                 : 0;
 
             const cpm =
@@ -391,9 +391,6 @@ exports.fetchAndStoreAdsterraStats =
               normalizeDate(
                 item.date
               );
-
-            totalRevenue +=
-              revenue;
 
             overallOps.push({
               updateOne: {
@@ -444,7 +441,8 @@ exports.fetchAndStoreAdsterraStats =
 
                     revenue,
 
-                    ctr,
+                    ctr:
+                      Number(ctr),
 
                     cpm,
                   },
@@ -634,7 +632,45 @@ exports.fetchAndStoreAdsterraStats =
       }
 
       // =====================================================
-      // UPDATE USER REVENUE
+      // CALCULATE FINAL USER REVENUE
+      // =====================================================
+
+      const revenueAgg =
+        await AdsterraStats.aggregate(
+          [
+            {
+              $match: {
+                userId:
+                  new mongoose.Types.ObjectId(
+                    userId
+                  ),
+              },
+            },
+
+            {
+              $group: {
+                _id: null,
+
+                totalRevenue:
+                {
+                  $sum:
+                    "$revenue",
+                },
+              },
+            },
+          ]
+        );
+
+      const finalRevenue =
+        Number(
+          (
+            revenueAgg[0]
+              ?.totalRevenue || 0
+          ).toFixed(6)
+        );
+
+      // =====================================================
+      // UPDATE USER
       // =====================================================
 
       await User.findByIdAndUpdate(
@@ -642,13 +678,17 @@ exports.fetchAndStoreAdsterraStats =
         {
           $set: {
             revenue:
-              Number(
-                totalRevenue.toFixed(
-                  6
-                )
-              ) || 0,
+              finalRevenue,
           },
+        },
+        {
+          new: true,
         }
+      );
+
+      console.log(
+        "FINAL REVENUE =>",
+        finalRevenue
       );
 
       // =====================================================
@@ -668,11 +708,7 @@ exports.fetchAndStoreAdsterraStats =
           smartLinkDocs.length,
 
         totalRevenue:
-          Number(
-            totalRevenue.toFixed(
-              6
-            )
-          ),
+          finalRevenue,
 
         start_date:
           finalStartDate,
