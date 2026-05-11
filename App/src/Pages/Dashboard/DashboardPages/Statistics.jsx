@@ -236,164 +236,243 @@ const Statistics = () => {
     );
   };
 
+const groupedData = useMemo(() => {
+
+  if (!Array.isArray(groupedReducerData)) {
+    return [];
+  }
+
   // ====================================
-  // GROUP DATA
+  // COUNTRY GROUPING
   // ====================================
-  const groupedData = useMemo(() => {
 
-    // ====================================
-    // DATE => OLD DB DATA
-    // ====================================
+  if (groupBy === "country") {
 
-    if (groupBy === "date") {
+  const countryMap = {};
 
-      const dateMap = {};
+  groupedReducerData.forEach((item) => {
 
-      if (startDate && endDate) {
+    if (!Array.isArray(item.stats)) return;
 
-        const current = new Date(startDate);
+    item.stats.forEach((stat) => {
 
-        while (current <= endDate) {
+      const countryCode =
+        stat.country || "";
 
-          const formatted =
-            current.toLocaleDateString();
+      const country =
+        lookup.byIso(countryCode)?.country ||
+        countryCode ||
+        "Unknown";
 
-          dateMap[formatted] = {
-            label: formatted,
-            impressions: 0,
-            clicks: 0,
-            revenue: 0,
-          };
-
-          current.setDate(
-            current.getDate() + 1
-          );
-        }
+      if (!countryMap[country]) {
+        countryMap[country] = {
+          label: country,
+          impressions: 0,
+          clicks: 0,
+          revenue: 0,
+        };
       }
 
-      if (Array.isArray(data)) {
+      countryMap[country].impressions +=
+        Number(stat.impressions || 0);
 
-        data.forEach((item) => {
+      countryMap[country].clicks +=
+        Number(stat.clicks || 0);
 
-          const formattedDate =
-            item.date
-              ? new Date(
-                item.date
-              ).toLocaleDateString()
-              : "Unknown";
+      countryMap[country].revenue +=
+        Number(stat.revenue || 0);
+    });
+  });
 
-          if (!dateMap[formattedDate]) {
+  return Object.values(countryMap).sort(
+    (a, b) =>
+      b.impressions - a.impressions
+  );
+}
 
-            dateMap[formattedDate] = {
-              label: formattedDate,
-              impressions: 0,
-              clicks: 0,
-              revenue: 0,
-            };
-          }
+  // ====================================
+  // DEVICE
+  // ====================================
 
-          dateMap[formattedDate].impressions +=
-            Number(item.impressions || 0);
+  if (groupBy === "device") {
 
-          dateMap[formattedDate].clicks +=
-            Number(item.clicks || 0);
+    const deviceMap = {};
 
-          dateMap[formattedDate].revenue +=
-            Number(item.revenue || 0);
-        });
+    groupedReducerData.forEach((item) => {
+
+      const device =
+        item.device || "Unknown";
+
+      if (!deviceMap[device]) {
+        deviceMap[device] = {
+          label: device,
+          impressions: 0,
+          clicks: 0,
+          revenue: 0,
+        };
       }
 
-      return Object.values(dateMap);
-    }
+      item.stats?.forEach((stat) => {
 
-    // ====================================
-    // COUNTRY / DEVICE / OS / BROWSER
-    // => REDUCER GROUPED DATA
-    // ====================================
+        deviceMap[device].impressions +=
+          Number(stat.impressions || 0);
 
-    if (
-      !Array.isArray(
-        groupedReducerData
-      )
-    ) {
-      return [];
-    }
+        deviceMap[device].clicks +=
+          Number(stat.clicks || 0);
 
-    return groupedReducerData.map(
-      (item) => ({
-        label:
-          item.label ||
-          item.country ||
-          item.device ||
-          item.osName ||
-          item.browserName ||
-          "Unknown",
+        deviceMap[device].revenue +=
+          Number(stat.revenue || 0);
+      });
+    });
 
-        impressions:
-          Number(
-            item.impressions || 0
-          ),
+    return Object.values(deviceMap);
+  }
 
-        clicks:
-          Number(
-            item.clicks || 0
-          ),
+  // ====================================
+  // OS
+  // ====================================
 
-        revenue:
-          Number(
-            item.revenue || 0
-          ),
-      })
-    );
+  if (groupBy === "os") {
 
-  }, [
-    data,
-    groupedReducerData,
-    groupBy,
-    startDate,
-    endDate,
-  ]);
+    const osMap = {};
+
+    groupedReducerData.forEach((item) => {
+
+      const os =
+        item.osName || "Unknown";
+
+      if (!osMap[os]) {
+        osMap[os] = {
+          label: os,
+          impressions: 0,
+          clicks: 0,
+          revenue: 0,
+        };
+      }
+
+      item.stats?.forEach((stat) => {
+
+        osMap[os].impressions +=
+          Number(stat.impressions || 0);
+
+        osMap[os].clicks +=
+          Number(stat.clicks || 0);
+
+        osMap[os].revenue +=
+          Number(stat.revenue || 0);
+      });
+    });
+
+    return Object.values(osMap);
+  }
+
+  // ====================================
+  // BROWSER
+  // ====================================
+
+  if (groupBy === "browser") {
+
+    const browserMap = {};
+
+    groupedReducerData.forEach((item) => {
+
+      const browser =
+        item.browserName || "Unknown";
+
+      if (!browserMap[browser]) {
+        browserMap[browser] = {
+          label: browser,
+          impressions: 0,
+          clicks: 0,
+          revenue: 0,
+        };
+      }
+
+      item.stats?.forEach((stat) => {
+
+        browserMap[browser].impressions +=
+          Number(stat.impressions || 0);
+
+        browserMap[browser].clicks +=
+          Number(stat.clicks || 0);
+
+        browserMap[browser].revenue +=
+          Number(stat.revenue || 0);
+      });
+    });
+
+    return Object.values(browserMap);
+  }
+
+  // ====================================
+  // DATE
+  // ====================================
+
+  if (groupBy === "date") {
+
+    const dateMap = {};
+
+    groupedReducerData.forEach((item) => {
+
+      const date =
+        item.date || "Unknown";
+
+      if (!dateMap[date]) {
+        dateMap[date] = {
+          label: date,
+          impressions: 0,
+          clicks: 0,
+          revenue: 0,
+        };
+      }
+
+      item.stats?.forEach((stat) => {
+
+        dateMap[date].impressions +=
+          Number(stat.impressions || 0);
+
+        dateMap[date].clicks +=
+          Number(stat.clicks || 0);
+
+        dateMap[date].revenue +=
+          Number(stat.revenue || 0);
+      });
+    });
+
+    return Object.values(dateMap);
+  }
+
+  return [];
+
+}, [groupedReducerData, groupBy]);
 
   // ====================================
   // TOTALS
   // ====================================
-  const calculatedTotals =
-    groupBy === "date"
-      ? groupedData.reduce(
-        (acc, item) => {
-          acc.impressions += Number(
-            item.impressions || 0
-          );
+const calculatedTotals =
+  groupedData.reduce(
+    (acc, item) => {
 
-          acc.clicks += Number(
-            item.clicks || 0
-          );
+      acc.impressions += Number(
+        item.impressions || 0
+      );
 
-          acc.revenue += Number(
-            item.revenue || 0
-          );
+      acc.clicks += Number(
+        item.clicks || 0
+      );
 
-          return acc;
-        },
-        {
-          impressions: 0,
-          clicks: 0,
-          revenue: 0,
-        }
-      )
-      : {
-        impressions: Number(
-          totals?.totalImpressions || 0
-        ),
+      acc.revenue += Number(
+        item.revenue || 0
+      );
 
-        clicks: Number(
-          totals?.totalClicks || 0
-        ),
-
-        revenue: Number(
-          totals?.totalRevenue || 0
-        ),
-      };
+      return acc;
+    },
+    {
+      impressions: 0,
+      clicks: 0,
+      revenue: 0,
+    }
+  );
 
   // ====================================
   // EXPORT CSV
