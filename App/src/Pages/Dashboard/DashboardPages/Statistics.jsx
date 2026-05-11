@@ -166,7 +166,7 @@ const Statistics = () => {
   // ====================================
   useEffect(() => {
 
-    dispatch(fetchAdsterraStats());
+          dispatch(fetchAdsterraStats());
 
 
     dispatch(
@@ -236,243 +236,164 @@ const Statistics = () => {
     );
   };
 
-const groupedData = useMemo(() => {
-
-  if (!Array.isArray(groupedReducerData)) {
-    return [];
-  }
-
   // ====================================
-  // COUNTRY GROUPING
+  // GROUP DATA
   // ====================================
+  const groupedData = useMemo(() => {
 
-  if (groupBy === "country") {
+    // ====================================
+    // DATE => OLD DB DATA
+    // ====================================
 
-  const countryMap = {};
+    if (groupBy === "date") {
 
-  groupedReducerData.forEach((item) => {
+      const dateMap = {};
 
-    if (!Array.isArray(item.stats)) return;
+      if (startDate && endDate) {
 
-    item.stats.forEach((stat) => {
+        const current = new Date(startDate);
 
-      const countryCode =
-        stat.country || "";
+        while (current <= endDate) {
 
-      const country =
-        lookup.byIso(countryCode)?.country ||
-        countryCode ||
-        "Unknown";
+          const formatted =
+            current.toLocaleDateString();
 
-      if (!countryMap[country]) {
-        countryMap[country] = {
-          label: country,
-          impressions: 0,
-          clicks: 0,
-          revenue: 0,
-        };
+          dateMap[formatted] = {
+            label: formatted,
+            impressions: 0,
+            clicks: 0,
+            revenue: 0,
+          };
+
+          current.setDate(
+            current.getDate() + 1
+          );
+        }
       }
 
-      countryMap[country].impressions +=
-        Number(stat.impressions || 0);
+      if (Array.isArray(data)) {
 
-      countryMap[country].clicks +=
-        Number(stat.clicks || 0);
+        data.forEach((item) => {
 
-      countryMap[country].revenue +=
-        Number(stat.revenue || 0);
-    });
-  });
+          const formattedDate =
+            item.date
+              ? new Date(
+                item.date
+              ).toLocaleDateString()
+              : "Unknown";
 
-  return Object.values(countryMap).sort(
-    (a, b) =>
-      b.impressions - a.impressions
-  );
-}
+          if (!dateMap[formattedDate]) {
 
-  // ====================================
-  // DEVICE
-  // ====================================
+            dateMap[formattedDate] = {
+              label: formattedDate,
+              impressions: 0,
+              clicks: 0,
+              revenue: 0,
+            };
+          }
 
-  if (groupBy === "device") {
+          dateMap[formattedDate].impressions +=
+            Number(item.impressions || 0);
 
-    const deviceMap = {};
+          dateMap[formattedDate].clicks +=
+            Number(item.clicks || 0);
 
-    groupedReducerData.forEach((item) => {
-
-      const device =
-        item.device || "Unknown";
-
-      if (!deviceMap[device]) {
-        deviceMap[device] = {
-          label: device,
-          impressions: 0,
-          clicks: 0,
-          revenue: 0,
-        };
+          dateMap[formattedDate].revenue +=
+            Number(item.revenue || 0);
+        });
       }
 
-      item.stats?.forEach((stat) => {
+      return Object.values(dateMap);
+    }
 
-        deviceMap[device].impressions +=
-          Number(stat.impressions || 0);
+    // ====================================
+    // COUNTRY / DEVICE / OS / BROWSER
+    // => REDUCER GROUPED DATA
+    // ====================================
 
-        deviceMap[device].clicks +=
-          Number(stat.clicks || 0);
+    if (
+      !Array.isArray(
+        groupedReducerData
+      )
+    ) {
+      return [];
+    }
 
-        deviceMap[device].revenue +=
-          Number(stat.revenue || 0);
-      });
-    });
+    return groupedReducerData.map(
+      (item) => ({
+        label:
+          item.label ||
+          item.country ||
+          item.device ||
+          item.osName ||
+          item.browserName ||
+          "Unknown",
 
-    return Object.values(deviceMap);
-  }
+        impressions:
+          Number(
+            item.impressions || 0
+          ),
 
-  // ====================================
-  // OS
-  // ====================================
+        clicks:
+          Number(
+            item.clicks || 0
+          ),
 
-  if (groupBy === "os") {
+        revenue:
+          Number(
+            item.revenue || 0
+          ),
+      })
+    );
 
-    const osMap = {};
-
-    groupedReducerData.forEach((item) => {
-
-      const os =
-        item.osName || "Unknown";
-
-      if (!osMap[os]) {
-        osMap[os] = {
-          label: os,
-          impressions: 0,
-          clicks: 0,
-          revenue: 0,
-        };
-      }
-
-      item.stats?.forEach((stat) => {
-
-        osMap[os].impressions +=
-          Number(stat.impressions || 0);
-
-        osMap[os].clicks +=
-          Number(stat.clicks || 0);
-
-        osMap[os].revenue +=
-          Number(stat.revenue || 0);
-      });
-    });
-
-    return Object.values(osMap);
-  }
-
-  // ====================================
-  // BROWSER
-  // ====================================
-
-  if (groupBy === "browser") {
-
-    const browserMap = {};
-
-    groupedReducerData.forEach((item) => {
-
-      const browser =
-        item.browserName || "Unknown";
-
-      if (!browserMap[browser]) {
-        browserMap[browser] = {
-          label: browser,
-          impressions: 0,
-          clicks: 0,
-          revenue: 0,
-        };
-      }
-
-      item.stats?.forEach((stat) => {
-
-        browserMap[browser].impressions +=
-          Number(stat.impressions || 0);
-
-        browserMap[browser].clicks +=
-          Number(stat.clicks || 0);
-
-        browserMap[browser].revenue +=
-          Number(stat.revenue || 0);
-      });
-    });
-
-    return Object.values(browserMap);
-  }
-
-  // ====================================
-  // DATE
-  // ====================================
-
-  if (groupBy === "date") {
-
-    const dateMap = {};
-
-    groupedReducerData.forEach((item) => {
-
-      const date =
-        item.date || "Unknown";
-
-      if (!dateMap[date]) {
-        dateMap[date] = {
-          label: date,
-          impressions: 0,
-          clicks: 0,
-          revenue: 0,
-        };
-      }
-
-      item.stats?.forEach((stat) => {
-
-        dateMap[date].impressions +=
-          Number(stat.impressions || 0);
-
-        dateMap[date].clicks +=
-          Number(stat.clicks || 0);
-
-        dateMap[date].revenue +=
-          Number(stat.revenue || 0);
-      });
-    });
-
-    return Object.values(dateMap);
-  }
-
-  return [];
-
-}, [groupedReducerData, groupBy]);
+  }, [
+    data,
+    groupedReducerData,
+    groupBy,
+    startDate,
+    endDate,
+  ]);
 
   // ====================================
   // TOTALS
   // ====================================
-const calculatedTotals =
-  groupedData.reduce(
-    (acc, item) => {
+  const calculatedTotals =
+    groupBy === "date"
+      ? groupedData.reduce(
+        (acc, item) => {
+          acc.impressions += Number(
+            item.impressions || 0
+          );
 
-      acc.impressions += Number(
-        item.impressions || 0
-      );
+          acc.clicks += Number(
+            item.clicks || 0
+          );
 
-      acc.clicks += Number(
-        item.clicks || 0
-      );
+          acc.revenue += Number(
+            item.revenue || 0
+          );
 
-      acc.revenue += Number(
-        item.revenue || 0
-      );
+          return acc;
+        },
+        {
+          impressions: 0,
+          clicks: 0,
+          revenue: 0,
+        }
+      )
+      : {
+        impressions: Number(
+          totals?.totalImpressions || 0
+        ),
 
-      return acc;
-    },
-    {
-      impressions: 0,
-      clicks: 0,
-      revenue: 0,
-    }
-  );
+        clicks: Number(
+          totals?.totalClicks || 0
+        ),
+
+        revenue: Number(
+          totals?.totalRevenue || 0
+        ),
+      };
 
   // ====================================
   // EXPORT CSV

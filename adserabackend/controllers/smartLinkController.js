@@ -173,7 +173,10 @@ exports.getSmartLinkStats = async (
       limit = 20,
     } = req.query;
 
-    // ✅ AUTH
+    // =====================================================
+    // AUTH
+    // =====================================================
+
     if (!userId) {
       return res.status(401).json({
         success: false,
@@ -181,38 +184,50 @@ exports.getSmartLinkStats = async (
       });
     }
 
-    // ✅ FILTER
-    const filter = {
+    // =====================================================
+    // FILTER
+    // =====================================================
+
+    const matchFilter = {
       userId:
         new mongoose.Types.ObjectId(
           userId
         ),
     };
 
-    // ✅ DATE FILTER
+    // DATE FILTER
     if (
       start_date &&
       end_date
     ) {
-      filter.date = {
+      matchFilter.date = {
         $gte: start_date,
         $lte: end_date,
       };
     }
 
-    // ✅ PLACEMENT FILTER
+    // =====================================================
+    // UNWIND FILTERS
+    // =====================================================
+
+    const statsFilter = {};
+
+    // PLACEMENT
     if (placement) {
-      filter.placement =
-        placement;
+      statsFilter[
+        "stats.placement"
+      ] = placement;
     }
 
-    // ✅ COUNTRY FILTER
+    // COUNTRY
     if (
       country &&
       country.toUpperCase() !==
         "ALL"
     ) {
-      filter.country = {
+      statsFilter[
+        "stats.country"
+      ] = {
         $in: country
           .split(",")
           .map((c) =>
@@ -223,7 +238,10 @@ exports.getSmartLinkStats = async (
       };
     }
 
-    // ✅ PAGINATION
+    // =====================================================
+    // PAGINATION
+    // =====================================================
+
     const currentPage =
       Number(page) || 1;
 
@@ -234,30 +252,137 @@ exports.getSmartLinkStats = async (
       (currentPage - 1) *
       perPage;
 
-    // ✅ FETCH DATA
-    const stats =
-      await SmartLinkStats
-        .find(filter)
-        .sort({
-          date: -1,
-          createdAt: -1,
-        })
-        .skip(skip)
-        .limit(perPage)
-        .lean();
+    // =====================================================
+    // MAIN DATA
+    // =====================================================
 
-    // ✅ TOTAL RECORDS
-    const totalRecords =
-      await SmartLinkStats.countDocuments(
-        filter
+    const stats =
+      await SmartLinkStats.aggregate(
+        [
+          {
+            $match:
+              matchFilter,
+          },
+
+          {
+            $unwind: "$stats",
+          },
+
+          {
+            $match:
+              statsFilter,
+          },
+
+          {
+            $project: {
+              _id: 0,
+
+              userId: 1,
+
+              date: 1,
+
+              device: 1,
+
+              browserName: 1,
+
+              osName: 1,
+
+              createdAt: 1,
+
+              updatedAt: 1,
+
+              placement:
+                "$stats.placement",
+
+              domain:
+                "$stats.domain",
+
+              country:
+                "$stats.country",
+
+              impressions:
+                "$stats.impressions",
+
+              clicks:
+                "$stats.clicks",
+
+              ctr: "$stats.ctr",
+
+              cpm: "$stats.cpm",
+
+              revenue:
+                "$stats.revenue",
+            },
+          },
+
+          {
+            $sort: {
+              date: -1,
+              createdAt: -1,
+            },
+          },
+
+          {
+            $skip: skip,
+          },
+
+          {
+            $limit: perPage,
+          },
+        ]
       );
 
-    // ✅ TOTALS
+    // =====================================================
+    // TOTAL RECORDS
+    // =====================================================
+
+    const totalResult =
+      await SmartLinkStats.aggregate(
+        [
+          {
+            $match:
+              matchFilter,
+          },
+
+          {
+            $unwind: "$stats",
+          },
+
+          {
+            $match:
+              statsFilter,
+          },
+
+          {
+            $count:
+              "total",
+          },
+        ]
+      );
+
+    const totalRecords =
+      totalResult[0]
+        ?.total || 0;
+
+    // =====================================================
+    // TOTALS
+    // =====================================================
+
     const totalsAgg =
       await SmartLinkStats.aggregate(
         [
           {
-            $match: filter,
+            $match:
+              matchFilter,
+          },
+
+          {
+            $unwind: "$stats",
+          },
+
+          {
+            $match:
+              statsFilter,
           },
 
           {
@@ -267,15 +392,17 @@ exports.getSmartLinkStats = async (
               totalImpressions:
                 {
                   $sum:
-                    "$impressions",
+                    "$stats.impressions",
                 },
 
               totalClicks: {
-                $sum: "$clicks",
+                $sum:
+                  "$stats.clicks",
               },
 
               totalRevenue: {
-                $sum: "$revenue",
+                $sum:
+                  "$stats.revenue",
               },
             },
           },
@@ -289,7 +416,10 @@ exports.getSmartLinkStats = async (
         totalRevenue: 0,
       };
 
-    // ✅ CTR
+    // =====================================================
+    // CTR
+    // =====================================================
+
     const ctr =
       totals.totalImpressions >
       0
@@ -298,7 +428,10 @@ exports.getSmartLinkStats = async (
           100
         : 0;
 
-    // ✅ CPM
+    // =====================================================
+    // CPM
+    // =====================================================
+
     const cpm =
       totals.totalImpressions >
       0
@@ -307,29 +440,164 @@ exports.getSmartLinkStats = async (
           1000
         : 0;
 
-    // ✅ COUNTRY WISE SUMMARY
-    const countrySummary =
+    // =====================================================
+    // DATE WISE SUMMARY
+    // =====================================================
+
+    const dateSummary =
       await SmartLinkStats.aggregate(
         [
           {
-            $match: filter,
+            $match:
+              matchFilter,
+          },
+
+          {
+            $unwind: "$stats",
+          },
+
+          {
+            $match:
+              statsFilter,
           },
 
           {
             $group: {
-              _id: "$country",
+              _id: "$date",
 
               impressions: {
                 $sum:
-                  "$impressions",
+                  "$stats.impressions",
               },
 
               clicks: {
-                $sum: "$clicks",
+                $sum:
+                  "$stats.clicks",
               },
 
               revenue: {
-                $sum: "$revenue",
+                $sum:
+                  "$stats.revenue",
+              },
+            },
+          },
+
+          {
+            $project: {
+              _id: 0,
+
+              date: "$_id",
+
+              impressions: 1,
+
+              clicks: 1,
+
+              revenue: {
+                $round: [
+                  "$revenue",
+                  6,
+                ],
+              },
+
+              ctr: {
+                $cond: [
+                  {
+                    $gt: [
+                      "$impressions",
+                      0,
+                    ],
+                  },
+
+                  {
+                    $multiply: [
+                      {
+                        $divide: [
+                          "$clicks",
+                          "$impressions",
+                        ],
+                      },
+                      100,
+                    ],
+                  },
+
+                  0,
+                ],
+              },
+
+              cpm: {
+                $cond: [
+                  {
+                    $gt: [
+                      "$impressions",
+                      0,
+                    ],
+                  },
+
+                  {
+                    $multiply: [
+                      {
+                        $divide: [
+                          "$revenue",
+                          "$impressions",
+                        ],
+                      },
+                      1000,
+                    ],
+                  },
+
+                  0,
+                ],
+              },
+            },
+          },
+
+          {
+            $sort: {
+              date: -1,
+            },
+          },
+        ]
+      );
+
+    // =====================================================
+    // COUNTRY WISE SUMMARY
+    // =====================================================
+
+    const countrySummary =
+      await SmartLinkStats.aggregate(
+        [
+          {
+            $match:
+              matchFilter,
+          },
+
+          {
+            $unwind: "$stats",
+          },
+
+          {
+            $match:
+              statsFilter,
+          },
+
+          {
+            $group: {
+              _id:
+                "$stats.country",
+
+              impressions: {
+                $sum:
+                  "$stats.impressions",
+              },
+
+              clicks: {
+                $sum:
+                  "$stats.clicks",
+              },
+
+              revenue: {
+                $sum:
+                  "$stats.revenue",
               },
             },
           },
@@ -375,6 +643,31 @@ exports.getSmartLinkStats = async (
                   0,
                 ],
               },
+
+              cpm: {
+                $cond: [
+                  {
+                    $gt: [
+                      "$impressions",
+                      0,
+                    ],
+                  },
+
+                  {
+                    $multiply: [
+                      {
+                        $divide: [
+                          "$revenue",
+                          "$impressions",
+                        ],
+                      },
+                      1000,
+                    ],
+                  },
+
+                  0,
+                ],
+              },
             },
           },
 
@@ -386,7 +679,10 @@ exports.getSmartLinkStats = async (
         ]
       );
 
-    // ✅ RESPONSE
+    // =====================================================
+    // RESPONSE
+    // =====================================================
+
     return res.status(200).json({
       success: true,
 
@@ -442,6 +738,8 @@ exports.getSmartLinkStats = async (
           cpm.toFixed(6)
         ),
       },
+
+      dateSummary,
 
       countrySummary,
 

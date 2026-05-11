@@ -26,6 +26,11 @@ exports.fetchAndStoreAdsterraStats =
         });
       }
 
+      const objectUserId =
+        new mongoose.Types.ObjectId(
+          userId
+        );
+
       // =====================================================
       // QUERY
       // =====================================================
@@ -42,7 +47,8 @@ exports.fetchAndStoreAdsterraStats =
 
       const links =
         await SmartLink.find({
-          userId,
+          userId:
+            objectUserId,
         });
 
       if (!links.length) {
@@ -155,7 +161,7 @@ exports.fetchAndStoreAdsterraStats =
       const ua =
         req.headers[
         "user-agent"
-        ] || "";
+        ];
 
       const parser =
         new UAParser(ua);
@@ -297,7 +303,7 @@ exports.fetchAndStoreAdsterraStats =
                     finalEndDate,
 
                   group_by:
-                    "country",
+                    "date,country",
                 },
 
                 headers: {
@@ -327,6 +333,30 @@ exports.fetchAndStoreAdsterraStats =
                 item?.country &&
                 item.country.trim() !==
                 ""
+            );
+
+          // =================================================
+          // FILTER APPROVED DATE
+          // =================================================
+
+          countryData =
+            countryData.filter(
+              (item) => {
+                if (
+                  !approvedDate
+                )
+                  return true;
+
+                const itemDate =
+                  normalizeDate(
+                    item.date
+                  );
+
+                return (
+                  itemDate >=
+                  approvedDate
+                );
+              }
             );
 
           // =================================================
@@ -376,11 +406,9 @@ exports.fetchAndStoreAdsterraStats =
 
             const ctr =
               impressions > 0
-                ? (
-                  (clicks /
-                    impressions) *
-                  100
-                ).toFixed(2)
+                ? (clicks /
+                  impressions) *
+                100
                 : 0;
 
             const cpm =
@@ -396,9 +424,7 @@ exports.fetchAndStoreAdsterraStats =
               updateOne: {
                 filter: {
                   userId:
-                    new mongoose.Types.ObjectId(
-                      userId
-                    ),
+                    objectUserId,
 
                   placement:
                     placementId,
@@ -413,9 +439,7 @@ exports.fetchAndStoreAdsterraStats =
                 update: {
                   $set: {
                     userId:
-                      new mongoose.Types.ObjectId(
-                        userId
-                      ),
+                      objectUserId,
 
                     domain,
 
@@ -441,8 +465,7 @@ exports.fetchAndStoreAdsterraStats =
 
                     revenue,
 
-                    ctr:
-                      Number(ctr),
+                    ctr,
 
                     cpm,
                   },
@@ -458,8 +481,11 @@ exports.fetchAndStoreAdsterraStats =
           // =================================================
 
           for (const item of countryData) {
+
             const statsDate =
-              finalEndDate;
+              normalizeDate(
+                item.date
+              );
 
             const mapKey = [
               userId,
@@ -476,9 +502,7 @@ exports.fetchAndStoreAdsterraStats =
                 mapKey,
                 {
                   userId:
-                    new mongoose.Types.ObjectId(
-                      userId
-                    ),
+                    objectUserId,
 
                   device:
                     deviceType,
@@ -514,6 +538,9 @@ exports.fetchAndStoreAdsterraStats =
               country:
                 countryName,
 
+              date:
+                statsDate,
+
               impressions:
                 Number(
                   item.impression
@@ -525,12 +552,10 @@ exports.fetchAndStoreAdsterraStats =
                 ) || 0,
 
               ctr:
-                Number(item.ctr) ||
-                0,
+                Number(item.ctr) || 0,
 
               cpm:
-                Number(item.cpm) ||
-                0,
+                Number(item.cpm) || 0,
 
               revenue:
                 Number(
@@ -548,11 +573,14 @@ exports.fetchAndStoreAdsterraStats =
                   s.placement ===
                   placementId &&
                   s.country ===
-                  countryName
+                  countryName &&
+                  s.date ===
+                  statsDate
               );
 
             if (
-              existingIndex !== -1
+              existingIndex !==
+              -1
             ) {
               doc.stats[
                 existingIndex
@@ -632,63 +660,76 @@ exports.fetchAndStoreAdsterraStats =
       }
 
       // =====================================================
-      // CALCULATE FINAL USER REVENUE
+      // CALCULATE FINAL REVENUE
       // =====================================================
 
-      const revenueAgg =
-        await AdsterraStats.aggregate(
-          [
-            {
-              $match: {
-                userId:
-                  new mongoose.Types.ObjectId(
-                    userId
-                  ),
+      const revenueData =
+        await AdsterraStats.aggregate([
+          {
+            $match: {
+              userId:
+                objectUserId,
+            },
+          },
+
+          {
+            $group: {
+              _id: null,
+
+              totalRevenue: {
+                $sum: "$revenue",
               },
             },
-
-            {
-              $group: {
-                _id: null,
-
-                totalRevenue:
-                {
-                  $sum:
-                    "$revenue",
-                },
-              },
-            },
-          ]
-        );
+          },
+        ]);
 
       const finalRevenue =
-        Number(
-          (
-            revenueAgg[0]
-              ?.totalRevenue || 0
-          ).toFixed(6)
-        );
+        revenueData[0]
+          ?.totalRevenue || 0;
 
       // =====================================================
       // UPDATE USER
       // =====================================================
 
-      await User.findByIdAndUpdate(
-        userId,
-        {
-          $set: {
-            revenue:
-              finalRevenue,
-          },
-        },
-        {
-          new: true,
-        }
-      );
+
+      console.log("OBJECT USER ID =>", objectUserId);
+
+      const checkUser =
+        await User.findById(
+          objectUserId
+        );
 
       console.log(
-        "FINAL REVENUE =>",
-        finalRevenue
+        "FOUND USER =>",
+        checkUser
+      );
+
+      const updatedUser =
+        await User.findOneAndUpdate(
+          {
+            _id:
+              objectUserId,
+          },
+
+          {
+            $set: {
+              revenue:
+                Number(
+                  finalRevenue.toFixed(
+                    6
+                  )
+                ),
+            },
+          },
+
+          {
+            new: true,
+          }
+        );
+
+      console.log(
+        "UPDATED USER =>",
+        updatedUser
       );
 
       // =====================================================
@@ -708,7 +749,11 @@ exports.fetchAndStoreAdsterraStats =
           smartLinkDocs.length,
 
         totalRevenue:
-          finalRevenue,
+          Number(
+            finalRevenue.toFixed(
+              6
+            )
+          ),
 
         start_date:
           finalStartDate,
