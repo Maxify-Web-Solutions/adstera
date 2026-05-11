@@ -26,11 +26,6 @@ exports.fetchAndStoreAdsterraStats =
         });
       }
 
-      const objectUserId =
-        new mongoose.Types.ObjectId(
-          userId
-        );
-
       // =====================================================
       // QUERY
       // =====================================================
@@ -47,8 +42,7 @@ exports.fetchAndStoreAdsterraStats =
 
       const links =
         await SmartLink.find({
-          userId:
-            objectUserId,
+          userId,
         });
 
       if (!links.length) {
@@ -189,6 +183,8 @@ exports.fetchAndStoreAdsterraStats =
       // STORAGE
       // =====================================================
 
+      let totalRevenue = 0;
+
       const overallOps = [];
 
       const smartLinkStatsMap =
@@ -303,7 +299,7 @@ exports.fetchAndStoreAdsterraStats =
                     finalEndDate,
 
                   group_by:
-                    "date,country",
+                    "country",
                 },
 
                 headers: {
@@ -333,30 +329,6 @@ exports.fetchAndStoreAdsterraStats =
                 item?.country &&
                 item.country.trim() !==
                 ""
-            );
-
-          // =================================================
-          // FILTER APPROVED DATE
-          // =================================================
-
-          countryData =
-            countryData.filter(
-              (item) => {
-                if (
-                  !approvedDate
-                )
-                  return true;
-
-                const itemDate =
-                  normalizeDate(
-                    item.date
-                  );
-
-                return (
-                  itemDate >=
-                  approvedDate
-                );
-              }
             );
 
           // =================================================
@@ -420,11 +392,16 @@ exports.fetchAndStoreAdsterraStats =
                 item.date
               );
 
+            totalRevenue +=
+              revenue;
+
             overallOps.push({
               updateOne: {
                 filter: {
                   userId:
-                    objectUserId,
+                    new mongoose.Types.ObjectId(
+                      userId
+                    ),
 
                   placement:
                     placementId,
@@ -439,7 +416,9 @@ exports.fetchAndStoreAdsterraStats =
                 update: {
                   $set: {
                     userId:
-                      objectUserId,
+                      new mongoose.Types.ObjectId(
+                        userId
+                      ),
 
                     domain,
 
@@ -481,11 +460,8 @@ exports.fetchAndStoreAdsterraStats =
           // =================================================
 
           for (const item of countryData) {
-
             const statsDate =
-              normalizeDate(
-                item.date
-              );
+              finalEndDate;
 
             const mapKey = [
               userId,
@@ -502,7 +478,9 @@ exports.fetchAndStoreAdsterraStats =
                 mapKey,
                 {
                   userId:
-                    objectUserId,
+                    new mongoose.Types.ObjectId(
+                      userId
+                    ),
 
                   device:
                     deviceType,
@@ -538,9 +516,6 @@ exports.fetchAndStoreAdsterraStats =
               country:
                 countryName,
 
-              date:
-                statsDate,
-
               impressions:
                 Number(
                   item.impression
@@ -552,10 +527,12 @@ exports.fetchAndStoreAdsterraStats =
                 ) || 0,
 
               ctr:
-                Number(item.ctr) || 0,
+                Number(item.ctr) ||
+                0,
 
               cpm:
-                Number(item.cpm) || 0,
+                Number(item.cpm) ||
+                0,
 
               revenue:
                 Number(
@@ -573,14 +550,11 @@ exports.fetchAndStoreAdsterraStats =
                   s.placement ===
                   placementId &&
                   s.country ===
-                  countryName &&
-                  s.date ===
-                  statsDate
+                  countryName
               );
 
             if (
-              existingIndex !==
-              -1
+              existingIndex !== -1
             ) {
               doc.stats[
                 existingIndex
@@ -660,76 +634,21 @@ exports.fetchAndStoreAdsterraStats =
       }
 
       // =====================================================
-      // CALCULATE FINAL REVENUE
+      // UPDATE USER REVENUE
       // =====================================================
 
-      const revenueData =
-        await AdsterraStats.aggregate([
-          {
-            $match: {
-              userId:
-                objectUserId,
-            },
+      await User.findByIdAndUpdate(
+        userId,
+        {
+          $set: {
+            revenue:
+              Number(
+                totalRevenue.toFixed(
+                  6
+                )
+              ) || 0,
           },
-
-          {
-            $group: {
-              _id: null,
-
-              totalRevenue: {
-                $sum: "$revenue",
-              },
-            },
-          },
-        ]);
-
-      const finalRevenue =
-        revenueData[0]
-          ?.totalRevenue || 0;
-
-      // =====================================================
-      // UPDATE USER
-      // =====================================================
-
-
-      console.log("OBJECT USER ID =>", objectUserId);
-
-      const checkUser =
-        await User.findById(
-          objectUserId
-        );
-
-      console.log(
-        "FOUND USER =>",
-        checkUser
-      );
-
-      const updatedUser =
-        await User.findOneAndUpdate(
-          {
-            _id:
-              objectUserId,
-          },
-
-          {
-            $set: {
-              revenue:
-                Number(
-                  finalRevenue.toFixed(
-                    6
-                  )
-                ),
-            },
-          },
-
-          {
-            new: true,
-          }
-        );
-
-      console.log(
-        "UPDATED USER =>",
-        updatedUser
+        }
       );
 
       // =====================================================
@@ -750,7 +669,7 @@ exports.fetchAndStoreAdsterraStats =
 
         totalRevenue:
           Number(
-            finalRevenue.toFixed(
+            totalRevenue.toFixed(
               6
             )
           ),
