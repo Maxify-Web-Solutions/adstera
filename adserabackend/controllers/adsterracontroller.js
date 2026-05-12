@@ -210,7 +210,7 @@ exports.fetchAndStoreAdsterraStats =
           const placementId =
             String(
               link.placementId
-            );
+            ).trim();
 
           if (!placementId)
             continue;
@@ -222,14 +222,12 @@ exports.fetchAndStoreAdsterraStats =
           const approvedDate =
             link.approvedAt
               ? normalizeDate(
-                  link.approvedAt
-                )
+                link.approvedAt
+              )
               : null;
 
           // =============================================
           // FINAL START DATE
-          // PRIORITY:
-          // approvedAt > query start_date > 15 days
           // =============================================
 
           let apiStartDate =
@@ -357,7 +355,7 @@ exports.fetchAndStoreAdsterraStats =
               (item) =>
                 item?.country &&
                 item.country.trim() !==
-                  ""
+                ""
             );
 
           // =============================================
@@ -407,19 +405,26 @@ exports.fetchAndStoreAdsterraStats =
 
             const ctr =
               impressions > 0
-                ? (clicks /
-                    impressions) *
-                  100
+                ? Number(
+                  (
+                    (clicks /
+                      impressions) *
+                    100
+                  ).toFixed(2)
+                )
                 : 0;
 
             const cpm =
-              Number(item.cpm) ||
-              0;
+              Number(
+                item.cpm
+              ) || 0;
 
             const adsterraDate =
-              normalizeDate(
-                item.date
-              );
+              String(
+                normalizeDate(
+                  item.date
+                )
+              ).trim();
 
             // =========================================
             // DUPLICATE REVENUE PROTECTION
@@ -444,6 +449,11 @@ exports.fetchAndStoreAdsterraStats =
               );
             }
 
+            // =========================================
+            // SAME DATE + SAME PLACEMENT
+            // ALWAYS UPDATE
+            // =========================================
+
             overallOps.push({
               updateOne: {
                 filter: {
@@ -453,13 +463,17 @@ exports.fetchAndStoreAdsterraStats =
                     ),
 
                   placement:
-                    placementId,
+                    String(
+                      placementId
+                    ),
 
                   country:
                     "ALL",
 
                   date:
-                    adsterraDate,
+                    String(
+                      adsterraDate
+                    ),
                 },
 
                 update: {
@@ -472,13 +486,17 @@ exports.fetchAndStoreAdsterraStats =
                     domain,
 
                     placement:
-                      placementId,
+                      String(
+                        placementId
+                      ),
 
                     country:
                       "ALL",
 
                     date:
-                      adsterraDate,
+                      String(
+                        adsterraDate
+                      ),
 
                     device:
                       deviceType,
@@ -510,7 +528,9 @@ exports.fetchAndStoreAdsterraStats =
 
           for (const item of countryData) {
             const statsDate =
-              apiStartDate;
+              String(
+                apiStartDate
+              ).trim();
 
             const mapKey = [
               userId,
@@ -558,7 +578,9 @@ exports.fetchAndStoreAdsterraStats =
 
             const statItem = {
               placement:
-                placementId,
+                String(
+                  placementId
+                ),
 
               domain,
 
@@ -576,12 +598,14 @@ exports.fetchAndStoreAdsterraStats =
                 ) || 0,
 
               ctr:
-                Number(item.ctr) ||
-                0,
+                Number(
+                  item.ctr
+                ) || 0,
 
               cpm:
-                Number(item.cpm) ||
-                0,
+                Number(
+                  item.cpm
+                ) || 0,
 
               revenue:
                 Number(
@@ -596,10 +620,14 @@ exports.fetchAndStoreAdsterraStats =
             const existingIndex =
               doc.stats.findIndex(
                 (s) =>
-                  s.placement ===
-                    placementId &&
+                  String(
+                    s.placement
+                  ) ===
+                  String(
+                    placementId
+                  ) &&
                   s.country ===
-                    countryName
+                  countryName
               );
 
             if (
@@ -620,7 +648,7 @@ exports.fetchAndStoreAdsterraStats =
             link._id,
             err?.response
               ?.data ||
-              err.message
+            err.message
           );
         }
       }
@@ -659,7 +687,7 @@ exports.fetchAndStoreAdsterraStats =
               doc.device,
 
             date:
-              doc.date,
+              String(doc.date),
           },
 
           {
@@ -734,7 +762,7 @@ exports.fetchAndStoreAdsterraStats =
         "ADSTERRA FETCH ERROR =>",
         error?.response
           ?.data ||
-          error.message
+        error.message
       );
 
       return res.status(500).json({
@@ -750,7 +778,7 @@ exports.fetchAndStoreAdsterraStats =
       });
     }
   };
-
+  
 exports.getAdsterraStatsFromDB =
   async (req, res) => {
     try {
@@ -895,10 +923,10 @@ exports.getAdsterraStatsFromDB =
               _id: null,
 
               totalImpressions:
-                {
-                  $sum:
-                    "$impressions",
-                },
+              {
+                $sum:
+                  "$impressions",
+              },
 
               totalClicks: {
                 $sum:
@@ -924,20 +952,20 @@ exports.getAdsterraStatsFromDB =
 
       const ctr =
         totals.totalImpressions >
-        0
+          0
           ? (totals.totalClicks /
-              totals.totalImpressions) *
-            100
+            totals.totalImpressions) *
+          100
           : 0;
 
       // ================= CPM =================
 
       const cpm =
         totals.totalImpressions >
-        0
+          0
           ? (totals.totalRevenue /
-              totals.totalImpressions) *
-            1000
+            totals.totalImpressions) *
+          1000
           : 0;
 
       // ================= UPDATE USER =================
@@ -964,7 +992,7 @@ exports.getAdsterraStatsFromDB =
 
         totalPages: Math.ceil(
           totalRecords /
-            perPage
+          perPage
         ),
 
         totalRecords,
@@ -973,13 +1001,13 @@ exports.getAdsterraStatsFromDB =
           totalImpressions:
             Number(
               totals.totalImpressions ||
-                0
+              0
             ),
 
           totalClicks:
             Number(
               totals.totalClicks ||
-                0
+              0
             ),
 
           totalRevenue:
