@@ -1,6 +1,7 @@
 const axios = require("axios");
 const mongoose = require("mongoose");
 const UAParser = require("ua-parser-js");
+
 const SmartLink = require("../models/SmartLink");
 const AdsterraStats = require("../models/AdsterraStats");
 const SmartLinkStats = require("../models/SmartLinkStats");
@@ -72,19 +73,6 @@ exports.fetchAndStoreAdsterraStats =
             "Adsterra API key not found",
         });
       }
-      const cpmPercent =
-        Number(
-          config?.cpmPercent || 100
-        );
-
-      // Revenue %
-      const revenuePercent =
-        Number(
-          config?.revenuePercent ||
-          100
-        );
-
-
 
       // =================================================
       // DATE HELPERS
@@ -234,8 +222,8 @@ exports.fetchAndStoreAdsterraStats =
           const approvedDate =
             link.approvedAt
               ? normalizeDate(
-                link.approvedAt
-              )
+                  link.approvedAt
+                )
               : null;
 
           // =============================================
@@ -251,8 +239,6 @@ exports.fetchAndStoreAdsterraStats =
             apiStartDate =
               approvedDate;
           }
-
-
 
           const domain =
             link.domain ||
@@ -371,7 +357,7 @@ exports.fetchAndStoreAdsterraStats =
               (item) =>
                 item?.country &&
                 item.country.trim() !==
-                ""
+                  ""
             );
 
           // =============================================
@@ -422,22 +408,13 @@ exports.fetchAndStoreAdsterraStats =
             const ctr =
               impressions > 0
                 ? (clicks /
-                  impressions) *
-                100
+                    impressions) *
+                  100
                 : 0;
 
             const cpm =
               Number(item.cpm) ||
               0;
-
-            // APPLY %
-            const finalRevenue =
-              (revenue *
-                revenuePercent) /
-              100;
-
-            const finalCpm =
-              (cpm * cpmPercent) / 100;
 
             const adsterraDate =
               normalizeDate(
@@ -460,7 +437,8 @@ exports.fetchAndStoreAdsterraStats =
               )
             ) {
               totalRevenue +=
-                finalRevenue;
+                revenue;
+
               revenueTracker.add(
                 revenueKey
               );
@@ -513,19 +491,11 @@ exports.fetchAndStoreAdsterraStats =
 
                     clicks,
 
-                    revenue:
-                      Number(
-                        finalRevenue.toFixed(
-                          2
-                        )
-                      ),
+                    revenue,
 
                     ctr,
 
-                    cpm:
-                      Number(
-                        finalCpm.toFixed(2)
-                      ),
+                    cpm,
                   },
                 },
 
@@ -586,25 +556,6 @@ exports.fetchAndStoreAdsterraStats =
                 item.country
               );
 
-            const countryRevenue =
-              Number(
-                item.revenue
-              ) || 0;
-
-            const countryCpm =
-              Number(item.cpm) ||
-              0;
-
-            const finalCountryRevenue =
-              (countryRevenue *
-                revenuePercent) /
-              100;
-
-            const finalCountryCpm =
-              (countryCpm *
-                cpmPercent) /
-              100;
-
             const statItem = {
               placement:
                 placementId,
@@ -629,18 +580,13 @@ exports.fetchAndStoreAdsterraStats =
                 0,
 
               cpm:
-                Number(
-                  finalCountryCpm.toFixed(
-                    0
-                  )
-                ),
+                Number(item.cpm) ||
+                0,
 
               revenue:
                 Number(
-                  finalCountryRevenue.toFixed(
-                    0
-                  )
-                ),
+                  item.revenue
+                ) || 0,
             };
 
             // =========================================
@@ -651,9 +597,9 @@ exports.fetchAndStoreAdsterraStats =
               doc.stats.findIndex(
                 (s) =>
                   s.placement ===
-                  placementId &&
+                    placementId &&
                   s.country ===
-                  countryName
+                    countryName
               );
 
             if (
@@ -674,7 +620,7 @@ exports.fetchAndStoreAdsterraStats =
             link._id,
             err?.response
               ?.data ||
-            err.message
+              err.message
           );
         }
       }
@@ -788,7 +734,7 @@ exports.fetchAndStoreAdsterraStats =
         "ADSTERRA FETCH ERROR =>",
         error?.response
           ?.data ||
-        error.message
+          error.message
       );
 
       return res.status(500).json({
@@ -949,10 +895,10 @@ exports.getAdsterraStatsFromDB =
               _id: null,
 
               totalImpressions:
-              {
-                $sum:
-                  "$impressions",
-              },
+                {
+                  $sum:
+                    "$impressions",
+                },
 
               totalClicks: {
                 $sum:
@@ -978,20 +924,20 @@ exports.getAdsterraStatsFromDB =
 
       const ctr =
         totals.totalImpressions >
-          0
+        0
           ? (totals.totalClicks /
-            totals.totalImpressions) *
-          100
+              totals.totalImpressions) *
+            100
           : 0;
 
       // ================= CPM =================
 
       const cpm =
         totals.totalImpressions >
-          0
+        0
           ? (totals.totalRevenue /
-            totals.totalImpressions) *
-          1000
+              totals.totalImpressions) *
+            1000
           : 0;
 
       // ================= UPDATE USER =================
@@ -1018,7 +964,7 @@ exports.getAdsterraStatsFromDB =
 
         totalPages: Math.ceil(
           totalRecords /
-          perPage
+            perPage
         ),
 
         totalRecords,
@@ -1027,13 +973,13 @@ exports.getAdsterraStatsFromDB =
           totalImpressions:
             Number(
               totals.totalImpressions ||
-              0
+                0
             ),
 
           totalClicks:
             Number(
               totals.totalClicks ||
-              0
+                0
             ),
 
           totalRevenue:
