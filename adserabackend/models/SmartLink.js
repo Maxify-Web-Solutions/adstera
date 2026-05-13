@@ -9,13 +9,12 @@ const smartLinkSchema = new mongoose.Schema({
   },
 
   linkId: {
-    type: Number,
-    unique: true
+    type: Number
   },
 
   name: String,
 
-  type: {   // ✅ ADD THIS FIELD
+  type: {
     type: String,
     enum: ["adult", "maisteram"],
     required: true
@@ -23,14 +22,12 @@ const smartLinkSchema = new mongoose.Schema({
 
   targetUrl: String,
 
-  placementId:{
-    type: String,
-    unique: true,
+  placementId: {
+    type: String
   },
 
   smartCode: {
-    type: String,
-    unique: true
+    type: String
   },
 
   key: {
