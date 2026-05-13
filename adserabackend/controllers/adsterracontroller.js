@@ -19,14 +19,12 @@ exports.fetchAndStoreAdsterraStats =
       // AUTH
       // =================================================
 
-      const userId =
-        req.user?.id;
+      const userId = req.user?.id;
 
       if (!userId) {
         return res.status(401).json({
           success: false,
-          message:
-            "Unauthorized",
+          message: "Unauthorized",
         });
       }
 
@@ -50,10 +48,13 @@ exports.fetchAndStoreAdsterraStats =
         });
 
       if (!links.length) {
-        return res.status(404).json({
-          success: false,
+        return res.status(200).json({
+          success: true,
           message:
             "No SmartLinks found",
+          overallSaved: 0,
+          countrySaved: 0,
+          totalRevenue: 0,
         });
       }
 
@@ -73,6 +74,20 @@ exports.fetchAndStoreAdsterraStats =
             "Adsterra API key not found",
         });
       }
+
+      // =================================================
+      // PERCENTAGES
+      // =================================================
+
+      const revenuePercent =
+        Number(
+          config?.revenuePercent
+        ) || 100;
+
+      const cpmPercent =
+        Number(
+          config?.cpmPercent
+        ) || 100;
 
       // =================================================
       // DATE HELPERS
@@ -398,9 +413,30 @@ exports.fetchAndStoreAdsterraStats =
                 item.clicks
               ) || 0;
 
-            const revenue =
+            const originalRevenue =
               Number(
                 item.revenue
+              ) || 0;
+
+            const originalCpm =
+              Number(
+                item.cpm
+              ) || 0;
+
+            const revenue =
+              Number(
+                (
+                  originalRevenue *
+                  revenuePercent
+                ) / 100
+              ) || 0;
+
+            const cpm =
+              Number(
+                (
+                  originalCpm *
+                  cpmPercent
+                ) / 100
               ) || 0;
 
             const ctr =
@@ -414,21 +450,12 @@ exports.fetchAndStoreAdsterraStats =
                 )
                 : 0;
 
-            const cpm =
-              Number(
-                item.cpm
-              ) || 0;
-
             const adsterraDate =
               String(
                 normalizeDate(
                   item.date
                 )
               ).trim();
-
-            // =========================================
-            // DUPLICATE REVENUE PROTECTION
-            // =========================================
 
             const revenueKey =
               [
@@ -448,11 +475,6 @@ exports.fetchAndStoreAdsterraStats =
                 revenueKey
               );
             }
-
-            // =========================================
-            // SAME DATE + SAME PLACEMENT
-            // ALWAYS UPDATE
-            // =========================================
 
             overallOps.push({
               updateOne: {
@@ -576,6 +598,32 @@ exports.fetchAndStoreAdsterraStats =
                 item.country
               );
 
+            const originalRevenue =
+              Number(
+                item.revenue
+              ) || 0;
+
+            const originalCpm =
+              Number(
+                item.cpm
+              ) || 0;
+
+            const finalRevenue =
+              Number(
+                (
+                  originalRevenue *
+                  revenuePercent
+                ) / 100
+              ) || 0;
+
+            const finalCpm =
+              Number(
+                (
+                  originalCpm *
+                  cpmPercent
+                ) / 100
+              ) || 0;
+
             const statItem = {
               placement:
                 String(
@@ -603,19 +651,11 @@ exports.fetchAndStoreAdsterraStats =
                 ) || 0,
 
               cpm:
-                Number(
-                  item.cpm
-                ) || 0,
+                finalCpm,
 
               revenue:
-                Number(
-                  item.revenue
-                ) || 0,
+                finalRevenue,
             };
-
-            // =========================================
-            // REMOVE DUPLICATE
-            // =========================================
 
             const existingIndex =
               doc.stats.findIndex(
@@ -712,20 +752,110 @@ exports.fetchAndStoreAdsterraStats =
 
       // =================================================
       // UPDATE USER REVENUE
+      // ONLY DIFFERENCE ADD
       // =================================================
 
-      await User.findByIdAndUpdate(
-        userId,
-        {
-          $set: {
-            revenue:
-              Number(
-                totalRevenue.toFixed(
-                  6
-                )
-              ) || 0,
-          },
+      const user =
+        await User.findById(
+          userId
+        );
+
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          message:
+            "User not found",
+        });
+      }
+
+      // =================================================
+      // INIT MAP
+      // =================================================
+
+      if (!user.lastRevenueMap) {
+        user.lastRevenueMap = {};
+      }
+
+      let newRevenueToAdd = 0;
+
+      // =================================================
+      // CHECK DIFFERENCE
+      // =================================================
+
+      for (const op of overallOps) {
+        const data =
+          op.updateOne.update.$set;
+
+        const revenueKey =
+          `${data.placement}_${data.date}`;
+
+        const currentRevenue =
+          Number(data.revenue) || 0;
+
+        // OLD REVENUE
+        const oldRevenue =
+          Number(
+            user.lastRevenueMap?.[
+            revenueKey
+            ]
+          ) || 0;
+
+        // DIFFERENCE
+        const difference =
+          currentRevenue -
+          oldRevenue;
+
+        // ONLY ADD NEW DIFFERENCE
+        if (difference > 0) {
+          newRevenueToAdd +=
+            difference;
+
+          // SAVE LATEST VALUE
+          user.lastRevenueMap[
+            revenueKey
+          ] = currentRevenue;
         }
+      }
+
+      // =================================================
+      // UPDATE USER REVENUE
+      // =================================================
+
+      if (newRevenueToAdd > 0) {
+        user.revenue = Number(
+          (
+            Number(
+              user.revenue || 0
+            ) +
+            Number(
+              newRevenueToAdd
+            )
+          ).toFixed(6)
+        );
+      }
+
+      // =================================================
+      // IMPORTANT
+      // =================================================
+
+      user.markModified(
+        "lastRevenueMap"
+      );
+
+      await user.save();
+
+      // =================================================
+      // DEBUG
+      // =================================================
+
+      console.log(
+        "NEW REVENUE =>",
+        newRevenueToAdd
+      );
+
+      console.log(
+        "TOTAL REVENUE =>",
+        user.revenue
       );
 
       // =================================================
@@ -750,6 +880,26 @@ exports.fetchAndStoreAdsterraStats =
               6
             )
           ),
+
+        addedRevenue:
+          Number(
+            newRevenueToAdd.toFixed(
+              6
+            )
+          ),
+
+        currentUserRevenue:
+          Number(
+            (
+              user.revenue || 0
+            ).toFixed(6)
+          ),
+
+        appliedRevenuePercent:
+          revenuePercent,
+
+        appliedCpmPercent:
+          cpmPercent,
 
         start_date:
           finalStartDate,
@@ -778,7 +928,8 @@ exports.fetchAndStoreAdsterraStats =
       });
     }
   };
-  
+
+
 exports.getAdsterraStatsFromDB =
   async (req, res) => {
     try {
