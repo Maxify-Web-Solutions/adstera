@@ -149,11 +149,17 @@ const login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email }).select("+password");
 
     if (!user) {
       return res.status(404).json({
         message: "User not found"
+      });
+    }
+
+    if (!password || !user.password) {
+      return res.status(400).json({
+        message: "Password missing"
       });
     }
 
@@ -171,20 +177,19 @@ const login = async (req, res) => {
       });
     }
 
-    // ✅ USER-AGENT PARSE
     const ua = req.headers["user-agent"];
     const parser = new UAParser(ua);
+
     const device = parser.getDevice();
     const os = parser.getOS();
     const browser = parser.getBrowser();
 
-    // ✅ UPDATE LAST LOGIN
     user.lastLogin = {
       date: new Date(),
       ip: req.ip || req.headers["x-forwarded-for"],
       device: device.model || "Desktop",
-      os: os.name + " " + os.version,
-      browser: browser.name + " " + browser.version
+      os: `${os.name || ""} ${os.version || ""}`,
+      browser: `${browser.name || ""} ${browser.version || ""}`
     };
 
     await user.save();
@@ -198,12 +203,13 @@ const login = async (req, res) => {
       maxAge: 7 * 24 * 60 * 60 * 1000
     });
 
-    const { password: pass, ...userData } = user._doc;
+    const userObj = user.toObject();
+    delete userObj.password;
 
     res.json({
       success: true,
       message: "Login successful",
-      user: userData
+      user: userObj
     });
 
   } catch (error) {

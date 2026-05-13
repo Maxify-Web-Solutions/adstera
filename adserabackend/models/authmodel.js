@@ -1,39 +1,23 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
 const userschema = new mongoose.Schema(
   {
-    // =====================================
-    // BASIC INFO
-    // =====================================
-
     name: {
       type: String,
       required: true,
-      trim: true,
     },
 
     email: {
       type: String,
       required: true,
-      lowercase: true,
-      trim: true,
+      unique: true,
     },
 
     mobile: {
       type: String,
       required: true,
-      trim: true,
+      unique: true,
     },
-
-    password: {
-      type: String,
-      required: true,
-      select: false,
-    },
-
-    // =====================================
-    // REVENUE SYSTEM
-    // =====================================
 
     revenue: {
       type: Number,
@@ -46,65 +30,39 @@ const userschema = new mongoose.Schema(
       default: {},
     },
 
-    // =====================================
-    // ROLE
-    // =====================================
-
     role: {
       type: String,
-      enum: ["admin", "user"],
-      default: "user",
+      enum: ['admin', 'user'],
+      default: 'user',
       required: true,
     },
 
-    // =====================================
-    // USER STATUS
-    // =====================================
+    password: {
+      type: String,
+      required: true,
+    },
 
+    // ✅ USER STATUS
     status: {
       type: String,
-      enum: ["active", "blocked"],
-      default: "active",
+      enum: ['active', 'blocked'],
+      default: 'active',
     },
 
-    // =====================================
-    // REFERRAL SYSTEM
-    // =====================================
+    // =========================
+    // 🔥 REFERRAL SYSTEM
+    // =========================
 
-    referralCode: {
-      type: String,
-      sparse: true,
-    },
+    // Unique referral code for each user
 
-    referredBy: {
-      type: String,
-      default: null,
-    },
-
-    // =====================================
-    // LOGIN INFO
-    // =====================================
+    // =========================
 
     lastLogin: {
-      date: {
-        type: Date,
-      },
-
-      ip: {
-        type: String,
-      },
-
-      device: {
-        type: String,
-      },
-
-      os: {
-        type: String,
-      },
-
-      browser: {
-        type: String,
-      },
+      date: Date,
+      ip: String,
+      device: String,
+      os: String,
+      browser: String,
     },
   },
   {
@@ -112,29 +70,8 @@ const userschema = new mongoose.Schema(
   }
 );
 
-// =====================================
-// INDEXES
-// =====================================
 
-userschema.index({
-  email: 1,
-});
 
-userschema.index({
-  mobile: 1,
-});
-
-userschema.index({
-  referralCode: 1,
-});
-
-// =====================================
-// MODEL
-// =====================================
-
-const User = mongoose.model(
-  "users",
-  userschema
-);
+const User = mongoose.model('users', userschema);
 
 module.exports = User;
