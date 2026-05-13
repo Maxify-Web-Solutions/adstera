@@ -88,6 +88,63 @@ export const getUser = createAsyncThunk(
 );
 
 /* =========================
+   FORGOT PASSWORD
+========================= */
+export const forgotPassword = createAsyncThunk(
+  "auth/forgotPassword",
+  async ({ email }, { rejectWithValue }) => {
+    try {
+      const response = await api.post("/auth/forgot-password", {
+        email,
+      });
+
+      toast.success(response.data.message || "OTP sent successfully");
+
+      return response.data;
+
+    } catch (error) {
+      const msg =
+        error.response?.data?.message || "Failed to send OTP";
+
+      toast.error(msg);
+
+      return rejectWithValue(msg);
+    }
+  }
+);
+
+
+/* =========================
+   RESET PASSWORD
+========================= */
+export const resetPassword = createAsyncThunk(
+  "auth/resetPassword",
+  async ({ email, otp, newPassword }, { rejectWithValue }) => {
+    try {
+      const response = await api.post("/auth/reset-password", {
+        email,
+        otp,
+        newPassword,
+      });
+
+      toast.success(
+        response.data.message || "Password reset successful"
+      );
+
+      return response.data;
+
+    } catch (error) {
+      const msg =
+        error.response?.data?.message || "Password reset failed";
+
+      toast.error(msg);
+
+      return rejectWithValue(msg);
+    }
+  }
+);
+
+/* =========================
    LOGOUT USER
 ========================= */
 export const logoutUser = createAsyncThunk(
@@ -190,6 +247,32 @@ const authSlice = createSlice({
         state.loading = false;
         state.user = null;
         state.isAuthChecked = true;
+      })
+
+      /* ===== FORGOT PASSWORD ===== */
+      .addCase(forgotPassword.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(forgotPassword.fulfilled, (state) => {
+        state.loading = false;
+      })
+      .addCase(forgotPassword.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      /* ===== RESET PASSWORD ===== */
+      .addCase(resetPassword.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(resetPassword.fulfilled, (state) => {
+        state.loading = false;
+      })
+      .addCase(resetPassword.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
       })
 
       /* ===== LOGOUT ===== */

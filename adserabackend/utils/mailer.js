@@ -172,3 +172,57 @@ exports.sendWithdrawalOTP = async (email, otp, amount) => {
     return false;
   }
 };
+
+/* ============================================================
+   2️⃣ PASSWORD RESET OTP
+   ============================================================ */
+exports.sendResetPasswordOTP = async (email, otp) => {
+  try {
+    await transporter.sendMail({
+      from: `"Adstrox" <${process.env.EMAIL_USER}>`,
+      to: email,
+      subject: "Reset Your Adstrox Password",
+      html: emailWrapper(
+        "Password Reset Request",
+        "Secure your account with OTP verification 🔐",
+        `
+        <p>Hi there,</p>
+
+        <p>We received a request to reset your Adstrox account password.</p>
+
+        <p>Please use the OTP below to continue:</p>
+
+        <div style="
+          margin:24px 0;
+          padding:16px;
+          background:#f8fafc;
+          border-radius:10px;
+          border:1px dashed #22d3ee;
+          text-align:center;
+        ">
+          <h2 style="
+            margin:0;
+            font-size:28px;
+            letter-spacing:6px;
+            color:#0284c7;
+          ">${otp}</h2>
+        </div>
+
+        <p style="font-size:13px;color:#64748b;">
+          ⏱ OTP valid for 5 minutes
+        </p>
+
+        <p style="font-size:13px;color:#ef4444;">
+          ⚠️ If you did not request a password reset, please ignore this email.
+        </p>
+        `
+      ),
+    });
+
+    return true;
+
+  } catch (err) {
+    console.log("Reset Password OTP Error:", err);
+    return false;
+  }
+};
