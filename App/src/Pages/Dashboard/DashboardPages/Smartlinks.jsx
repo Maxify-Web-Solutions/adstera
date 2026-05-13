@@ -207,9 +207,9 @@ const Smartlinks = () => {
             )}
 
             {/* TABLE */}
-            <div className="hidden md:block bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-2xl shadow-sm overflow-hidden">
+            <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-2xl shadow-sm overflow-hidden">
 
-                <table className="w-full text-left min-w-[640px]">
+                <table className="w-full text-left md:min-w-[640px]">
                     <thead className="bg-gray-50 dark:bg-slate-900 text-gray-500 dark:text-gray-400 text-sm">
                         <tr>
                             <th className="px-4 py-3">
