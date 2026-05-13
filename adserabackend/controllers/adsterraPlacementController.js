@@ -62,8 +62,6 @@ exports.fetchAndStorePlacements = async (req, res) => {
     return res.status(200).json({
       success: true,
       message: "Placements fetched & stored successfully",
-      total: saved.length,
-      data: saved,
     });
   } catch (error) {
     console.error("API Error:", error?.response?.data || error.message);
