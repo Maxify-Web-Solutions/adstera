@@ -9,6 +9,8 @@ const smartLinkRoutes = require("./routes/smartLinkRoutes");
 const adsterraRoutes = require("./routes/adsterraroutes");
 const adsterraPlacementRoutes = require("./routes/adsterraPlacementRoutes");
 const withdrawalRoutes = require("./routes/withdrawalRoutes");
+const userMonthlyStatsRoutes = require("./routes/userMonthlyStatsRoutes");
+require("./cron/userMonthlyStatsCron");
 
 const connectDB = require("./config/connectdb");
 
@@ -42,6 +44,10 @@ app.use("/api", adsterraPlacementRoutes);
 
 app.use("/api/withdrawal", withdrawalRoutes);
 app.use('/', require('./controllers/redirectLink.controller'))
+app.use(
+  "/api/monthly-stats",
+  userMonthlyStatsRoutes
+);
 
 
 
