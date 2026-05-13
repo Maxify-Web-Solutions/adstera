@@ -27,9 +27,11 @@ import PayoutInformation from "./Pages/Dashboard/DashboardPages/PayoutInformatio
 import Payouts from "./Pages/Dashboard/DashboardPages/Payouts";
 import DashboardProfile from "./Pages/Dashboard/DashboardPages/DashboardProfile";
 import RedirectPage from "./Pages/RedirectPage";
+import ForgetPassword from "./Pages/Forget-password";
 import { fetchPlacements } from "./redux/slice/adsterraPlacementSlice";
 import SmartlinkStatistics from "./Pages/Dashboard/DashboardPages/SmartlinkStatistics";
 import { fetchAdsterraStats } from "./redux/slice/adsterraStatsSlice";
+import VerifyAndReset from "./Pages/VerifyAndReset";
 
 function App() {
 
@@ -53,6 +55,11 @@ function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/" element={<HomePage />} />
         <Route path="/s/:code" element={<RedirectPage />} />
+        <Route path="/forgot-password" element={<ForgetPassword />} />
+        <Route
+          path="/verify-otp"
+          element={<VerifyAndReset />}
+        />
 
         <Route element={<ProtectedRoute />}>
           {/* <Route path="/dashboard" element={<Dashboard />} /> */}

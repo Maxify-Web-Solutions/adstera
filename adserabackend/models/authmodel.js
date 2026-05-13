@@ -50,10 +50,18 @@ const userschema = new mongoose.Schema(
     },
 
     // =========================
-    // 🔥 REFERRAL SYSTEM
+    // 🔥 OTP FIELDS
     // =========================
 
-    // Unique referral code for each user
+    reset_otp: {
+      type: String,
+      default: null,
+    },
+
+    reset_otp_expiry: {
+      type: Date,
+      default: null,
+    },
 
     // =========================
 
@@ -69,8 +77,6 @@ const userschema = new mongoose.Schema(
     timestamps: true,
   }
 );
-
-
 
 const User = mongoose.model('users', userschema);
 
