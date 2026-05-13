@@ -63,10 +63,18 @@ const Statistics = () => {
 
   // 📅 DATE SETUP
   const today = new Date();
-  const twoDaysAgo = new Date();
-  twoDaysAgo.setDate(today.getDate() - 2);
+const sevenDaysAgo = new Date();
 
-  const [dateRange, setDateRange] = useState([twoDaysAgo, today]);
+sevenDaysAgo.setDate(
+  today.getDate() - 7
+);
+
+const [dateRange, setDateRange] =
+  useState([
+    sevenDaysAgo,
+    today,
+  ]);
+
   const [startDate, endDate] = dateRange;
 
   // 🎯 FILTERS
@@ -76,7 +84,7 @@ const Statistics = () => {
   const [isFilterVisible, setIsFilterVisible] = useState(true);
 
   // 📊 GROUP BY
-  const [groupBy, setGroupBy] = useState("country");
+  const [groupBy, setGroupBy] = useState("date");
 
   // 📦 ADSTERRA STATE
   const {
@@ -166,22 +174,53 @@ const Statistics = () => {
   // ====================================
   useEffect(() => {
 
-    dispatch(fetchAdsterraStats());
+  const start =
+    formatDate(startDate);
 
+  const end =
+    formatDate(endDate);
 
-    dispatch(
-      getAdsterraStats({
-        groupBy,
-      })
-    );
+  // ====================================
+  // FETCH API DATA
+  // ====================================
 
-    dispatch(
-      getSmartLinkStats({
-        groupBy,
-      })
-    );
+  dispatch(
+    fetchAdsterraStats({
+      start_date: start,
+      end_date: end,
+    })
+  );
 
-  }, [dispatch, groupBy]);
+  // ====================================
+  // OLD DB STATS
+  // ====================================
+
+  dispatch(
+    getAdsterraStats({
+      start_date: start,
+      end_date: end,
+      groupBy,
+    })
+  );
+
+  // ====================================
+  // COUNTRY / DEVICE / OS / BROWSER
+  // ====================================
+
+  dispatch(
+    getSmartLinkStats({
+      start_date: start,
+      end_date: end,
+      groupBy,
+    })
+  );
+
+}, [
+  dispatch,
+  groupBy,
+  startDate,
+  endDate,
+]);
   // ====================================
   // LOCATION STATE AUTO FILTER
   // ====================================
