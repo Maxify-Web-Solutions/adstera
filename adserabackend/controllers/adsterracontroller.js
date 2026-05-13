@@ -398,53 +398,10 @@ exports.fetchAndStoreAdsterraStats =
                 item.clicks
               ) || 0;
 
-            // =============================================
-            // ORIGINAL VALUES
-            // =============================================
-
-            const originalRevenue =
-              Number(item.revenue) || 0;
-
-            const originalCpm =
-              Number(item.cpm) || 0;
-
-            // =============================================
-            // CONFIG PERCENT
-            // =============================================
-
-            const revenuePercent =
-              Number(
-                config?.revenuePercent
-              ) || 100;
-
-            const cpmPercent =
-              Number(
-                config?.cpmPercent
-              ) || 100;
-
-            // =============================================
-            // FINAL VALUES
-            // =============================================
-
             const revenue =
               Number(
-                (
-                  originalRevenue *
-                  (revenuePercent / 100)
-                ).toFixed(6)
-              );
-
-            const cpm =
-              Number(
-                (
-                  originalCpm *
-                  (cpmPercent / 100)
-                ).toFixed(6)
-              );
-
-            // =============================================
-            // CTR
-            // =============================================
+                item.revenue
+              ) || 0;
 
             const ctr =
               impressions > 0
@@ -457,33 +414,79 @@ exports.fetchAndStoreAdsterraStats =
                 )
                 : 0;
 
-            // =============================================
-            // COUNTRY STATS
-            // =============================================
+            const cpm =
+              Number(
+                item.cpm
+              ) || 0;
 
-            for (const item of countryData) {
-              const statsDate =
-                String(
-                  apiStartDate
-                ).trim();
+            const adsterraDate =
+              String(
+                normalizeDate(
+                  item.date
+                )
+              ).trim();
 
-              const mapKey = [
-                userId,
-                deviceType,
-                statsDate,
+            const revenueKey =
+              [
+                placementId,
+                adsterraDate,
               ].join("|");
 
-              if (
-                !smartLinkStatsMap.has(
-                  mapKey
-                )
-              ) {
-                smartLinkStatsMap.set(
-                  mapKey,
-                  {
+            if (
+              !revenueTracker.has(
+                revenueKey
+              )
+            ) {
+              totalRevenue +=
+                revenue;
+
+              revenueTracker.add(
+                revenueKey
+              );
+            }
+
+            overallOps.push({
+              updateOne: {
+                filter: {
+                  userId:
+                    new mongoose.Types.ObjectId(
+                      userId
+                    ),
+
+                  placement:
+                    String(
+                      placementId
+                    ),
+
+                  country:
+                    "ALL",
+
+                  date:
+                    String(
+                      adsterraDate
+                    ),
+                },
+
+                update: {
+                  $set: {
                     userId:
                       new mongoose.Types.ObjectId(
                         userId
+                      ),
+
+                    domain,
+
+                    placement:
+                      String(
+                        placementId
+                      ),
+
+                    country:
+                      "ALL",
+
+                    date:
+                      String(
+                        adsterraDate
                       ),
 
                     device:
@@ -493,493 +496,546 @@ exports.fetchAndStoreAdsterraStats =
 
                     browserName,
 
-                    date:
-                      statsDate,
+                    impressions,
 
-                    stats: [],
-                  }
-                );
-              }
+                    clicks,
 
-              const doc =
-                smartLinkStatsMap.get(
-                  mapKey
-                );
+                    revenue,
 
-              const countryName =
-                normalizeCountry(
-                  item.country
-                );
+                    ctr,
 
-              const statItem = {
-                placement:
+                    cpm,
+                  },
+                },
+
+                upsert: true,
+              },
+            });
+          }
+
+          // =============================================
+          // COUNTRY STATS
+          // =============================================
+
+          for (const item of countryData) {
+            const statsDate =
+              String(
+                apiStartDate
+              ).trim();
+
+            const mapKey = [
+              userId,
+              deviceType,
+              statsDate,
+            ].join("|");
+
+            if (
+              !smartLinkStatsMap.has(
+                mapKey
+              )
+            ) {
+              smartLinkStatsMap.set(
+                mapKey,
+                {
+                  userId:
+                    new mongoose.Types.ObjectId(
+                      userId
+                    ),
+
+                  device:
+                    deviceType,
+
+                  osName,
+
+                  browserName,
+
+                  date:
+                    statsDate,
+
+                  stats: [],
+                }
+              );
+            }
+
+            const doc =
+              smartLinkStatsMap.get(
+                mapKey
+              );
+
+            const countryName =
+              normalizeCountry(
+                item.country
+              );
+
+            const statItem = {
+              placement:
+                String(
+                  placementId
+                ),
+
+              domain,
+
+              country:
+                countryName,
+
+              impressions:
+                Number(
+                  item.impression
+                ) || 0,
+
+              clicks:
+                Number(
+                  item.clicks
+                ) || 0,
+
+              ctr:
+                Number(
+                  item.ctr
+                ) || 0,
+
+              cpm:
+                Number(
+                  item.cpm
+                ) || 0,
+
+              revenue:
+                Number(
+                  item.revenue
+                ) || 0,
+            };
+
+            // =========================================
+            // REMOVE DUPLICATE
+            // =========================================
+
+            const existingIndex =
+              doc.stats.findIndex(
+                (s) =>
+                  String(
+                    s.placement
+                  ) ===
                   String(
                     placementId
-                  ),
+                  ) &&
+                  s.country ===
+                  countryName
+              );
 
-                domain,
-
-                country:
-                  countryName,
-
-                impressions:
-                  Number(
-                    item.impression
-                  ) || 0,
-
-                clicks:
-                  Number(
-                    item.clicks
-                  ) || 0,
-
-                ctr:
-                  Number(
-                    item.ctr
-                  ) || 0,
-
-                cpm:
-                  Number(
-                    item.cpm
-                  ) || 0,
-
-                revenue:
-                  Number(
-                    item.revenue
-                  ) || 0,
-              };
-
-              // =========================================
-              // REMOVE DUPLICATE
-              // =========================================
-
-              const existingIndex =
-                doc.stats.findIndex(
-                  (s) =>
-                    String(
-                      s.placement
-                    ) ===
-                    String(
-                      placementId
-                    ) &&
-                    s.country ===
-                    countryName
-                );
-
-              if (
-                existingIndex !== -1
-              ) {
-                doc.stats[
-                  existingIndex
-                ] = statItem;
-              } else {
-                doc.stats.push(
-                  statItem
-                );
-              }
+            if (
+              existingIndex !== -1
+            ) {
+              doc.stats[
+                existingIndex
+              ] = statItem;
+            } else {
+              doc.stats.push(
+                statItem
+              );
             }
-          } catch (err) {
-            console.log(
-              "LINK ERROR =>",
-              link._id,
-              err?.response
-                ?.data ||
-              err.message
-            );
           }
+        } catch (err) {
+          console.log(
+            "LINK ERROR =>",
+            link._id,
+            err?.response
+              ?.data ||
+            err.message
+          );
         }
+      }
 
       // =================================================
       // SAVE OVERALL STATS
       // =================================================
 
       if (
-          overallOps.length
-        ) {
-          await AdsterraStats.bulkWrite(
-            overallOps,
-            {
-              ordered: false,
-            }
-          );
-        }
-
-        // =================================================
-        // SAVE SMARTLINK STATS
-        // =================================================
-
-        const smartLinkDocs =
-          [
-            ...smartLinkStatsMap.values(),
-          ];
-
-        for (const doc of smartLinkDocs) {
-          await SmartLinkStats.findOneAndUpdate(
-            {
-              userId:
-                doc.userId,
-
-              device:
-                doc.device,
-
-              date:
-                String(doc.date),
-            },
-
-            {
-              $set: {
-                osName:
-                  doc.osName,
-
-                browserName:
-                  doc.browserName,
-
-                stats:
-                  doc.stats,
-              },
-            },
-
-            {
-              upsert: true,
-              new: true,
-            }
-          );
-        }
-
-        // =================================================
-        // UPDATE USER REVENUE
-        // =================================================
-
-        await User.findByIdAndUpdate(
-          userId,
+        overallOps.length
+      ) {
+        await AdsterraStats.bulkWrite(
+          overallOps,
           {
-            $set: {
-              revenue:
-                Number(
-                  totalRevenue.toFixed(
-                    6
-                  )
-                ) || 0,
-            },
+            ordered: false,
           }
         );
+      }
 
-        // =================================================
-        // RESPONSE
-        // =================================================
+      // =================================================
+      // SAVE SMARTLINK STATS
+      // =================================================
 
-        return res.status(200).json({
-          success: true,
+      const smartLinkDocs =
+        [
+          ...smartLinkStatsMap.values(),
+        ];
 
+      for (const doc of smartLinkDocs) {
+        await SmartLinkStats.findOneAndUpdate(
+          {
+            userId:
+              doc.userId,
+
+            device:
+              doc.device,
+
+            date:
+              String(doc.date),
+          },
+
+          {
+            $set: {
+              osName:
+                doc.osName,
+
+              browserName:
+                doc.browserName,
+
+              stats:
+                doc.stats,
+            },
+          },
+
+          {
+            upsert: true,
+            new: true,
+          }
+        );
+      }
+
+      // =================================================
+      // UPDATE USER REVENUE
+      // =================================================
+
+      await User.findByIdAndUpdate(
+        userId,
+        {
+          $set: {
+            revenue:
+              Number(
+                totalRevenue.toFixed(
+                  6
+                )
+              ) || 0,
+          },
+        }
+      );
+
+      // =================================================
+      // RESPONSE
+      // =================================================
+
+      return res.status(200).json({
+        success: true,
+
+        message:
+          "Stats fetched & stored successfully",
+
+        overallSaved:
+          overallOps.length,
+
+        countrySaved:
+          smartLinkDocs.length,
+
+        totalRevenue:
+          Number(
+            totalRevenue.toFixed(
+              6
+            )
+          ),
+
+        start_date:
+          finalStartDate,
+
+        end_date:
+          finalEndDate,
+      });
+    } catch (error) {
+      console.error(
+        "ADSTERRA FETCH ERROR =>",
+        error?.response
+          ?.data ||
+        error.message
+      );
+
+      return res.status(500).json({
+        success: false,
+
+        message:
+          "Failed to fetch stats",
+
+        error:
+          error?.response
+            ?.data ||
+          error.message,
+      });
+    }
+  };
+ 
+  
+
+exports.getAdsterraStatsFromDB =
+  async (req, res) => {
+    try {
+      const userId =
+        req.user?.id;
+
+      const {
+        start_date,
+        end_date,
+        page = 1,
+        limit = 20,
+        placement,
+      } = req.query;
+
+      // ================= AUTH =================
+
+      if (!userId) {
+        return res.status(401).json({
+          success: false,
           message:
-            "Stats fetched & stored successfully",
+            "Unauthorized",
+        });
+      }
 
-          overallSaved:
-            overallOps.length,
+      // ================= FILTER =================
 
-          countrySaved:
-            smartLinkDocs.length,
+      const filter = {
+        userId:
+          new mongoose.Types.ObjectId(
+            userId
+          ),
+
+        country: "ALL",
+      };
+
+      // ================= PLACEMENT =================
+
+      if (placement) {
+        filter.placement =
+          String(placement);
+      }
+
+      // ================= DATE =================
+
+      if (
+        start_date &&
+        end_date
+      ) {
+        filter.date = {
+          $gte: start_date,
+          $lte: end_date,
+        };
+      }
+
+      // ================= PAGINATION =================
+
+      const currentPage =
+        Number(page) || 1;
+
+      const perPage =
+        Number(limit) || 20;
+
+      const skip =
+        (currentPage - 1) *
+        perPage;
+
+      // ================= FETCH DATA =================
+
+      const stats =
+        await AdsterraStats.find(
+          filter
+        )
+          .sort({
+            date: -1,
+          })
+          .skip(skip)
+          .limit(perPage)
+          .lean();
+
+      // ================= TOTAL RECORDS =================
+
+      const totalRecords =
+        await AdsterraStats.countDocuments(
+          filter
+        );
+
+      // ================= TOTALS =================
+
+      const totalsAgg =
+        await AdsterraStats.aggregate([
+          {
+            $match: filter,
+          },
+
+          // =====================================
+          // REMOVE DUPLICATE
+          // same placement + same date
+          // =====================================
+
+          {
+            $group: {
+              _id: {
+                placement:
+                  "$placement",
+
+                date:
+                  "$date",
+
+                country:
+                  "$country",
+              },
+
+              impressions: {
+                $first: {
+                  $toDouble:
+                    "$impressions",
+                },
+              },
+
+              clicks: {
+                $first: {
+                  $toDouble:
+                    "$clicks",
+                },
+              },
+
+              revenue: {
+                $first: {
+                  $toDouble:
+                    "$revenue",
+                },
+              },
+            },
+          },
+
+          // =====================================
+          // FINAL TOTALS
+          // =====================================
+
+          {
+            $group: {
+              _id: null,
+
+              totalImpressions:
+              {
+                $sum:
+                  "$impressions",
+              },
+
+              totalClicks: {
+                $sum:
+                  "$clicks",
+              },
+
+              totalRevenue: {
+                $sum:
+                  "$revenue",
+              },
+            },
+          },
+        ]);
+
+      const totals =
+        totalsAgg[0] || {
+          totalImpressions: 0,
+          totalClicks: 0,
+          totalRevenue: 0,
+        };
+
+      // ================= CTR =================
+
+      const ctr =
+        totals.totalImpressions >
+          0
+          ? (totals.totalClicks /
+            totals.totalImpressions) *
+          100
+          : 0;
+
+      // ================= CPM =================
+
+      const cpm =
+        totals.totalImpressions >
+          0
+          ? (totals.totalRevenue /
+            totals.totalImpressions) *
+          1000
+          : 0;
+
+      // ================= UPDATE USER =================
+
+      await User.findByIdAndUpdate(
+        userId,
+        {
+          $set: {
+            revenue:
+              totals.totalRevenue ||
+              0,
+          },
+        }
+      );
+
+      // ================= RESPONSE =================
+
+      return res.status(200).json({
+        success: true,
+
+        page: currentPage,
+
+        limit: perPage,
+
+        totalPages: Math.ceil(
+          totalRecords /
+          perPage
+        ),
+
+        totalRecords,
+
+        totals: {
+          totalImpressions:
+            Number(
+              totals.totalImpressions ||
+              0
+            ),
+
+          totalClicks:
+            Number(
+              totals.totalClicks ||
+              0
+            ),
 
           totalRevenue:
             Number(
-              totalRevenue.toFixed(
-                6
-              )
+              (
+                totals.totalRevenue ||
+                0
+              ).toFixed(6)
             ),
 
-          start_date:
-            finalStartDate,
+          ctr: Number(
+            ctr.toFixed(2)
+          ),
 
-          end_date:
-            finalEndDate,
-        });
-      } catch (error) {
-        console.error(
-          "ADSTERRA FETCH ERROR =>",
-          error?.response
-            ?.data ||
-          error.message
-        );
+          cpm: Number(
+            cpm.toFixed(6)
+          ),
+        },
 
-        return res.status(500).json({
-          success: false,
+        data: stats,
+      });
+    } catch (error) {
+      console.error(
+        "DB GET ERROR =>",
+        error
+      );
 
-          message:
-            "Failed to fetch stats",
+      return res.status(500).json({
+        success: false,
 
-          error:
-            error?.response
-              ?.data ||
-            error.message,
-        });
-      }
-    };
+        message:
+          "Failed to fetch stats",
 
-
-
-    exports.getAdsterraStatsFromDB =
-      async (req, res) => {
-        try {
-          const userId =
-            req.user?.id;
-
-          const {
-            start_date,
-            end_date,
-            page = 1,
-            limit = 20,
-            placement,
-          } = req.query;
-
-          // ================= AUTH =================
-
-          if (!userId) {
-            return res.status(401).json({
-              success: false,
-              message:
-                "Unauthorized",
-            });
-          }
-
-          // ================= FILTER =================
-
-          const filter = {
-            userId:
-              new mongoose.Types.ObjectId(
-                userId
-              ),
-
-            country: "ALL",
-          };
-
-          // ================= PLACEMENT =================
-
-          if (placement) {
-            filter.placement =
-              String(placement);
-          }
-
-          // ================= DATE =================
-
-          if (
-            start_date &&
-            end_date
-          ) {
-            filter.date = {
-              $gte: start_date,
-              $lte: end_date,
-            };
-          }
-
-          // ================= PAGINATION =================
-
-          const currentPage =
-            Number(page) || 1;
-
-          const perPage =
-            Number(limit) || 20;
-
-          const skip =
-            (currentPage - 1) *
-            perPage;
-
-          // ================= FETCH DATA =================
-
-          const stats =
-            await AdsterraStats.find(
-              filter
-            )
-              .sort({
-                date: -1,
-              })
-              .skip(skip)
-              .limit(perPage)
-              .lean();
-
-          // ================= TOTAL RECORDS =================
-
-          const totalRecords =
-            await AdsterraStats.countDocuments(
-              filter
-            );
-
-          // ================= TOTALS =================
-
-          const totalsAgg =
-            await AdsterraStats.aggregate([
-              {
-                $match: filter,
-              },
-
-              // =====================================
-              // REMOVE DUPLICATE
-              // same placement + same date
-              // =====================================
-
-              {
-                $group: {
-                  _id: {
-                    placement:
-                      "$placement",
-
-                    date:
-                      "$date",
-
-                    country:
-                      "$country",
-                  },
-
-                  impressions: {
-                    $first: {
-                      $toDouble:
-                        "$impressions",
-                    },
-                  },
-
-                  clicks: {
-                    $first: {
-                      $toDouble:
-                        "$clicks",
-                    },
-                  },
-
-                  revenue: {
-                    $first: {
-                      $toDouble:
-                        "$revenue",
-                    },
-                  },
-                },
-              },
-
-              // =====================================
-              // FINAL TOTALS
-              // =====================================
-
-              {
-                $group: {
-                  _id: null,
-
-                  totalImpressions:
-                  {
-                    $sum:
-                      "$impressions",
-                  },
-
-                  totalClicks: {
-                    $sum:
-                      "$clicks",
-                  },
-
-                  totalRevenue: {
-                    $sum:
-                      "$revenue",
-                  },
-                },
-              },
-            ]);
-
-          const totals =
-            totalsAgg[0] || {
-              totalImpressions: 0,
-              totalClicks: 0,
-              totalRevenue: 0,
-            };
-
-          // ================= CTR =================
-
-          const ctr =
-            totals.totalImpressions >
-              0
-              ? (totals.totalClicks /
-                totals.totalImpressions) *
-              100
-              : 0;
-
-          // ================= CPM =================
-
-          const cpm =
-            totals.totalImpressions >
-              0
-              ? (totals.totalRevenue /
-                totals.totalImpressions) *
-              1000
-              : 0;
-
-          // ================= UPDATE USER =================
-
-          await User.findByIdAndUpdate(
-            userId,
-            {
-              $set: {
-                revenue:
-                  totals.totalRevenue ||
-                  0,
-              },
-            }
-          );
-
-          // ================= RESPONSE =================
-
-          return res.status(200).json({
-            success: true,
-
-            page: currentPage,
-
-            limit: perPage,
-
-            totalPages: Math.ceil(
-              totalRecords /
-              perPage
-            ),
-
-            totalRecords,
-
-            totals: {
-              totalImpressions:
-                Number(
-                  totals.totalImpressions ||
-                  0
-                ),
-
-              totalClicks:
-                Number(
-                  totals.totalClicks ||
-                  0
-                ),
-
-              totalRevenue:
-                Number(
-                  (
-                    totals.totalRevenue ||
-                    0
-                  ).toFixed(6)
-                ),
-
-              ctr: Number(
-                ctr.toFixed(2)
-              ),
-
-              cpm: Number(
-                cpm.toFixed(6)
-              ),
-            },
-
-            data: stats,
-          });
-        } catch (error) {
-          console.error(
-            "DB GET ERROR =>",
-            error
-          );
-
-          return res.status(500).json({
-            success: false,
-
-            message:
-              "Failed to fetch stats",
-
-            error:
-              error.message,
-          });
-        }
-      };
+        error:
+          error.message,
+      });
+    }
+  };
