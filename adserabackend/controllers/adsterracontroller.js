@@ -1,6 +1,7 @@
 const axios = require("axios");
 const mongoose = require("mongoose");
 const UAParser = require("ua-parser-js");
+
 const SmartLink = require("../models/SmartLink");
 const AdsterraStats = require("../models/AdsterraStats");
 const SmartLinkStats = require("../models/SmartLinkStats");
@@ -72,19 +73,6 @@ exports.fetchAndStoreAdsterraStats =
             "Adsterra API key not found",
         });
       }
-      const cpmPercent =
-        Number(
-          config?.cpmPercent || 100
-        );
-
-      // Revenue %
-      const revenuePercent =
-        Number(
-          config?.revenuePercent ||
-          100
-        );
-
-
 
       // =================================================
       // DATE HELPERS
@@ -222,7 +210,7 @@ exports.fetchAndStoreAdsterraStats =
           const placementId =
             String(
               link.placementId
-            );
+            ).trim();
 
           if (!placementId)
             continue;
@@ -240,8 +228,6 @@ exports.fetchAndStoreAdsterraStats =
 
           // =============================================
           // FINAL START DATE
-          // PRIORITY:
-          // approvedAt > query start_date > 15 days
           // =============================================
 
           let apiStartDate =
@@ -251,8 +237,6 @@ exports.fetchAndStoreAdsterraStats =
             apiStartDate =
               approvedDate;
           }
-
-
 
           const domain =
             link.domain ||
@@ -421,28 +405,26 @@ exports.fetchAndStoreAdsterraStats =
 
             const ctr =
               impressions > 0
-                ? (clicks /
-                  impressions) *
-                100
+                ? Number(
+                  (
+                    (clicks /
+                      impressions) *
+                    100
+                  ).toFixed(2)
+                )
                 : 0;
 
             const cpm =
-              Number(item.cpm) ||
-              0;
-
-            // APPLY %
-            const finalRevenue =
-              (revenue *
-                revenuePercent) /
-              100;
-
-            const finalCpm =
-              (cpm * cpmPercent) / 100;
+              Number(
+                item.cpm
+              ) || 0;
 
             const adsterraDate =
-              normalizeDate(
-                item.date
-              );
+              String(
+                normalizeDate(
+                  item.date
+                )
+              ).trim();
 
             // =========================================
             // DUPLICATE REVENUE PROTECTION
@@ -460,11 +442,17 @@ exports.fetchAndStoreAdsterraStats =
               )
             ) {
               totalRevenue +=
-                finalRevenue;
+                revenue;
+
               revenueTracker.add(
                 revenueKey
               );
             }
+
+            // =========================================
+            // SAME DATE + SAME PLACEMENT
+            // ALWAYS UPDATE
+            // =========================================
 
             overallOps.push({
               updateOne: {
@@ -475,13 +463,17 @@ exports.fetchAndStoreAdsterraStats =
                     ),
 
                   placement:
-                    placementId,
+                    String(
+                      placementId
+                    ),
 
                   country:
                     "ALL",
 
                   date:
-                    adsterraDate,
+                    String(
+                      adsterraDate
+                    ),
                 },
 
                 update: {
@@ -494,13 +486,17 @@ exports.fetchAndStoreAdsterraStats =
                     domain,
 
                     placement:
-                      placementId,
+                      String(
+                        placementId
+                      ),
 
                     country:
                       "ALL",
 
                     date:
-                      adsterraDate,
+                      String(
+                        adsterraDate
+                      ),
 
                     device:
                       deviceType,
@@ -513,19 +509,11 @@ exports.fetchAndStoreAdsterraStats =
 
                     clicks,
 
-                    revenue:
-                      Number(
-                        finalRevenue.toFixed(
-                          2
-                        )
-                      ),
+                    revenue,
 
                     ctr,
 
-                    cpm:
-                      Number(
-                        finalCpm.toFixed(2)
-                      ),
+                    cpm,
                   },
                 },
 
@@ -540,7 +528,9 @@ exports.fetchAndStoreAdsterraStats =
 
           for (const item of countryData) {
             const statsDate =
-              apiStartDate;
+              String(
+                apiStartDate
+              ).trim();
 
             const mapKey = [
               userId,
@@ -586,28 +576,11 @@ exports.fetchAndStoreAdsterraStats =
                 item.country
               );
 
-            const countryRevenue =
-              Number(
-                item.revenue
-              ) || 0;
-
-            const countryCpm =
-              Number(item.cpm) ||
-              0;
-
-            const finalCountryRevenue =
-              (countryRevenue *
-                revenuePercent) /
-              100;
-
-            const finalCountryCpm =
-              (countryCpm *
-                cpmPercent) /
-              100;
-
             const statItem = {
               placement:
-                placementId,
+                String(
+                  placementId
+                ),
 
               domain,
 
@@ -625,22 +598,19 @@ exports.fetchAndStoreAdsterraStats =
                 ) || 0,
 
               ctr:
-                Number(item.ctr) ||
-                0,
+                Number(
+                  item.ctr
+                ) || 0,
 
               cpm:
                 Number(
-                  finalCountryCpm.toFixed(
-                    0
-                  )
-                ),
+                  item.cpm
+                ) || 0,
 
               revenue:
                 Number(
-                  finalCountryRevenue.toFixed(
-                    0
-                  )
-                ),
+                  item.revenue
+                ) || 0,
             };
 
             // =========================================
@@ -650,8 +620,12 @@ exports.fetchAndStoreAdsterraStats =
             const existingIndex =
               doc.stats.findIndex(
                 (s) =>
-                  s.placement ===
-                  placementId &&
+                  String(
+                    s.placement
+                  ) ===
+                  String(
+                    placementId
+                  ) &&
                   s.country ===
                   countryName
               );
@@ -713,7 +687,7 @@ exports.fetchAndStoreAdsterraStats =
               doc.device,
 
             date:
-              doc.date,
+              String(doc.date),
           },
 
           {
@@ -804,7 +778,7 @@ exports.fetchAndStoreAdsterraStats =
       });
     }
   };
-
+  
 exports.getAdsterraStatsFromDB =
   async (req, res) => {
     try {
