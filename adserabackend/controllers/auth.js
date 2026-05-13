@@ -20,25 +20,45 @@ const generateToken = (id) => {
 
 const register = async (req, res) => {
   try {
-    const { name, email, mobile, password } = req.body;
+    let { name, email, mobile, password } = req.body;
 
+    // ✅ VALIDATION
     if (!name || !email || !mobile || !password) {
-      return res.status(400).json({ message: "All fields are required" });
+      return res.status(400).json({
+        success: false,
+        message: "All fields are required",
+      });
     }
 
-    // ✅ check main DB
-    const userexist = await User.findOne({
+    // ✅ NORMALIZE DATA
+    name = name.trim();
+    email = email.toLowerCase().trim();
+    mobile = mobile.trim();
+
+    // ✅ PASSWORD LENGTH CHECK
+    if (password.length < 6) {
+      return res.status(400).json({
+        success: false,
+        message: "Password must be at least 6 characters",
+      });
+    }
+
+    // ✅ CHECK MAIN DB
+    const userExist = await User.findOne({
       $or: [{ email }, { mobile }],
     });
 
-    if (userexist) {
-      return res.status(400).json({ message: "User already exists" });
+    if (userExist) {
+      return res.status(400).json({
+        success: false,
+        message: "User already exists",
+      });
     }
 
-    // ✅ generate OTP
+    // ✅ GENERATE OTP
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
-    // ✅ save temp user
+    // ✅ SAVE TEMP USER
     await TempUser.findOneAndUpdate(
       { email },
       {
@@ -52,77 +72,116 @@ const register = async (req, res) => {
       },
       {
         upsert: true,
-        returnDocument: "after",
+        new: true,
       }
     );
 
-    // ✅ SEND EMAIL (🔥 MAIN PART)
+    // ✅ SEND OTP EMAIL
     const isSent = await sendAccountVerificationOTP(email, otp);
 
     if (!isSent) {
       return res.status(500).json({
+        success: false,
         message: "Failed to send OTP email",
       });
     }
 
+    // ✅ RESPONSE
     return res.status(200).json({
       success: true,
       message: "OTP sent to email successfully",
     });
 
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
   }
 };
 
 
 
+
 const verifyOTP = async (req, res) => {
   try {
-    const { email, otp } = req.body;
+    let { email, otp } = req.body;
 
+    // ✅ VALIDATION
     if (!email || !otp) {
-      return res.status(400).json({ message: "Email & OTP required" });
+      return res.status(400).json({
+        success: false,
+        message: "Email & OTP required",
+      });
     }
 
-    // ✅ Find temp user
+    // ✅ NORMALIZE EMAIL
+    email = email.toLowerCase().trim();
+
+    // ✅ FIND TEMP USER
     const tempUser = await TempUser.findOne({ email });
 
     if (!tempUser) {
-      return res.status(400).json({ message: "User not found" });
+      return res.status(400).json({
+        success: false,
+        message: "User not found",
+      });
     }
 
-    // ✅ OTP match
-    if (tempUser.otp !== otp) {
-      return res.status(400).json({ message: "Invalid OTP" });
+    // ✅ OTP MATCH
+    if (tempUser.otp !== otp.toString()) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid OTP",
+      });
     }
 
-    // ✅ Expiry check
+    // ✅ OTP EXPIRY
     if (Date.now() > tempUser.otpExpires) {
-      return res.status(400).json({ message: "OTP expired" });
+      return res.status(400).json({
+        success: false,
+        message: "OTP expired",
+      });
     }
 
-    // ✅ Hash password
-    const hashedPassword = await bcrypt.hash(tempUser.password, 10);
-
-    // ✅ Create real user
-    const user = await User.create({
-      name: tempUser.name,
-      email: tempUser.email,
-      mobile: tempUser.mobile,
-      password: hashedPassword,
+    // ✅ CHECK EXISTING USER
+    const existingUser = await User.findOne({
+      $or: [
+        { email: tempUser.email.toLowerCase().trim() },
+        { mobile: tempUser.mobile }
+      ]
     });
 
-    // ✅ Mark verified (optional)
+    if (existingUser) {
+      return res.status(400).json({
+        success: false,
+        message: "User already exists",
+      });
+    }
+
+    // ✅ HASH PASSWORD
+    const hashedPassword = await bcrypt.hash(tempUser.password, 10);
+
+    // ✅ CREATE REAL USER
+    const user = await User.create({
+      name: tempUser.name,
+      email: tempUser.email.toLowerCase().trim(),
+      mobile: tempUser.mobile,
+      password: hashedPassword,
+      role: "user"
+    });
+
+    // ✅ MARK VERIFIED
     tempUser.isVerified = true;
     await tempUser.save();
 
-    // ✅ Delete temp user (recommended)
+    // ✅ DELETE TEMP USER
     await TempUser.deleteOne({ email });
 
-    // ✅ Generate token
+    // ✅ GENERATE TOKEN
     const token = generateToken(user._id);
 
+    // ✅ COOKIE SET
     res.cookie("token", token, {
       httpOnly: true,
       secure: false, // production me true
@@ -130,63 +189,85 @@ const verifyOTP = async (req, res) => {
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
+    // ✅ REMOVE PASSWORD
+    const userObj = user.toObject();
+    delete userObj.password;
+
+    // ✅ RESPONSE
     return res.status(201).json({
       success: true,
       message: "OTP verified & user created",
-      user,
+      user: userObj,
       token,
     });
 
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
   }
 };
 
 
-// LOGIN
 
+// LOGIN
 const login = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    let { email, password } = req.body;
 
+    // ✅ VALIDATION
+    if (!email || !password) {
+      return res.status(400).json({
+        success: false,
+        message: "Email and password are required"
+      });
+    }
+
+    // ✅ NORMALIZE EMAIL
+    email = email.toLowerCase().trim();
+
+    // ✅ FIND USER WITH PASSWORD
     const user = await User.findOne({ email }).select("+password");
 
     if (!user) {
       return res.status(404).json({
+        success: false,
         message: "User not found"
       });
     }
 
-    if (!password || !user.password) {
-      return res.status(400).json({
-        message: "Password missing"
-      });
-    }
-
+    // ✅ CHECK PASSWORD
     const isMatch = await bcrypt.compare(password, user.password);
 
     if (!isMatch) {
       return res.status(400).json({
+        success: false,
         message: "Invalid credentials"
       });
     }
 
+    // ✅ ROLE CHECK
     if (user.role !== "user") {
       return res.status(403).json({
+        success: false,
         message: "Access denied. Only user can login."
       });
     }
 
+    // ✅ USER AGENT PARSE
     const ua = req.headers["user-agent"];
+
     const parser = new UAParser(ua);
 
     const device = parser.getDevice();
     const os = parser.getOS();
     const browser = parser.getBrowser();
 
+    // ✅ LAST LOGIN UPDATE
     user.lastLogin = {
       date: new Date(),
-      ip: req.ip || req.headers["x-forwarded-for"],
+      ip: req.ip || req.headers["x-forwarded-for"] || "Unknown",
       device: device.model || "Desktop",
       os: `${os.name || ""} ${os.version || ""}`,
       browser: `${browser.name || ""} ${browser.version || ""}`
@@ -194,30 +275,37 @@ const login = async (req, res) => {
 
     await user.save();
 
+    // ✅ TOKEN GENERATE
     const token = generateToken(user._id);
 
+    // ✅ COOKIE SET
     res.cookie("token", token, {
       httpOnly: true,
-      secure: false,
+      secure: false, // production me true karna
       sameSite: "strict",
       maxAge: 7 * 24 * 60 * 60 * 1000
     });
 
+    // ✅ REMOVE PASSWORD
     const userObj = user.toObject();
     delete userObj.password;
 
-    res.json({
+    // ✅ RESPONSE
+    return res.status(200).json({
       success: true,
       message: "Login successful",
+      token,
       user: userObj
     });
 
   } catch (error) {
-    res.status(500).json({
+    return res.status(500).json({
+      success: false,
       message: error.message
     });
   }
 };
+
 
 
 // GET PROFILE
