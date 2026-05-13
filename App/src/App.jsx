@@ -29,53 +29,56 @@ import DashboardProfile from "./Pages/Dashboard/DashboardPages/DashboardProfile"
 import RedirectPage from "./Pages/RedirectPage";
 import { fetchPlacements } from "./redux/slice/adsterraPlacementSlice";
 import SmartlinkStatistics from "./Pages/Dashboard/DashboardPages/SmartlinkStatistics";
+import { fetchAdsterraStats } from "./redux/slice/adsterraStatsSlice";
 
 function App() {
 
 
   const dispatch = useDispatch();
 
-    useEffect(() => {
-        dispatch(getUser());
-        dispatch(fetchPlacements())
-    }, [dispatch]);
+  useEffect(() => {
+    dispatch(getUser());
+    dispatch(fetchPlacements())
+    dispatch(fetchAdsterraStats());
+
+  }, [dispatch]);
 
 
   return (
     <div className="min-h-screen w-full bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 transition-colors duration-300">
       <Routes>
-      
 
-      <Route path="/login" element={<Login />} />
-      <Route path="/register" element={<Register />} />
+
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
         <Route path="/" element={<HomePage />} />
         <Route path="/s/:code" element={<RedirectPage />} />
 
-      <Route element={<ProtectedRoute />}>
-        {/* <Route path="/dashboard" element={<Dashboard />} /> */}
-        <Route path="/profile" element={<Profile />} />
-      
-        <Route path="/privacy-pollicy" element={<PrivacyPolicy />} />
-        <Route path="/termsOfservice" element={<TermsOfService />} />
-        <Route path="/cookiePollicy" element={<CookiePolicy />} />
-        <Route path="/ContactUs" element={<ContactUs />} />
-        <Route path="/AboutUs" element={<AboutUs />} />
-       <Route path="/profile" element={<Profile />} />
+        <Route element={<ProtectedRoute />}>
+          {/* <Route path="/dashboard" element={<Dashboard />} /> */}
+          <Route path="/profile" element={<Profile />} />
 
-    <Route path="/dashboard" element={<Layout />}>
-    {/* <Route path="dash-board" element={<Dashboard />} /> */}
-      <Route index element={<Overview />} />
-      <Route path="websites" element={<Websites />} />
-      <Route path="statistics" element={<Statistics />} />
-      <Route path="stats" element={<SmartlinkStatistics />} />
-      <Route path="smartlinks" element={<Smartlinks />} />
-      <Route path="referrals" element={<Refrels />} />
-      <Route path="api" element={<ApiPage />} />
-      <Route path="faq-case-studies" element={<FAQCaseStudies />} />
-      <Route path="Dashboard-Profile" element={<DashboardProfile />} />
-      <Route path="payout-information" element={<PayoutInformation />} />
-      <Route path="payouts" element={<Payouts />} />
-    </Route>
+          <Route path="/privacy-pollicy" element={<PrivacyPolicy />} />
+          <Route path="/termsOfservice" element={<TermsOfService />} />
+          <Route path="/cookiePollicy" element={<CookiePolicy />} />
+          <Route path="/ContactUs" element={<ContactUs />} />
+          <Route path="/AboutUs" element={<AboutUs />} />
+          <Route path="/profile" element={<Profile />} />
+
+          <Route path="/dashboard" element={<Layout />}>
+            {/* <Route path="dash-board" element={<Dashboard />} /> */}
+            <Route index element={<Overview />} />
+            <Route path="websites" element={<Websites />} />
+            <Route path="statistics" element={<Statistics />} />
+            <Route path="stats" element={<SmartlinkStatistics />} />
+            <Route path="smartlinks" element={<Smartlinks />} />
+            <Route path="referrals" element={<Refrels />} />
+            <Route path="api" element={<ApiPage />} />
+            <Route path="faq-case-studies" element={<FAQCaseStudies />} />
+            <Route path="Dashboard-Profile" element={<DashboardProfile />} />
+            <Route path="payout-information" element={<PayoutInformation />} />
+            <Route path="payouts" element={<Payouts />} />
+          </Route>
         </Route>
 
       </Routes>
