@@ -750,7 +750,7 @@ exports.fetchAndStoreAdsterraStats =
       // =================================================
 
       // =================================================
-      // UPDATE USER REVENUE DATE WISE
+      // UPDATE USER REVENUE
       // =================================================
 
       const user = await User.findById(userId);
@@ -771,26 +771,23 @@ exports.fetchAndStoreAdsterraStats =
       }
 
       // =================================================
-      // CURRENT USER BALANCE
+      // TOTAL NEW REVENUE
       // =================================================
 
-      let updatedRevenue = Number(
-        user.revenue || 0
-      );
+      let newRevenueToAdd = 0;
 
       // =================================================
-      // PREVENT DUPLICATE PROCESS
+      // PREVENT DUPLICATE
       // =================================================
 
       const processedKeys = new Set();
 
       // =================================================
-      // LOOP OVERALL DATA AGAIN
+      // LOOP DATA
       // =================================================
 
       for (const op of overallOps) {
-        const data =
-          op.updateOne.update.$set;
+        const data = op.updateOne.update.$set;
 
         const placement = String(
           data.placement
@@ -800,10 +797,6 @@ exports.fetchAndStoreAdsterraStats =
           data.date
         ).trim();
 
-        // =============================================
-        // UNIQUE KEY
-        // =============================================
-
         const revenueKey =
           `${placement}_${revenueDate}`;
 
@@ -811,93 +804,58 @@ exports.fetchAndStoreAdsterraStats =
         // SKIP DUPLICATE
         // =============================================
 
+        if (processedKeys.has(revenueKey)) {
+          continue;
+        }
+
+        processedKeys.add(revenueKey);
+
+        // =============================================
+        // ALREADY ADDED ?
+        // =============================================
+
         if (
-          processedKeys.has(
+          user.lastRevenueMap.get(
             revenueKey
           )
         ) {
           continue;
         }
 
-        processedKeys.add(
-          revenueKey
-        );
-
         // =============================================
-        // NEW API REVENUE
+        // NEW REVENUE
         // =============================================
 
-        const latestRevenue =
+        const revenue =
           Number(data.revenue) || 0;
 
-        // =============================================
-        // OLD SAVED REVENUE
-        // =============================================
-
-        const oldRevenue =
-          Number(
-            user.lastRevenueMap.get(
-              revenueKey
-            )
-          ) || 0;
+        newRevenueToAdd += revenue;
 
         // =============================================
-        // ONLY ADD NEW DIFFERENCE
+        // MARK AS ADDED
         // =============================================
 
-        if (
-          latestRevenue > oldRevenue
-        ) {
-          const difference =
-            latestRevenue -
-            oldRevenue;
-
-          // =========================================
-          // ADD ONLY NEW VALUE
-          // =========================================
-
-          updatedRevenue += Number(
-            difference.toFixed(6)
-          );
-
-          // =========================================
-          // SAVE NEW VALUE
-          // =========================================
-
-          user.lastRevenueMap.set(
-            revenueKey,
-            latestRevenue
-          );
-        }
+        user.lastRevenueMap.set(
+          revenueKey,
+          true
+        );
       }
 
       // =================================================
-      // NEVER NEGATIVE
+      // ONLY ADD NEW REVENUE
       // =================================================
 
-      if (updatedRevenue < 0) {
-        updatedRevenue = 0;
-      }
+      user.revenue =
+        Number(user.revenue || 0) +
+        Number(newRevenueToAdd.toFixed(6));
 
       // =================================================
-      // FINAL USER REVENUE
-      // =================================================
-
-      user.revenue = Number(
-        updatedRevenue.toFixed(6)
-      );
-
-      // =================================================
-      // MARK MODIFIED
+      // SAVE
       // =================================================
 
       user.markModified(
         "lastRevenueMap"
       );
-
-      // =================================================
-      // SAVE USER
-      // =================================================
 
       await user.save();
 
