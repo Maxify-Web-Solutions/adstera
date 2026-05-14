@@ -1130,6 +1130,8 @@ exports.fetchAndStoreAdsterraStats = async (req, res) => {
             // SAVE OVERALL STATS
             // =============================================
 
+            
+
             for (const item of overallData) {
               const impressions = Math.floor(
                 (Number(item.impression) || 0) * 0.9
