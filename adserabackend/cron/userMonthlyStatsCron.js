@@ -6,7 +6,7 @@ const {
 
 const {
   fetchAndStoreAdsterraStats,
-} = require("../controllers/adsterraController");
+} = require("../controllers/adsterracontroller");
 
 // ======================================================
 // USER MONTHLY STATS
