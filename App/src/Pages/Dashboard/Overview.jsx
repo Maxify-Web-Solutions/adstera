@@ -20,6 +20,10 @@ import lookup from "country-code-lookup";
 const Overview = () => {
     const dispatch = useDispatch();
 
+    useEffect(() => {
+            window.scrollTo(0, 0);
+        }, []);
+
     const {
         data: stats,
         totals,

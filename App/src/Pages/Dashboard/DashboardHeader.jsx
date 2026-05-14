@@ -8,6 +8,7 @@ import { logoutUser } from "../../redux/slice/authSlice";
 
 const DashboardHeader = ({ onMenuClick }) => {
     const { user } = useSelector((state) => state.auth);
+    console.log(user, "mai huuuuuu");
     const dispatch = useDispatch();
     const navigate = useNavigate();
 
@@ -42,10 +43,10 @@ const DashboardHeader = ({ onMenuClick }) => {
 
     return (
         <header className="sticky top-0 z-50 w-full h-16 bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-700 px-4 md:px-8 flex items-center justify-between">
-            
+
             {/* Left Side */}
             <div className="flex items-center gap-4 md:gap-6">
-                
+
                 {/* Mobile Menu Button */}
                 <button
                     onClick={onMenuClick}
@@ -89,13 +90,27 @@ const DashboardHeader = ({ onMenuClick }) => {
                     <span>Balance:</span>
 
                     <span>
-                        $ {user?.credit || user?.balance || user?.revenue || 0}
+                        $
+                        {Object.values(
+                            user?.lastRevenueMap || {}
+                        ).reduce(
+                            (acc, val) =>
+                                acc + Number(val || 0),
+                            0
+                        ).toFixed(3)}
                     </span>
                 </div>
 
                 {/* Mobile Balance */}
                 <div className="flex md:hidden items-center gap-1 px-3 py-1.5 rounded-lg bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-sm font-semibold">
-                    $ {user?.credit || user?.balance || user?.revenue || 0}
+                    $
+                    {Object.values(
+                        user?.lastRevenueMap || {}
+                    ).reduce(
+                        (acc, val) =>
+                            acc + Number(val || 0),
+                        0
+                    ).toFixed(3)}
                 </div>
 
                 {/* User */}
@@ -117,9 +132,8 @@ const DashboardHeader = ({ onMenuClick }) => {
 
                             <IoIosArrowDown
                                 size={16}
-                                className={`transition-transform duration-200 ${
-                                    isDropdownOpen ? "rotate-180" : ""
-                                }`}
+                                className={`transition-transform duration-200 ${isDropdownOpen ? "rotate-180" : ""
+                                    }`}
                             />
                         </div>
                     </div>
@@ -127,7 +141,7 @@ const DashboardHeader = ({ onMenuClick }) => {
                     {/* Dropdown Menu */}
                     {isDropdownOpen && (
                         <div className="absolute right-0 mt-3 w-48 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl shadow-lg py-2">
-                            
+
                             <Link
                                 to="/dashboard/dashboard-profile"
                                 onClick={() =>

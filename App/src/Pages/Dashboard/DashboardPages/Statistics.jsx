@@ -448,6 +448,10 @@ const Statistics = () => {
       // RETURN FINAL DATA
       // ====================================
 
+      allDates.sort(
+  (a, b) => new Date(b) - new Date(a)
+);
+
       return allDates.map(
         (date, index) => {
 
@@ -695,9 +699,9 @@ const Statistics = () => {
         item.label,
         impressions,
         clicks,
-        ctr.toFixed(3) + "%",
-        cpm.toFixed(3),
-        "$" + revenue.toFixed(3),
+        ctr.toFixed(2) + "%",
+        cpm.toFixed(2),
+        "$" + revenue.toFixed(2),
       ];
     });
 
@@ -730,7 +734,7 @@ const Statistics = () => {
     {
       title: "CTR",
       value: `${calculatedTotals.impressions > 0
-        ? ((calculatedTotals.clicks / calculatedTotals.impressions) * 100).toFixed(3)
+        ? ((calculatedTotals.clicks / calculatedTotals.impressions) * 100).toFixed(2)
         : "0.00"}%`,
       icon: TrendingUp,
       color: "from-purple-500 to-purple-600",
@@ -739,7 +743,7 @@ const Statistics = () => {
     {
       title: "CPM",
       value: `$${calculatedTotals.impressions > 0
-        ? ((calculatedTotals.revenue / calculatedTotals.impressions) * 1000).toFixed(3)
+        ? ((calculatedTotals.revenue / calculatedTotals.impressions) * 1000).toFixed(2)
         : "0.000"}`,
       icon: DollarSign,
       color: "from-orange-500 to-orange-600",
@@ -747,7 +751,7 @@ const Statistics = () => {
     },
     {
       title: "Total Revenue",
-      value: `$${calculatedTotals.revenue.toFixed(3)}`,
+      value: `$${calculatedTotals.revenue.toFixed(2)}`,
       icon: Zap,
       color: "from-yellow-500 to-yellow-600",
       bgGradient: "bg-gradient-to-br",
@@ -768,7 +772,7 @@ const Statistics = () => {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
           {statsCards.map((card, idx) => (
             <div
               key={idx}
@@ -1037,14 +1041,14 @@ const Statistics = () => {
                         </td>
                         <td className="p-4 text-right font-mono text-gray-700 dark:text-gray-300">
                           <span className={ctr > 2 ? "text-green-600 dark:text-green-400" : "text-gray-600 dark:text-gray-400"}>
-                            {ctr.toFixed(3)}%
+                            {ctr.toFixed(2)}%
                           </span>
                         </td>
                         <td className="p-4 text-right font-mono text-gray-700 dark:text-gray-300">
-                          ${cpm.toFixed(3)}
+                          ${cpm.toFixed(2)}
                         </td>
                         <td className="p-4 text-right font-mono text-green-600 dark:text-green-400 font-semibold">
-                          ${revenue.toFixed(3)}
+                          ${revenue.toFixed(2)}
                         </td>
                       </tr>
                     );
@@ -1085,18 +1089,18 @@ const Statistics = () => {
                     </td>
                     <td className="p-4 text-right font-bold text-gray-900 dark:text-white">
                       {calculatedTotals.impressions > 0
-                        ? ((calculatedTotals.clicks / calculatedTotals.impressions) * 100).toFixed(3)
+                        ? ((calculatedTotals.clicks / calculatedTotals.impressions) * 100).toFixed(2)
                         : "0.00"}
                       %
                     </td>
                     <td className="p-4 text-right font-bold font-mono text-gray-900 dark:text-white">
                       $
                       {calculatedTotals.impressions > 0
-                        ? ((calculatedTotals.revenue / calculatedTotals.impressions) * 1000).toFixed(3)
+                        ? ((calculatedTotals.revenue / calculatedTotals.impressions) * 1000).toFixed(2)
                         : "0.000"}
                     </td>
                     <td className="p-4 text-right font-bold font-mono text-green-600 dark:text-green-400">
-                      ${calculatedTotals.revenue.toFixed(3)}
+                      ${calculatedTotals.revenue.toFixed(2)}
                     </td>
                   </tr>
                 </tfoot>
