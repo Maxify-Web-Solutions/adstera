@@ -209,94 +209,122 @@ const Smartlinks = () => {
             {/* TABLE */}
             <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-2xl shadow-sm overflow-hidden">
 
-                <table className="w-full text-left md:min-w-[640px]">
-                    <thead className="bg-gray-50 dark:bg-slate-900 text-gray-500 dark:text-gray-400 text-sm">
-                        <tr>
-                            <th className="px-4 py-3">
-                                <button onClick={() => requestSort("name")} className="flex items-center gap-2">
-                                    Name {getSortIcon("name")}
-                                </button>
-                            </th>
+    {/* Responsive Wrapper */}
+    <div className="w-full overflow-x-auto">
+        <table className="w-full min-w-[700px] text-left">
+            <thead className="bg-gray-50 dark:bg-slate-900 text-gray-500 dark:text-gray-400 text-sm whitespace-nowrap">
+                <tr>
+                    <th className="px-4 py-3">
+                        <button
+                            onClick={() => requestSort("name")}
+                            className="flex items-center gap-2"
+                        >
+                            Name {getSortIcon("name")}
+                        </button>
+                    </th>
 
-                            <th className="px-4 py-3">
-                                ID
-                            </th>
+                    <th className="px-4 py-3">
+                        ID
+                    </th>
 
-                            <th className="px-4 py-3">
-                                Status
-                            </th>
+                    <th className="px-4 py-3">
+                        Status
+                    </th>
 
-                            <th className="px-4 py-3 text-right">
-                                Actions
-                            </th>
-                        </tr>
-                    </thead>
+                    <th className="px-4 py-3 text-right">
+                        Actions
+                    </th>
+                </tr>
+            </thead>
 
-                    <tbody>
-                        {sortedLinks.length > 0 ? (
-                            sortedLinks.map((link) => (
-                                <tr key={link._id} className="border-t border-gray-200 dark:border-slate-700 hover:bg-gray-100 dark:hover:bg-slate-700">
+            <tbody>
+                {sortedLinks.length > 0 ? (
+                    sortedLinks.map((link) => (
+                        <tr
+                            key={link._id}
+                            className="border-t border-gray-200 dark:border-slate-700 hover:bg-gray-100 dark:hover:bg-slate-700"
+                        >
+                            <td className="px-4 py-3 whitespace-nowrap">
+                                {link.name}
+                            </td>
 
-                                    <td className="px-4 py-3">{link.name}</td>
+                            <td className="px-4 py-3 text-gray-500 dark:text-gray-400 whitespace-nowrap">
+                                {link.linkId}
+                            </td>
 
-                                    <td className="px-4 py-3 text-gray-500 dark:text-gray-400">
-                                        {link.linkId}
-                                    </td>
+                            <td className="px-4 py-3 whitespace-nowrap">
+                                <span
+                                    className={`px-3 py-1 text-xs rounded-full ${getStatusColor(
+                                        link.status
+                                    )}`}
+                                >
+                                    {link.status || "Inactive"}
+                                </span>
+                            </td>
 
-                                    <td className="px-4 py-3">
-                                        <span className={`px-3 py-1 text-xs rounded-full ${getStatusColor(link.status)}`}>
-                                            {link.status || "Inactive"}
-                                        </span>
-                                    </td>
+                            <td className="px-4 py-3">
+                                <div className="flex justify-end flex-wrap gap-3 text-sm whitespace-nowrap">
 
-                                    <td className="px-4 py-3 flex justify-end gap-6 text-sm">
+                                    <button
+                                        onClick={() =>
+                                            navigate("/dashboard/statistics", {
+                                                state: {
+                                                    placementId: link.placementId,
+                                                    domain: link.smartCode,
+                                                    linkId: link.linkId,
+                                                },
+                                            })
+                                        }
+                                        className="hover:text-blue-500 transition"
+                                    >
+                                        STATISTICS
+                                    </button>
 
+                                    <button
+                                        onClick={() => {
+                                            setEditingLink(link);
+                                            setIsEditModalOpen(true);
+                                        }}
+                                        className="hover:text-blue-500 transition"
+                                    >
+                                        EDIT
+                                    </button>
+
+                                    <button
+                                        onClick={() => handleCopy(link)}
+                                        className="hover:text-blue-500 transition"
+                                    >
+                                        COPY LINK
+                                    </button>
+
+                                    {link.status !== "Active" && (
                                         <button
-                                            onClick={() =>
-                                                navigate("/dashboard/statistics", {
-                                                    state: {
-                                                        placementId: link.placementId,   // ✅ main id now
-                                                        domain: link.smartCode,          // optional
-                                                        linkId: link.linkId,             // keep only if needed for reference
-                                                    },
-                                                })
-                                            }                                        >
-                                            STATISTICS
-                                        </button>
-
-                                        <button
-                                            onClick={() => {
-                                                setEditingLink(link);
-                                                setIsEditModalOpen(true);
-                                            }}
+                                            onClick={() => handleReactivate(link)}
+                                            className="hover:text-green-500 transition"
                                         >
-                                            EDIT
+                                            REACTIVATE
                                         </button>
+                                    )}
 
-                                        <button onClick={() => handleCopy(link)}>
-                                            COPY LINK
-                                        </button>
+                                </div>
+                            </td>
+                        </tr>
+                    ))
+                ) : (
+                    <tr>
+                        <td
+                            colSpan="4"
+                            className="text-center py-6 text-gray-500"
+                        >
+                            No Smartlinks Found
+                        </td>
+                    </tr>
+                )}
+            </tbody>
+        </table>
+    </div>
 
-                                        {link.status !== "Active" && (
-                                            <button onClick={() => handleReactivate(link)}>
-                                                REACTIVATE
-                                            </button>
-                                        )}
-
-                                    </td>
-                                </tr>
-                            ))
-                        ) : (
-                            <tr>
-                                <td colSpan="4" className="text-center py-6 text-gray-500">
-                                    No Smartlinks Found
-                                </td>
-                            </tr>
-                        )}
-                    </tbody>
-                </table>
-
-            </div>
+</div>
 
         </div >
     );

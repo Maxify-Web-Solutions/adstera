@@ -156,7 +156,7 @@ const PayoutInformation = () => {
 
             <div>
               <p className="text-gray-500 dark:text-gray-400">Minimum payout</p>
-              <p className="font-semibold text-gray-900 dark:text-white">$50</p>
+              <p className="font-semibold text-gray-900 dark:text-white">$25</p>
             </div>
 
             <div>
@@ -200,7 +200,7 @@ const PayoutInformation = () => {
                   <p><b>Name:</b> {user.name || "N/A"}</p>
                   <p><b>Email:</b> {user.email || "N/A"}</p>
                   <p><b>Mobile:</b> {user.mobile || "N/A"}</p>
-                  <p><b>Minimum payout:</b> $50</p>
+                  <p><b>Minimum payout:</b> $25</p>
                 </div>
               ) : (
                 <p className="text-sm text-gray-500 dark:text-gray-400">Loading user data...</p>

@@ -26,14 +26,14 @@ const DashboardHeader = ({ onMenuClick }) => {
     }, []);
 
     const handleLogout = async () => {
-            try {
-                await dispatch(logoutUser()).unwrap();
-                setIsMenuOpen(false);
-                navigate("/", { replace: true });
-            } catch (error) {
-                console.error("Logout failed:", error);
-            }
-        };
+        try {
+            await dispatch(logoutUser()).unwrap();
+            setIsMenuOpen(false);
+            navigate("/", { replace: true });
+        } catch (error) {
+            console.error("Logout failed:", error);
+        }
+    };
 
     return (
         <header className="sticky top-0 z-50 w-full h-16 bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-700 px-4 md:px-8 flex items-center justify-between">
@@ -51,16 +51,16 @@ const DashboardHeader = ({ onMenuClick }) => {
 
                 {/* Logo */}
                 <Link to={"/"} className="flex items-center gap-3">
-  <img
-    src="https://i.ibb.co/1fQdkh8S/Adstorx-logo-1-removebg-preview.png"
-    alt="logo"
-    className="h-8 w-auto object-contain"
-  />
+                    <img
+                        src="https://i.ibb.co/1fQdkh8S/Adstorx-logo-1-removebg-preview.png"
+                        alt="logo"
+                        className="h-8 w-auto object-contain"
+                    />
 
-  <h1 className="text-lg md:text-xl font-semibold text-gray-800 dark:text-white">
-    Statistics
-  </h1>
-</Link>
+                    <h1 className="text-lg hidden md:block md:text-xl font-semibold text-gray-800 dark:text-white">
+                        Statistics
+                    </h1>
+                </Link>
 
             </div>
 
@@ -87,7 +87,7 @@ const DashboardHeader = ({ onMenuClick }) => {
 
                 {/* User */}
                 <div className="relative" ref={dropdownRef}>
-                    <div 
+                    <div
                         className="flex items-center gap-3 cursor-pointer select-none"
                         onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                     >
@@ -100,9 +100,9 @@ const DashboardHeader = ({ onMenuClick }) => {
                             <span className="text-gray-800 dark:text-white">
                                 {user?.name || "User"}
                             </span>
-                            <IoIosArrowDown 
-                                size={16} 
-                                className={`transition-transform duration-200 ${isDropdownOpen ? "rotate-180" : ""}`} 
+                            <IoIosArrowDown
+                                size={16}
+                                className={`transition-transform duration-200 ${isDropdownOpen ? "rotate-180" : ""}`}
                             />
                         </div>
                     </div>

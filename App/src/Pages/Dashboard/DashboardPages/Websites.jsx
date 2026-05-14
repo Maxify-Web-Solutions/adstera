@@ -26,7 +26,7 @@ const Websites = () => {
                 {isOpen && <AddWebsiteModal onClose={() => setIsOpen(false)} />}
             </div>
 
-            <div className="container px-4 py-8 md:py-10">
+            <div className="container md:py-10">
 
                 {/* Page Title */}
                 <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-8">
