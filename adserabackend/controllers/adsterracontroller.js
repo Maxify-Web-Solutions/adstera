@@ -1131,9 +1131,8 @@ exports.fetchAndStoreAdsterraStats = async (req, res) => {
             // =============================================
 
             for (const item of overallData) {
-              const impressions = Math.max(
-                (Number(item.impression) || 0) - 5,
-                0
+              const impressions = Math.floor(
+                (Number(item.impression) || 0) * 0.9
               );
               const clicks =
                 Number(item.clicks) || 0;
@@ -1271,9 +1270,8 @@ exports.fetchAndStoreAdsterraStats = async (req, res) => {
 
                 country: countryName,
 
-                impressions: Math.max(
-                  (Number(item.impression) || 0) - 5,
-                  0
+                impressions: Math.floor(
+                  (Number(item.impression) || 0) * 0.9
                 ),
                 clicks:
                   Number(item.clicks) || 0,
