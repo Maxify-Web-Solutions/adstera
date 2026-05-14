@@ -654,9 +654,12 @@ exports.getAdsterraStatsFromDB =
         page = 1,
         limit = 20,
         placement,
+        country,
       } = req.query;
 
-      // ================= AUTH =================
+      // =================================================
+      // AUTH
+      // =================================================
 
       if (!userId) {
         return res.status(401).json({
@@ -666,37 +669,32 @@ exports.getAdsterraStatsFromDB =
         });
       }
 
-      // ================= FILTER =================
+      // =================================================
+      // DATE HELPER
+      // =================================================
 
-      const filter = {
-        userId:
-          new mongoose.Types.ObjectId(
-            userId
-          ),
+      const normalizeDate = (
+        d
+      ) => {
+        if (!d) return null;
 
-        country: "ALL",
+        if (
+          typeof d ===
+          "string"
+        ) {
+          return d.includes("T")
+            ? d.split("T")[0]
+            : d;
+        }
+
+        return new Date(d)
+          .toISOString()
+          .split("T")[0];
       };
 
-      // ================= PLACEMENT =================
-
-      if (placement) {
-        filter.placement =
-          String(placement);
-      }
-
-      // ================= DATE =================
-
-      if (
-        start_date &&
-        end_date
-      ) {
-        filter.date = {
-          $gte: start_date,
-          $lte: end_date,
-        };
-      }
-
-      // ================= PAGINATION =================
+      // =================================================
+      // PAGINATION
+      // =================================================
 
       const currentPage =
         Number(page) || 1;
@@ -708,11 +706,56 @@ exports.getAdsterraStatsFromDB =
         (currentPage - 1) *
         perPage;
 
-      // ================= FETCH DATA =================
+      // =================================================
+      // OVERALL FILTER
+      // =================================================
 
-      const stats =
+      const overallFilter = {
+        userId:
+          new mongoose.Types.ObjectId(
+            userId
+          ),
+
+        country: "ALL",
+      };
+
+      // =================================================
+      // DATE FILTER
+      // =================================================
+
+      if (
+        start_date &&
+        end_date
+      ) {
+        overallFilter.date = {
+          $gte:
+            normalizeDate(
+              start_date
+            ),
+
+          $lte:
+            normalizeDate(
+              end_date
+            ),
+        };
+      }
+
+      // =================================================
+      // PLACEMENT FILTER
+      // =================================================
+
+      if (placement) {
+        overallFilter.placement =
+          String(placement);
+      }
+
+      // =================================================
+      // GET OVERALL DATA
+      // =================================================
+
+      const overallStats =
         await AdsterraStats.find(
-          filter
+          overallFilter
         )
           .sort({
             date: -1,
@@ -721,65 +764,16 @@ exports.getAdsterraStatsFromDB =
           .limit(perPage)
           .lean();
 
-      // ================= TOTAL RECORDS =================
+      // =================================================
+      // OVERALL TOTALS
+      // =================================================
 
-      const totalRecords =
-        await AdsterraStats.countDocuments(
-          filter
-        );
-
-      // ================= TOTALS =================
-
-      const totalsAgg =
+      const overallTotalsAgg =
         await AdsterraStats.aggregate([
           {
-            $match: filter,
+            $match:
+              overallFilter,
           },
-
-          // =====================================
-          // REMOVE DUPLICATE
-          // same placement + same date
-          // =====================================
-
-          {
-            $group: {
-              _id: {
-                placement:
-                  "$placement",
-
-                date:
-                  "$date",
-
-                country:
-                  "$country",
-              },
-
-              impressions: {
-                $first: {
-                  $toDouble:
-                    "$impressions",
-                },
-              },
-
-              clicks: {
-                $first: {
-                  $toDouble:
-                    "$clicks",
-                },
-              },
-
-              revenue: {
-                $first: {
-                  $toDouble:
-                    "$revenue",
-                },
-              },
-            },
-          },
-
-          // =====================================
-          // FINAL TOTALS
-          // =====================================
 
           {
             $group: {
@@ -804,93 +798,367 @@ exports.getAdsterraStatsFromDB =
           },
         ]);
 
-      const totals =
-        totalsAgg[0] || {
+      const overallTotals =
+        overallTotalsAgg[0] || {
           totalImpressions: 0,
           totalClicks: 0,
           totalRevenue: 0,
         };
 
-      // ================= CTR =================
+      // =================================================
+      // OVERALL CTR
+      // =================================================
 
-      const ctr =
-        totals.totalImpressions >
-          0
-          ? (totals.totalClicks /
-            totals.totalImpressions) *
-          100
+      const overallCtr =
+        overallTotals.totalImpressions >
+        0
+          ? (overallTotals.totalClicks /
+              overallTotals.totalImpressions) *
+            100
           : 0;
 
-      // ================= CPM =================
+      // =================================================
+      // OVERALL CPM
+      // =================================================
 
-      const cpm =
-        totals.totalImpressions >
-          0
-          ? (totals.totalRevenue /
-            totals.totalImpressions) *
-          1000
+      const overallCpm =
+        overallTotals.totalImpressions >
+        0
+          ? (overallTotals.totalRevenue /
+              overallTotals.totalImpressions) *
+            1000
           : 0;
 
-      // ================= UPDATE USER =================
+      // =================================================
+      // TOTAL RECORDS
+      // =================================================
 
-      // await User.findByIdAndUpdate(
-      //   userId,
-      //   {
-      //     $set: {
-      //       revenue:
-      //         totals.totalRevenue ||
-      //         0,
-      //     },
-      //   }
-      // );
+      const totalRecords =
+        await AdsterraStats.countDocuments(
+          overallFilter
+        );
 
-      // ================= RESPONSE =================
+      // =================================================
+      // COUNTRY FILTER
+      // =================================================
+
+      const countryFilter = {
+        userId:
+          new mongoose.Types.ObjectId(
+            userId
+          ),
+      };
+
+      // =================================================
+      // COUNTRY DATE FILTER
+      // =================================================
+
+      if (
+        start_date &&
+        end_date
+      ) {
+        countryFilter.date = {
+          $gte:
+            normalizeDate(
+              start_date
+            ),
+
+          $lte:
+            normalizeDate(
+              end_date
+            ),
+        };
+      }
+
+      // =================================================
+      // GET COUNTRY DOCS
+      // =================================================
+
+      const countryDocs =
+        await SmartLinkStats.find(
+          countryFilter
+        )
+          .sort({
+            date: -1,
+          })
+          .lean();
+
+      // =================================================
+      // FORMAT COUNTRY DATA
+      // =================================================
+
+      let finalCountryData =
+        [];
+
+      for (const doc of countryDocs) {
+
+        const stats =
+          doc.stats || [];
+
+        for (const item of stats) {
+
+          // =============================================
+          // COUNTRY SEARCH
+          // =============================================
+
+          if (
+            country &&
+            String(
+              item.country
+            ).toUpperCase() !==
+              String(
+                country
+              ).toUpperCase()
+          ) {
+            continue;
+          }
+
+          // =============================================
+          // PLACEMENT SEARCH
+          // =============================================
+
+          if (
+            placement &&
+            String(
+              item.placement
+            ) !==
+              String(
+                placement
+              )
+          ) {
+            continue;
+          }
+
+          finalCountryData.push({
+            date:
+              doc.date,
+
+            placement:
+              item.placement,
+
+            country:
+              item.country,
+
+            domain:
+              item.domain,
+
+            device:
+              doc.device,
+
+            osName:
+              doc.osName,
+
+            browserName:
+              doc.browserName,
+
+            impressions:
+              Number(
+                item.impressions ||
+                  0
+              ),
+
+            clicks:
+              Number(
+                item.clicks ||
+                  0
+              ),
+
+            ctr:
+              Number(
+                item.ctr || 0
+              ),
+
+            cpm:
+              Number(
+                (
+                  item.cpm || 0
+                ).toFixed(6)
+              ),
+
+            revenue:
+              Number(
+                (
+                  item.revenue ||
+                  0
+                ).toFixed(6)
+              ),
+          });
+        }
+      }
+
+      // =================================================
+      // COUNTRY TOTALS
+      // =================================================
+
+      let countryTotals = {
+        totalImpressions: 0,
+        totalClicks: 0,
+        totalRevenue: 0,
+      };
+
+      for (const item of finalCountryData) {
+
+        countryTotals.totalImpressions +=
+          Number(
+            item.impressions || 0
+          );
+
+        countryTotals.totalClicks +=
+          Number(
+            item.clicks || 0
+          );
+
+        countryTotals.totalRevenue +=
+          Number(
+            item.revenue || 0
+          );
+      }
+
+      // =================================================
+      // COUNTRY CTR
+      // =================================================
+
+      const countryCtr =
+        countryTotals.totalImpressions >
+        0
+          ? (countryTotals.totalClicks /
+              countryTotals.totalImpressions) *
+            100
+          : 0;
+
+      // =================================================
+      // COUNTRY CPM
+      // =================================================
+
+      const countryCpm =
+        countryTotals.totalImpressions >
+        0
+          ? (countryTotals.totalRevenue /
+              countryTotals.totalImpressions) *
+            1000
+          : 0;
+
+      // =================================================
+      // RESPONSE
+      // =================================================
 
       return res.status(200).json({
         success: true,
 
-        page: currentPage,
+        filters: {
+          placement:
+            placement || "ALL",
 
-        limit: perPage,
+          country:
+            country || "ALL",
 
-        totalPages: Math.ceil(
-          totalRecords /
-          perPage
-        ),
+          start_date:
+            start_date || null,
 
-        totalRecords,
-
-        totals: {
-          totalImpressions:
-            Number(
-              totals.totalImpressions ||
-              0
-            ),
-
-          totalClicks:
-            Number(
-              totals.totalClicks ||
-              0
-            ),
-
-          totalRevenue:
-            Number(
-              (
-                totals.totalRevenue ||
-                0
-              ).toFixed(6)
-            ),
-
-          ctr: Number(
-            ctr.toFixed(2)
-          ),
-
-          cpm: Number(
-            cpm.toFixed(6)
-          ),
+          end_date:
+            end_date || null,
         },
 
-        data: stats,
+        pagination: {
+          page:
+            currentPage,
+
+          limit:
+            perPage,
+
+          totalPages:
+            Math.ceil(
+              totalRecords /
+                perPage
+            ),
+
+          totalRecords,
+        },
+
+        overall: {
+          totals: {
+            totalImpressions:
+              Number(
+                overallTotals.totalImpressions ||
+                  0
+              ),
+
+            totalClicks:
+              Number(
+                overallTotals.totalClicks ||
+                  0
+              ),
+
+            totalRevenue:
+              Number(
+                (
+                  overallTotals.totalRevenue ||
+                  0
+                ).toFixed(6)
+              ),
+
+            ctr:
+              Number(
+                overallCtr.toFixed(
+                  2
+                )
+              ),
+
+            cpm:
+              Number(
+                overallCpm.toFixed(
+                  6
+                )
+              ),
+          },
+
+          data:
+            overallStats,
+        },
+
+        country: {
+          totals: {
+            totalImpressions:
+              Number(
+                countryTotals.totalImpressions ||
+                  0
+              ),
+
+            totalClicks:
+              Number(
+                countryTotals.totalClicks ||
+                  0
+              ),
+
+            totalRevenue:
+              Number(
+                (
+                  countryTotals.totalRevenue ||
+                  0
+                ).toFixed(6)
+              ),
+
+            ctr:
+              Number(
+                countryCtr.toFixed(
+                  2
+                )
+              ),
+
+            cpm:
+              Number(
+                countryCpm.toFixed(
+                  6
+                )
+              ),
+          },
+
+          totalRecords:
+            finalCountryData.length,
+
+          data:
+            finalCountryData,
+        },
       });
     } catch (error) {
       console.error(
