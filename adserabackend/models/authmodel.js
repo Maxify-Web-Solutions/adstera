@@ -30,6 +30,11 @@ const userschema = new mongoose.Schema(
       default: {},
     },
 
+    lastWithdrawalDate: {
+      type: String,
+      default: null,
+    },
+
     role: {
       type: String,
       enum: ['admin', 'user'],

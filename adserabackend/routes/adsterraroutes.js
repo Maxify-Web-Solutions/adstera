@@ -5,7 +5,7 @@ const router = express.Router();
 
 
 // 📡 Fetch + Save Data
-router.get("/fetch",authMiddleware, fetchAndStoreAdsterraStats);
+// router.get("/fetch",authMiddleware, fetchAndStoreAdsterraStats);
 
 router.get("/stats",authMiddleware, getAdsterraStatsFromDB);
 

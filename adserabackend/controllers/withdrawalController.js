@@ -30,7 +30,10 @@ exports.createWithdrawal = async (req, res) => {
       network,
     } = req.body;
 
-    // ✅ Amount validation
+    // =================================================
+    // AMOUNT VALIDATION
+    // =================================================
+
     if (!amount || amount <= 25) {
       return res.status(400).json({
         success: false,
@@ -38,16 +41,29 @@ exports.createWithdrawal = async (req, res) => {
       });
     }
 
-    // ✅ Payment method validation
-    if (!paymentMethod || !["bank", "crypto"].includes(paymentMethod)) {
+    // =================================================
+    // PAYMENT METHOD VALIDATION
+    // =================================================
+
+    if (
+      !paymentMethod ||
+      !["bank", "crypto"].includes(
+        paymentMethod
+      )
+    ) {
       return res.status(400).json({
         success: false,
-        message: "Invalid payment method (bank / crypto required)",
+        message:
+          "Invalid payment method (bank / crypto required)",
       });
     }
 
-    // ✅ User check
-    const user = await User.findById(userId);
+    // =================================================
+    // USER CHECK
+    // =================================================
+
+    const user =
+      await User.findById(userId);
 
     if (!user) {
       return res.status(404).json({
@@ -56,35 +72,65 @@ exports.createWithdrawal = async (req, res) => {
       });
     }
 
-    // ✅ Balance check
-    if (user.revenue < amount) {
+    // =================================================
+    // BALANCE CHECK
+    // =================================================
+
+    if (
+      Number(user.revenue) <
+      Number(amount)
+    ) {
       return res.status(400).json({
         success: false,
-        message: "Insufficient balance",
+        message:
+          "Insufficient balance",
       });
     }
 
-    // ================= VALIDATIONS =================
+    // =================================================
+    // BANK VALIDATION
+    // =================================================
 
-    if (paymentMethod === "bank") {
-      if (!accountHolderName || !bankName || !accountNumber || !ifscCode) {
+    if (
+      paymentMethod === "bank"
+    ) {
+      if (
+        !accountHolderName ||
+        !bankName ||
+        !accountNumber ||
+        !ifscCode
+      ) {
         return res.status(400).json({
           success: false,
-          message: "All bank details are required",
+          message:
+            "All bank details are required",
         });
       }
     }
 
-    if (paymentMethod === "crypto") {
-      if (!cryptoType || !walletAddress || !network) {
+    // =================================================
+    // CRYPTO VALIDATION
+    // =================================================
+
+    if (
+      paymentMethod === "crypto"
+    ) {
+      if (
+        !cryptoType ||
+        !walletAddress ||
+        !network
+      ) {
         return res.status(400).json({
           success: false,
-          message: "All crypto details are required",
+          message:
+            "All crypto details are required",
         });
       }
     }
 
-    // ================= OTP VERIFY =================
+    // =================================================
+    // OTP REQUIRED
+    // =================================================
 
     if (!otp) {
       return res.status(400).json({
@@ -93,9 +139,16 @@ exports.createWithdrawal = async (req, res) => {
       });
     }
 
-    // DB se latest OTP lao
-    const otpRecord = await WithdrawalOtp.findOne({ userId })
-      .sort({ createdAt: -1 });
+    // =================================================
+    // GET LATEST OTP
+    // =================================================
+
+    const otpRecord =
+      await WithdrawalOtp.findOne({
+        userId,
+      }).sort({
+        createdAt: -1,
+      });
 
     if (!otpRecord) {
       return res.status(400).json({
@@ -104,15 +157,24 @@ exports.createWithdrawal = async (req, res) => {
       });
     }
 
-    // expire check
-    if (otpRecord.expiresAt < Date.now()) {
+    // =================================================
+    // OTP EXPIRE CHECK
+    // =================================================
+
+    if (
+      otpRecord.expiresAt <
+      Date.now()
+    ) {
       return res.status(400).json({
         success: false,
         message: "OTP expired",
       });
     }
 
-    // match check
+    // =================================================
+    // OTP MATCH CHECK
+    // =================================================
+
     if (otpRecord.otp !== otp) {
       return res.status(400).json({
         success: false,
@@ -120,40 +182,119 @@ exports.createWithdrawal = async (req, res) => {
       });
     }
 
-    user.revenue -= amount;
+    // =================================================
+    // DEDUCT REVENUE
+    // =================================================
+
+    user.revenue = Number(
+      (
+        Number(user.revenue) -
+        Number(amount)
+      ).toFixed(6)
+    );
+
+    // =================================================
+    // IMPORTANT
+    // SAVE LAST WITHDRAWAL DATE
+    // =================================================
+
+    user.lastWithdrawalDate =
+      new Date()
+        .toISOString()
+        .split("T")[0];
+
     await user.save();
 
-    // ================= CREATE DATA =================
+    // =================================================
+    // CREATE WITHDRAWAL DATA
+    // =================================================
+
     const withdrawalData = {
       userId,
       amount,
       paymentMethod,
     };
 
-    if (paymentMethod === "bank") {
-      withdrawalData.accountHolderName = accountHolderName;
-      withdrawalData.bankName = bankName;
-      withdrawalData.accountNumber = accountNumber;
-      withdrawalData.ifscCode = ifscCode;
+    // =================================================
+    // BANK DATA
+    // =================================================
+
+    if (
+      paymentMethod === "bank"
+    ) {
+      withdrawalData.accountHolderName =
+        accountHolderName;
+
+      withdrawalData.bankName =
+        bankName;
+
+      withdrawalData.accountNumber =
+        accountNumber;
+
+      withdrawalData.ifscCode =
+        ifscCode;
     }
 
-    if (paymentMethod === "crypto") {
-      withdrawalData.cryptoType = cryptoType;
-      withdrawalData.walletAddress = walletAddress;
-      withdrawalData.network = network;
+    // =================================================
+    // CRYPTO DATA
+    // =================================================
+
+    if (
+      paymentMethod === "crypto"
+    ) {
+      withdrawalData.cryptoType =
+        cryptoType;
+
+      withdrawalData.walletAddress =
+        walletAddress;
+
+      withdrawalData.network =
+        network;
     }
 
-    const withdrawal = await Withdrawal.create(withdrawalData);
+    // =================================================
+    // CREATE WITHDRAWAL
+    // =================================================
 
-    res.status(200).json({
+    const withdrawal =
+      await Withdrawal.create(
+        withdrawalData
+      );
+
+    // =================================================
+    // DELETE USED OTP
+    // =================================================
+
+    await WithdrawalOtp.deleteMany({
+      userId,
+    });
+
+    // =================================================
+    // RESPONSE
+    // =================================================
+
+    return res.status(200).json({
       success: true,
-      message: "Withdrawal request submitted",
+      message:
+        "Withdrawal request submitted successfully",
+
       withdrawal,
-      remainingBalance: user.revenue,
+
+      remainingBalance:
+        Number(
+          user.revenue.toFixed(6)
+        ),
+
+      lastWithdrawalDate:
+        user.lastWithdrawalDate,
     });
   } catch (error) {
-    console.log(error);
-    res.status(500).json({
+    console.log(
+      "WITHDRAWAL ERROR =>",
+      error
+    );
+
+    return res.status(500).json({
       success: false,
       message: "Server error",
     });

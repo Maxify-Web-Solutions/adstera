@@ -9,100 +9,158 @@ exports.saveUserMonthlyStats = async () => {
   try {
     console.log("⏰ Saving User Monthly Stats...");
 
-    // all users
-    const users = await User.find({});
 
-    // current date/time
+
+    const users = await User.find({}).lean();
+
+    // current time
     const now = new Date();
 
-    // current month
-    // example: 2026-05
+    // month => 2026-05
     const month = `${now.getFullYear()}-${String(
       now.getMonth() + 1
     ).padStart(2, "0")}`;
 
-    // current date
-    // example: 2026-05-13
+    // date => 2026-05-14
     const today = now.toISOString().split("T")[0];
 
-    // loop all users
+    // =====================================================
+    // LOOP USERS
+    // =====================================================
+
     for (const user of users) {
-      // find existing monthly doc
-      let monthlyDoc = await UserMonthlyStats.findOne({
-        userId: user._id,
-        month,
-      });
+      try {
+        // safe revenue number
+        const currentRevenue = Number(
+          user.revenue || 0
+        );
 
-      // snapshot object
-      const snapshot = {
-        revenue: user.revenue || 0,
-        status: user.status,
-        role: user.role,
-        time: new Date(),
-      };
+        console.log(
+          `👤 ${user.name} Revenue: ${currentRevenue}`
+        );
 
-      // =====================================================
-      // CREATE NEW MONTH DOCUMENT
-      // =====================================================
+        // =====================================================
+        // FIND MONTHLY DOC
+        // =====================================================
 
-      if (!monthlyDoc) {
-        await UserMonthlyStats.create({
-          userId: user._id,
-          name: user.name,
-          email: user.email,
-          mobile: user.mobile,
-          month,
+        let monthlyDoc =
+          await UserMonthlyStats.findOne({
+            userId: user._id,
+            month,
+          });
 
-          dailyData: [
-            {
-              date: today,
-              snapshots: [snapshot],
-            },
-          ],
-        });
+        // =====================================================
+        // SNAPSHOT
+        // =====================================================
 
-        console.log(`✅ New Monthly Doc Created`);
+        const snapshot = {
+          revenue: currentRevenue,
+          status: user.status || "active",
+          role: user.role || "user",
+          time: new Date(),
+        };
 
-        continue;
-      }
+        // =====================================================
+        // CREATE NEW MONTH DOC
+        // =====================================================
 
-      // =====================================================
-      // FIND TODAY DATA
-      // =====================================================
+        if (!monthlyDoc) {
+          await UserMonthlyStats.create({
+            userId: user._id,
+            name: user.name,
+            email: user.email,
+            mobile: user.mobile,
+            month,
 
-      const dayIndex = monthlyDoc.dailyData.findIndex(
-        (d) => d.date === today
-      );
+            dailyData: [
+              {
+                date: today,
+                snapshots: [snapshot],
+              },
+            ],
+          });
 
-      // =====================================================
-      // IF TODAY NOT FOUND
-      // =====================================================
+          console.log(
+            `✅ New Monthly Doc Created For ${user.name}`
+          );
 
-      if (dayIndex === -1) {
-        monthlyDoc.dailyData.push({
-          date: today,
-          snapshots: [snapshot],
-        });
-      }
+          continue;
+        }
 
-      // =====================================================
-      // IF TODAY EXISTS
-      // =====================================================
+        // =====================================================
+        // FIND TODAY DATA
+        // =====================================================
 
-      else {
-        monthlyDoc.dailyData[dayIndex].snapshots.push(
-          snapshot
+        let todayData = monthlyDoc.dailyData.find(
+          (d) => d.date === today
+        );
+
+        // =====================================================
+        // CREATE TODAY DATA
+        // =====================================================
+
+        if (!todayData) {
+          monthlyDoc.dailyData.push({
+            date: today,
+            snapshots: [snapshot],
+          });
+
+          await monthlyDoc.save();
+
+          console.log(
+            `✅ New Day Added For ${user.name}`
+          );
+
+          continue;
+        }
+
+        // =====================================================
+        // GET LAST SNAPSHOT
+        // =====================================================
+
+        const lastSnapshot =
+          todayData.snapshots[
+            todayData.snapshots.length - 1
+          ];
+
+        // =====================================================
+        // SKIP IF REVENUE SAME
+        // =====================================================
+
+        if (
+          lastSnapshot &&
+          Number(lastSnapshot.revenue) ===
+            Number(currentRevenue)
+        ) {
+          console.log(
+            `⏭️ Revenue Unchanged For ${user.name}`
+          );
+
+          continue;
+        }
+
+        // =====================================================
+        // PUSH NEW SNAPSHOT
+        // =====================================================
+
+        todayData.snapshots.push(snapshot);
+
+        await monthlyDoc.save();
+
+        console.log(
+          `✅ Revenue Updated For ${user.name}`
+        );
+      } catch (userError) {
+        console.log(
+          `❌ User Error (${user.name}):`,
+          userError.message
         );
       }
-
-      await monthlyDoc.save();
-
-      console.log(`✅ Updated ${user.name}`);
     }
 
     console.log("🚀 All User Stats Saved");
   } catch (error) {
-    console.log("❌ Error:", error.message);
+    console.log("❌ Main Error:", error.message);
   }
 };
 
@@ -110,10 +168,13 @@ exports.saveUserMonthlyStats = async () => {
 // GET ALL MONTHLY STATS
 // =====================================================
 
-exports.getAllMonthlyStats = async (req, res) => {
+exports.getAllMonthlyStats = async (
+  req,
+  res
+) => {
   try {
     const data = await UserMonthlyStats.find()
-      .populate("userId", "name email mobile")
+      .populate("userId", "name email mobile revenue")
       .sort({ createdAt: -1 });
 
     res.status(200).json({
@@ -133,25 +194,26 @@ exports.getAllMonthlyStats = async (req, res) => {
 // GET SINGLE USER MONTHLY STATS
 // =====================================================
 
-exports.getSingleUserMonthlyStats = async (
-  req,
-  res
-) => {
-  try {
-    const { userId } = req.params;
+exports.getSingleUserMonthlyStats =
+  async (req, res) => {
+    try {
+      const { userId } = req.params;
 
-    const data = await UserMonthlyStats.find({
-      userId,
-    }).sort({ createdAt: -1 });
+      const data =
+        await UserMonthlyStats.find({
+          userId,
+        }).sort({
+          createdAt: -1,
+        });
 
-    res.status(200).json({
-      success: true,
-      data,
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
-  }
-};
+      res.status(200).json({
+        success: true,
+        data,
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        message: error.message,
+      });
+    }
+  };
