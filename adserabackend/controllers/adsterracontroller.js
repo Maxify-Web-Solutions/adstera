@@ -2,22 +2,60 @@ const axios = require("axios");
 const mongoose = require("mongoose");
 const UAParser = require("ua-parser-js");
 
-const User = require("../models/authmodel");
 const SmartLink = require("../models/SmartLink");
-const Config = require("../models/Config");
 const AdsterraStats = require("../models/AdsterraStats");
 const SmartLinkStats = require("../models/SmartLinkStats");
+const User = require("../models/authmodel");
+const Config = require("../models/Config");
 
 // =====================================================
-// AUTO FETCH & STORE ADSTERRA STATS FOR ALL USERS
+// FETCH & STORE ADSTERRA STATS
 // =====================================================
 
-exports.fetchAndStoreAdsterraStatsForAllUsers =
-  async () => {
+exports.fetchAndStoreAdsterraStats =
+  async (req, res) => {
     try {
-      console.log(
-        "🚀 AUTO ADSTERRA FETCH START"
-      );
+      // =================================================
+      // AUTH
+      // =================================================
+
+      const userId =
+        req.user?.id;
+
+      if (!userId) {
+        return res.status(401).json({
+          success: false,
+          message:
+            "Unauthorized",
+        });
+      }
+
+      // =================================================
+      // QUERY
+      // =================================================
+
+      const {
+        country,
+        start_date,
+        end_date,
+      } = req.query;
+
+      // =================================================
+      // GET LINKS
+      // =================================================
+
+      const links =
+        await SmartLink.find({
+          userId,
+        });
+
+      if (!links.length) {
+        return res.status(404).json({
+          success: false,
+          message:
+            "No SmartLinks found",
+        });
+      }
 
       // =================================================
       // CONFIG
@@ -29,24 +67,11 @@ exports.fetchAndStoreAdsterraStatsForAllUsers =
       if (
         !config?.adsterraApiKey
       ) {
-        console.log(
-          "❌ Adsterra API key not found"
-        );
-
-        return;
-      }
-
-      // =================================================
-      // GET ALL USERS
-      // =================================================
-
-      const users =
-        await User.find({});
-
-      if (!users.length) {
-        console.log("❌ No Users Found");
-
-        return;
+        return res.status(400).json({
+          success: false,
+          message:
+            "Adsterra API key not found",
+        });
       }
 
       // =================================================
@@ -111,683 +136,783 @@ exports.fetchAndStoreAdsterraStatsForAllUsers =
       const defaultEndDate =
         currentDate;
 
+      const finalStartDate =
+        start_date ||
+        defaultStartDate;
+
+      const finalEndDate =
+        end_date ||
+        defaultEndDate;
+
       // =================================================
-      // LOOP USERS
+      // COUNTRY NORMALIZER
       // =================================================
 
-      for (const user of users) {
+      const normalizeCountry = (
+        c
+      ) =>
+        (c || "UNKNOWN")
+          .toString()
+          .trim()
+          .toUpperCase();
+
+      // =================================================
+      // DEVICE INFO
+      // =================================================
+
+      const ua =
+        req.headers[
+        "user-agent"
+        ];
+
+      const parser =
+        new UAParser(ua);
+
+      const device =
+        parser.getDevice();
+
+      const os =
+        parser.getOS();
+
+      const browser =
+        parser.getBrowser();
+
+      const deviceType =
+        device.type ||
+        "desktop";
+
+      const osName =
+        os.name || "";
+
+      const browserName =
+        browser.name || "";
+
+      // =================================================
+      // STORAGE
+      // =================================================
+
+      let totalRevenue = 0;
+
+      const overallOps = [];
+
+      const smartLinkStatsMap =
+        new Map();
+
+      const revenueTracker =
+        new Set();
+
+      // =================================================
+      // LOOP LINKS
+      // =================================================
+
+      for (const link of links) {
         try {
-          console.log(
-            `👤 USER => ${user.name}`
-          );
+          const placementId =
+            String(
+              link.placementId
+            ).trim();
 
-          const userId =
-            user._id;
-
-          // =================================================
-          // GET LINKS
-          // =================================================
-
-          const links =
-            await SmartLink.find({
-              userId,
-            });
-
-          if (!links.length) {
-            console.log(
-              `❌ No SmartLinks For ${user.name}`
-            );
-
+          if (!placementId)
             continue;
+
+          // =============================================
+          // APPROVED DATE
+          // =============================================
+
+          const approvedDate =
+            link.approvedAt
+              ? normalizeDate(
+                link.approvedAt
+              )
+              : null;
+
+          // =============================================
+          // FINAL START DATE
+          // =============================================
+
+          let apiStartDate =
+            finalStartDate;
+
+          if (approvedDate) {
+            apiStartDate =
+              approvedDate;
           }
 
-          // =================================================
-          // ENSURE MAP EXISTS
-          // =================================================
+          const domain =
+            link.domain ||
+            link.redirectUrl ||
+            link.targetUrl ||
+            "unknown";
 
-          if (
-            !user.lastRevenueMap
-          ) {
-            user.lastRevenueMap =
-              new Map();
-          }
+          // =============================================
+          // OVERALL API
+          // =============================================
 
-          // =================================================
-          // DEVICE INFO
-          // =================================================
+          const overallResponse =
+            await axios.get(
+              "https://api3.adsterratools.com/publisher/stats.json",
+              {
+                params: {
+                  placement:
+                    placementId,
 
-          const parser =
-            new UAParser();
+                  start_date:
+                    apiStartDate,
 
-          const device =
-            parser.getDevice();
+                  finish_date:
+                    finalEndDate,
 
-          const os =
-            parser.getOS();
+                  group_by:
+                    "date",
+                },
 
-          const browser =
-            parser.getBrowser();
+                headers: {
+                  Accept:
+                    "application/json",
 
-          const deviceType =
-            device.type ||
-            "desktop";
+                  "X-API-Key":
+                    config.adsterraApiKey,
 
-          const osName =
-            os.name || "";
-
-          const browserName =
-            browser.name || "";
-
-          // =================================================
-          // STORAGE
-          // =================================================
-
-          let updatedRevenue =
-            Number(
-              user.revenue || 0
+                  "User-Agent":
+                    "Mozilla/5.0",
+                },
+              }
             );
 
-          let totalRevenue = 0;
+          let overallData =
+            overallResponse.data
+              ?.items || [];
 
-          const overallOps =
-            [];
+          // =============================================
+          // FILTER APPROVED DATE
+          // =============================================
 
-          const smartLinkStatsMap =
-            new Map();
+          overallData =
+            overallData.filter(
+              (item) => {
+                if (
+                  !approvedDate
+                )
+                  return true;
 
-          const revenueTracker =
-            new Set();
+                const itemDate =
+                  normalizeDate(
+                    item.date
+                  );
 
-          // =================================================
-          // LOOP LINKS
-          // =================================================
-
-          for (const link of links) {
-            try {
-              const placementId =
-                String(
-                  link.placementId
-                ).trim();
-
-              if (!placementId)
-                continue;
-
-              // =============================================
-              // APPROVED DATE
-              // =============================================
-
-              const approvedDate =
-                link.approvedAt
-                  ? normalizeDate(
-                    link.approvedAt
-                  )
-                  : null;
-
-              // =============================================
-              // FINAL START DATE
-              // =============================================
-
-              let apiStartDate =
-                defaultStartDate;
-
-              if (
-                approvedDate
-              ) {
-                apiStartDate =
-                  approvedDate;
+                return (
+                  itemDate >=
+                  approvedDate
+                );
               }
+            );
 
-              const domain =
-                link.domain ||
-                link.redirectUrl ||
-                link.targetUrl ||
-                "unknown";
+          // =============================================
+          // COUNTRY API
+          // =============================================
 
-              // =============================================
-              // OVERALL API
-              // =============================================
-
-              const overallResponse =
-                await axios.get(
-                  "https://api3.adsterratools.com/publisher/stats.json",
-                  {
-                    params: {
-                      placement:
-                        placementId,
-
-                      start_date:
-                        apiStartDate,
-
-                      finish_date:
-                        defaultEndDate,
-
-                      group_by:
-                        "date",
-                    },
-
-                    headers: {
-                      Accept:
-                        "application/json",
-
-                      "X-API-Key":
-                        config.adsterraApiKey,
-
-                      "User-Agent":
-                        "Mozilla/5.0",
-                    },
-                  }
-                );
-
-              let overallData =
-                overallResponse
-                  .data?.items ||
-                [];
-
-              // =============================================
-              // FILTER APPROVED DATE
-              // =============================================
-
-              overallData =
-                overallData.filter(
-                  (item) => {
-                    if (
-                      !approvedDate
-                    )
-                      return true;
-
-                    const itemDate =
-                      normalizeDate(
-                        item.date
-                      );
-
-                    return (
-                      itemDate >=
-                      approvedDate
-                    );
-                  }
-                );
-
-              // =============================================
-              // COUNTRY API
-              // =============================================
-
-              const countryResponse =
-                await axios.get(
-                  "https://api3.adsterratools.com/publisher/stats.json",
-                  {
-                    params: {
-                      placement:
-                        placementId,
-
-                      start_date:
-                        apiStartDate,
-
-                      finish_date:
-                        defaultEndDate,
-
-                      group_by:
-                        "country",
-                    },
-
-                    headers: {
-                      Accept:
-                        "application/json",
-
-                      "X-API-Key":
-                        config.adsterraApiKey,
-
-                      "User-Agent":
-                        "Mozilla/5.0",
-                    },
-                  }
-                );
-
-              let countryData =
-                countryResponse
-                  .data?.items ||
-                [];
-
-              // =============================================
-              // REMOVE EMPTY COUNTRY
-              // =============================================
-
-              countryData =
-                countryData.filter(
-                  (item) =>
-                    item?.country &&
-                    item.country.trim() !==
-                      ""
-                );
-
-              // =============================================
-              // SAVE OVERALL STATS
-              // =============================================
-
-              for (const item of overallData) {
-                const impressions =
-                  Number(
-                    item.impression
-                  ) || 0;
-
-                const clicks =
-                  Number(
-                    item.clicks
-                  ) || 0;
-
-                // =========================================
-                // REDUCE CPM & REVENUE 50%
-                // =========================================
-
-                const originalRevenue =
-                  Number(
-                    item.revenue
-                  ) || 0;
-
-                const revenue =
-                  Number(
-                    (
-                      originalRevenue *
-                      0.5
-                    ).toFixed(6)
-                  );
-
-                const originalCpm =
-                  Number(
-                    item.cpm
-                  ) || 0;
-
-                const cpm =
-                  Number(
-                    (
-                      originalCpm *
-                      0.5
-                    ).toFixed(6)
-                  );
-
-                const ctr =
-                  impressions > 0
-                    ? Number(
-                      (
-                        (clicks /
-                          impressions) *
-                        100
-                      ).toFixed(2)
-                    )
-                    : 0;
-
-                const adsterraDate =
-                  String(
-                    normalizeDate(
-                      item.date
-                    )
-                  ).trim();
-
-                // =========================================
-                // UNIQUE REVENUE KEY
-                // =========================================
-
-                const revenueKey =
-                  [
+          const countryResponse =
+            await axios.get(
+              "https://api3.adsterratools.com/publisher/stats.json",
+              {
+                params: {
+                  placement:
                     placementId,
-                    adsterraDate,
-                  ].join("|");
 
-                if (
-                  !revenueTracker.has(
-                    revenueKey
-                  )
-                ) {
-                  totalRevenue +=
-                    revenue;
+                  start_date:
+                    apiStartDate,
 
-                  revenueTracker.add(
-                    revenueKey
-                  );
-                }
+                  finish_date:
+                    finalEndDate,
 
-                overallOps.push({
-                  updateOne: {
-                    filter: {
-                      userId:
-                        new mongoose.Types.ObjectId(
-                          userId
-                        ),
+                  group_by:
+                    "country",
+                },
 
-                      placement:
-                        String(
-                          placementId
-                        ),
+                headers: {
+                  Accept:
+                    "application/json",
 
-                      country:
-                        "ALL",
+                  "X-API-Key":
+                    config.adsterraApiKey,
 
-                      date:
-                        String(
-                          adsterraDate
-                        ),
-                    },
-
-                    update: {
-                      $set: {
-                        userId:
-                          new mongoose.Types.ObjectId(
-                            userId
-                          ),
-
-                        domain,
-
-                        placement:
-                          String(
-                            placementId
-                          ),
-
-                        country:
-                          "ALL",
-
-                        date:
-                          String(
-                            adsterraDate
-                          ),
-
-                        device:
-                          deviceType,
-
-                        osName,
-
-                        browserName,
-
-                        impressions,
-
-                        clicks,
-
-                        revenue,
-
-                        ctr,
-
-                        cpm,
-                      },
-                    },
-
-                    upsert: true,
-                  },
-                });
-
-                // =============================================
-                // UPDATE USER REVENUE
-                // =============================================
-
-                const mapRevenueKey =
-                  `${placementId}_${adsterraDate}`;
-
-                const latestRevenue =
-                  Number(
-                    revenue
-                  ) || 0;
-
-                const oldRevenue =
-                  Number(
-                    user.lastRevenueMap.get(
-                      mapRevenueKey
-                    )
-                  ) || 0;
-
-                const difference =
-                  latestRevenue -
-                  oldRevenue;
-
-                // =============================================
-                // UPDATE ONLY IF CHANGED
-                // =============================================
-
-                if (
-                  difference !== 0
-                ) {
-                  updatedRevenue +=
-                    difference;
-
-                  user.lastRevenueMap.set(
-                    mapRevenueKey,
-                    latestRevenue
-                  );
-
-                  console.log(
-                    `💰 ${user.name} => +${difference}`
-                  );
-                }
+                  "User-Agent":
+                    "Mozilla/5.0",
+                },
               }
+            );
 
-              // =============================================
-              // COUNTRY STATS
-              // =============================================
+          let countryData =
+            countryResponse.data
+              ?.items || [];
 
-              for (const item of countryData) {
-                const statsDate =
-                  String(
-                    apiStartDate
-                  ).trim();
+          // =============================================
+          // REMOVE EMPTY COUNTRY
+          // =============================================
 
-                const mapKey = [
-                  userId,
-                  deviceType,
-                  statsDate,
-                ].join("|");
+          countryData =
+            countryData.filter(
+              (item) =>
+                item?.country &&
+                item.country.trim() !==
+                ""
+            );
 
-                if (
-                  !smartLinkStatsMap.has(
-                    mapKey
+          // =============================================
+          // COUNTRY FILTER
+          // =============================================
+
+          if (country) {
+            const countries =
+              country
+                .split(",")
+                .map((c) =>
+                  c
+                    .trim()
+                    .toUpperCase()
+                );
+
+            countryData =
+              countryData.filter(
+                (item) =>
+                  countries.includes(
+                    normalizeCountry(
+                      item.country
+                    )
                   )
-                ) {
-                  smartLinkStatsMap.set(
-                    mapKey,
-                    {
-                      userId:
-                        new mongoose.Types.ObjectId(
-                          userId
-                        ),
+              );
+          }
 
-                      device:
-                        deviceType,
+          // =============================================
+          // SAVE OVERALL STATS
+          // =============================================
 
-                      osName,
+          for (const item of overallData) {
+            const impressions =
+              Number(
+                item.impression
+              ) || 0;
 
-                      browserName,
+            const clicks =
+              Number(
+                item.clicks
+              ) || 0;
 
-                      date:
-                        statsDate,
+            // =========================================
+            // REDUCE CPM & REVENUE 50%
+            // =========================================
 
-                      stats: [],
-                    }
-                  );
-                }
+            const originalRevenue =
+              Number(
+                item.revenue
+              ) || 0;
 
-                const doc =
-                  smartLinkStatsMap.get(
-                    mapKey
-                  );
+            const revenue =
+              Number(
+                (
+                  originalRevenue *
+                  0.5
+                ).toFixed(6)
+              );
 
-                const statItem = {
+            const originalCpm =
+              Number(
+                item.cpm
+              ) || 0;
+
+            const cpm =
+              Number(
+                (
+                  originalCpm *
+                  0.5
+                ).toFixed(6)
+              );
+
+            const ctr =
+              impressions > 0
+                ? Number(
+                  (
+                    (clicks /
+                      impressions) *
+                    100
+                  ).toFixed(2)
+                )
+                : 0;
+
+            const adsterraDate =
+              String(
+                normalizeDate(
+                  item.date
+                )
+              ).trim();
+
+            // =========================================
+            // UNIQUE REVENUE KEY
+            // =========================================
+
+            const revenueKey =
+              [
+                placementId,
+                adsterraDate,
+              ].join("|");
+
+            if (
+              !revenueTracker.has(
+                revenueKey
+              )
+            ) {
+              totalRevenue +=
+                revenue;
+
+              revenueTracker.add(
+                revenueKey
+              );
+            }
+
+            overallOps.push({
+              updateOne: {
+                filter: {
+                  userId:
+                    new mongoose.Types.ObjectId(
+                      userId
+                    ),
+
                   placement:
                     String(
                       placementId
                     ),
 
-                  domain,
-
                   country:
+                    "ALL",
+
+                  date:
                     String(
-                      item.country
-                    ).toUpperCase(),
-
-                  impressions:
-                    Number(
-                      item.impression
-                    ) || 0,
-
-                  clicks:
-                    Number(
-                      item.clicks
-                    ) || 0,
-
-                  ctr:
-                    Number(
-                      item.ctr
-                    ) || 0,
-
-                  cpm:
-                    Number(
-                      (
-                        (
-                          Number(
-                            item.cpm
-                          ) || 0
-                        ) * 0.5
-                      ).toFixed(6)
+                      adsterraDate
                     ),
+                },
 
-                  revenue:
-                    Number(
-                      (
-                        (
-                          Number(
-                            item.revenue
-                          ) || 0
-                        ) * 0.5
-                      ).toFixed(6)
-                    ),
-                };
+                update: {
+                  $set: {
+                    userId:
+                      new mongoose.Types.ObjectId(
+                        userId
+                      ),
 
-                const existingIndex =
-                  doc.stats.findIndex(
-                    (s) =>
+                    domain,
+
+                    placement:
                       String(
-                        s.placement
-                      ) ===
-                        String(
-                          placementId
-                        ) &&
-                      s.country ===
-                        String(
-                          item.country
-                        ).toUpperCase()
-                  );
+                        placementId
+                      ),
 
-                if (
-                  existingIndex !==
-                  -1
-                ) {
-                  doc.stats[
-                    existingIndex
-                  ] = statItem;
-                } else {
-                  doc.stats.push(
-                    statItem
-                  );
+                    country:
+                      "ALL",
+
+                    date:
+                      String(
+                        adsterraDate
+                      ),
+
+                    device:
+                      deviceType,
+
+                    osName,
+
+                    browserName,
+
+                    impressions,
+
+                    clicks,
+
+                    revenue,
+
+                    ctr,
+
+                    cpm,
+                  },
+                },
+
+                upsert: true,
+              },
+            });
+          }
+
+          // =============================================
+          // COUNTRY STATS
+          // =============================================
+
+          for (const item of countryData) {
+            const statsDate =
+              String(
+                apiStartDate
+              ).trim();
+
+            const mapKey = [
+              userId,
+              deviceType,
+              statsDate,
+            ].join("|");
+
+            if (
+              !smartLinkStatsMap.has(
+                mapKey
+              )
+            ) {
+              smartLinkStatsMap.set(
+                mapKey,
+                {
+                  userId:
+                    new mongoose.Types.ObjectId(
+                      userId
+                    ),
+
+                  device:
+                    deviceType,
+
+                  osName,
+
+                  browserName,
+
+                  date:
+                    statsDate,
+
+                  stats: [],
                 }
-              }
-            } catch (linkError) {
-              console.log(
-                `❌ LINK ERROR (${user.name}) =>`,
-                linkError
-                  ?.response
-                  ?.data ||
-                  linkError.message
+              );
+            }
+
+            const doc =
+              smartLinkStatsMap.get(
+                mapKey
+              );
+
+            const countryName =
+              normalizeCountry(
+                item.country
+              );
+
+            const statItem = {
+              placement:
+                String(
+                  placementId
+                ),
+
+              domain,
+
+              country:
+                countryName,
+
+              impressions:
+                Number(
+                  item.impression
+                ) || 0,
+
+              clicks:
+                Number(
+                  item.clicks
+                ) || 0,
+
+              ctr:
+                Number(
+                  item.ctr
+                ) || 0,
+
+              // =======================================
+              // REDUCE COUNTRY CPM 50%
+              // =======================================
+
+              cpm:
+                Number(
+                  (
+                    (
+                      Number(
+                        item.cpm
+                      ) || 0
+                    ) * 0.5
+                  ).toFixed(6)
+                ),
+
+              // =======================================
+              // REDUCE COUNTRY REVENUE 50%
+              // =======================================
+
+              revenue:
+                Number(
+                  (
+                    (
+                      Number(
+                        item.revenue
+                      ) || 0
+                    ) * 0.5
+                  ).toFixed(6)
+                ),
+            };
+
+            // =========================================
+            // REMOVE DUPLICATE
+            // =========================================
+
+            const existingIndex =
+              doc.stats.findIndex(
+                (s) =>
+                  String(
+                    s.placement
+                  ) ===
+                  String(
+                    placementId
+                  ) &&
+                  s.country ===
+                  countryName
+              );
+
+            if (
+              existingIndex !== -1
+            ) {
+              doc.stats[
+                existingIndex
+              ] = statItem;
+            } else {
+              doc.stats.push(
+                statItem
               );
             }
           }
-
-          // =================================================
-          // SAVE OVERALL STATS
-          // =================================================
-
-          if (
-            overallOps.length
-          ) {
-            await AdsterraStats.bulkWrite(
-              overallOps,
-              {
-                ordered: false,
-              }
-            );
-          }
-
-          // =================================================
-          // SAVE SMARTLINK STATS
-          // =================================================
-
-          const smartLinkDocs =
-            [
-              ...smartLinkStatsMap.values(),
-            ];
-
-          for (const doc of smartLinkDocs) {
-            await SmartLinkStats.findOneAndUpdate(
-              {
-                userId:
-                  doc.userId,
-
-                device:
-                  doc.device,
-
-                date:
-                  String(doc.date),
-              },
-
-              {
-                $set: {
-                  osName:
-                    doc.osName,
-
-                  browserName:
-                    doc.browserName,
-
-                  stats:
-                    doc.stats,
-                },
-              },
-
-              {
-                upsert: true,
-                new: true,
-              }
-            );
-          }
-
-          // =================================================
-          // FINAL USER REVENUE
-          // =================================================
-
-          user.revenue =
-            Number(
-              updatedRevenue.toFixed(
-                6
-              )
-            );
-
-          await user.save();
-
+        } catch (err) {
           console.log(
-            `✅ USER UPDATED => ${user.name} | Revenue: ${user.revenue}`
-          );
-        } catch (userError) {
-          console.log(
-            `❌ USER ERROR => ${user.name}`,
-            userError.message
+            "LINK ERROR =>",
+            link._id,
+            err?.response
+              ?.data ||
+            err.message
           );
         }
       }
 
-      console.log(
-        "🎉 ALL USERS UPDATED"
+      // =================================================
+      // SAVE OVERALL STATS
+      // =================================================
+
+      if (
+        overallOps.length
+      ) {
+        await AdsterraStats.bulkWrite(
+          overallOps,
+          {
+            ordered: false,
+          }
+        );
+      }
+
+      // =================================================
+      // SAVE SMARTLINK STATS
+      // =================================================
+
+      const smartLinkDocs =
+        [
+          ...smartLinkStatsMap.values(),
+        ];
+
+      for (const doc of smartLinkDocs) {
+        await SmartLinkStats.findOneAndUpdate(
+          {
+            userId:
+              doc.userId,
+
+            device:
+              doc.device,
+
+            date:
+              String(doc.date),
+          },
+
+          {
+            $set: {
+              osName:
+                doc.osName,
+
+              browserName:
+                doc.browserName,
+
+              stats:
+                doc.stats,
+            },
+          },
+
+          {
+            upsert: true,
+            new: true,
+          }
+        );
+      }
+
+      // =================================================
+      // UPDATE USER REVENUE DATE WISE
+      // =================================================
+
+      const user =
+        await User.findById(
+          userId
+        );
+
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          message:
+            "User not found",
+        });
+      }
+
+      // =================================================
+      // ENSURE MAP EXISTS
+      // =================================================
+
+      if (
+        !user.lastRevenueMap
+      ) {
+        user.lastRevenueMap =
+          new Map();
+      }
+
+      let updatedRevenue =
+        Number(
+          user.revenue || 0
+        );
+
+      // =================================================
+      // LOOP OVERALL DATA AGAIN
+      // =================================================
+
+      for (const op of overallOps) {
+        const data =
+          op.updateOne.update
+            .$set;
+
+        const placement =
+          String(
+            data.placement
+          ).trim();
+
+        const revenueDate =
+          String(
+            data.date
+          ).trim();
+
+        // =============================================
+        // UNIQUE DATE + PLACEMENT KEY
+        // =============================================
+
+        const revenueKey =
+          `${placement}_${revenueDate}`;
+
+        const latestRevenue =
+          Number(
+            data.revenue
+          ) || 0;
+
+        // =============================================
+        // OLD STORED VALUE
+        // =============================================
+
+        const oldRevenue =
+          Number(
+            user.lastRevenueMap.get(
+              revenueKey
+            )
+          ) || 0;
+
+        // =============================================
+        // DIFFERENCE
+        // =============================================
+
+        const difference =
+          latestRevenue -
+          oldRevenue;
+
+        // =============================================
+        // UPDATE ONLY IF CHANGED
+        // =============================================
+
+        if (
+          difference !== 0
+        ) {
+          updatedRevenue +=
+            difference;
+
+          user.lastRevenueMap.set(
+            revenueKey,
+            latestRevenue
+          );
+        }
+      }
+
+      // =================================================
+      // FINAL SAFE VALUE
+      // =================================================
+
+      user.revenue = Number(
+        updatedRevenue.toFixed(6)
       );
+
+      // =================================================
+      // SAVE USER
+      // =================================================
+
+      await user.save();
+
+      // =================================================
+      // RESPONSE
+      // =================================================
+
+      return res.status(200).json({
+        success: true,
+
+        message:
+          "Stats fetched & stored successfully",
+
+        overallSaved:
+          overallOps.length,
+
+        countrySaved:
+          smartLinkDocs.length,
+
+        totalRevenue:
+          Number(
+            totalRevenue.toFixed(
+              6
+            )
+          ),
+
+        userRevenue:
+          user.revenue,
+
+        start_date:
+          finalStartDate,
+
+        end_date:
+          finalEndDate,
+      });
     } catch (error) {
-      console.log(
-        "❌ MAIN ERROR =>",
+      console.error(
+        "ADSTERRA FETCH ERROR =>",
         error?.response
           ?.data ||
-          error.message
+        error.message
       );
+
+      return res.status(500).json({
+        success: false,
+
+        message:
+          "Failed to fetch stats",
+
+        error:
+          error?.response
+            ?.data ||
+          error.message,
+      });
     }
   };
+
 
 exports.getAdsterraStatsFromDB =
   async (req, res) => {
