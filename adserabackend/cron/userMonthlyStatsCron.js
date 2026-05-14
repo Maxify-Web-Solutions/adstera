@@ -13,7 +13,7 @@ const {
 // EVERY 20 MINUTES
 // ======================================================
 
-cron.schedule("*/2 * * * *", async () => {
+cron.schedule("*/20 * * * *", async () => {
   try {
     console.log(
       "⏰ RUNNING ADSTERRA FETCH CRON"
@@ -32,9 +32,12 @@ cron.schedule("*/2 * * * *", async () => {
   }
 });
 
+// ======================================================
+// SAVE USER MONTHLY SNAPSHOTS
+// EVERY 30 MINUTES
+// ======================================================
 
-
-cron.schedule("*/3 * * * *", async () => {
+cron.schedule("*/30 * * * *", async () => {
   try {
     console.log(
       "⏰ RUNNING MONTHLY SNAPSHOT CRON"
