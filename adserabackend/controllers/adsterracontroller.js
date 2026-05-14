@@ -749,6 +749,10 @@ exports.fetchAndStoreAdsterraStats =
       // UPDATE USER REVENUE DATE WISE
       // =================================================
 
+      // =================================================
+      // UPDATE USER REVENUE DATE WISE
+      // =================================================
+
       const user = await User.findById(userId);
 
       if (!user) {
@@ -770,7 +774,9 @@ exports.fetchAndStoreAdsterraStats =
       // CURRENT USER BALANCE
       // =================================================
 
-      let updatedRevenue = Number(user.revenue || 0);
+      let updatedRevenue = Number(
+        user.revenue || 0
+      );
 
       // =================================================
       // PREVENT DUPLICATE PROCESS
@@ -783,7 +789,8 @@ exports.fetchAndStoreAdsterraStats =
       // =================================================
 
       for (const op of overallOps) {
-        const data = op.updateOne.update.$set;
+        const data =
+          op.updateOne.update.$set;
 
         const placement = String(
           data.placement
@@ -801,14 +808,20 @@ exports.fetchAndStoreAdsterraStats =
           `${placement}_${revenueDate}`;
 
         // =============================================
-        // SKIP DUPLICATE LOOP
+        // SKIP DUPLICATE
         // =============================================
 
-        if (processedKeys.has(revenueKey)) {
+        if (
+          processedKeys.has(
+            revenueKey
+          )
+        ) {
           continue;
         }
 
-        processedKeys.add(revenueKey);
+        processedKeys.add(
+          revenueKey
+        );
 
         // =============================================
         // NEW API REVENUE
@@ -832,12 +845,15 @@ exports.fetchAndStoreAdsterraStats =
         // ONLY ADD NEW DIFFERENCE
         // =============================================
 
-        if (latestRevenue > oldRevenue) {
+        if (
+          latestRevenue > oldRevenue
+        ) {
           const difference =
-            latestRevenue - oldRevenue;
+            latestRevenue -
+            oldRevenue;
 
           // =========================================
-          // ADD ONLY NEW AMOUNT
+          // ADD ONLY NEW VALUE
           // =========================================
 
           updatedRevenue += Number(
@@ -845,33 +861,7 @@ exports.fetchAndStoreAdsterraStats =
           );
 
           // =========================================
-          // SAVE NEW LATEST VALUE
-          // =========================================
-
-          user.lastRevenueMap.set(
-            revenueKey,
-            latestRevenue
-          );
-        }
-
-        // =============================================
-        // IF API VALUE REDUCED
-        // =============================================
-
-        else if (latestRevenue < oldRevenue) {
-          const reducedAmount =
-            oldRevenue - latestRevenue;
-
-          // =========================================
-          // REMOVE EXTRA AMOUNT
-          // =========================================
-
-          updatedRevenue -= Number(
-            reducedAmount.toFixed(6)
-          );
-
-          // =========================================
-          // UPDATE MAP
+          // SAVE NEW VALUE
           // =========================================
 
           user.lastRevenueMap.set(
