@@ -1,7 +1,6 @@
 const axios = require("axios");
 const mongoose = require("mongoose");
 const UAParser = require("ua-parser-js");
-
 const SmartLink = require("../models/SmartLink");
 const AdsterraStats = require("../models/AdsterraStats");
 const SmartLinkStats = require("../models/SmartLinkStats");
@@ -387,68 +386,39 @@ exports.fetchAndStoreAdsterraStats =
           // SAVE OVERALL STATS
           // =============================================
 
+          // =============================================
+          // SAVE OVERALL STATS
+          // =============================================
+
           for (const item of overallData) {
             const impressions =
-              Number(
-                item.impression
-              ) || 0;
+              Number(item.impression) || 0;
 
             const clicks =
-              Number(
-                item.clicks
-              ) || 0;
+              Number(item.clicks) || 0;
 
-            // =========================================
-            // REDUCE CPM & REVENUE 50%
-            // =========================================
-
-            const originalRevenue =
-              Number(
-                item.revenue
-              ) || 0;
-
+            // 50% REVENUE
             const revenue =
-              Number(
-                (
-                  originalRevenue *
-                  0.5
-                ).toFixed(6)
-              );
-
-            const originalCpm =
-              Number(
-                item.cpm
-              ) || 0;
-
-            const cpm =
-              Number(
-                (
-                  originalCpm *
-                  0.5
-                ).toFixed(6)
-              );
+              (Number(item.revenue) || 0) * 0.5;
 
             const ctr =
               impressions > 0
                 ? Number(
                   (
-                    (clicks /
-                      impressions) *
+                    (clicks / impressions) *
                     100
                   ).toFixed(2)
                 )
                 : 0;
 
+            // 50% CPM
+            const cpm =
+              (Number(item.cpm) || 0) * 0.5;
+
             const adsterraDate =
               String(
-                normalizeDate(
-                  item.date
-                )
+                normalizeDate(item.date)
               ).trim();
-
-            // =========================================
-            // UNIQUE REVENUE KEY
-            // =========================================
 
             const revenueKey =
               [
@@ -592,60 +562,28 @@ exports.fetchAndStoreAdsterraStats =
               );
 
             const statItem = {
-              placement:
-                String(
-                  placementId
-                ),
+              placement: String(placementId),
 
               domain,
 
-              country:
-                countryName,
+              country: countryName,
 
               impressions:
-                Number(
-                  item.impression
-                ) || 0,
+                Number(item.impression) || 0,
 
               clicks:
-                Number(
-                  item.clicks
-                ) || 0,
+                Number(item.clicks) || 0,
 
               ctr:
-                Number(
-                  item.ctr
-                ) || 0,
+                Number(item.ctr) || 0,
 
-              // =======================================
-              // REDUCE COUNTRY CPM 50%
-              // =======================================
-
+              // 50% CPM
               cpm:
-                Number(
-                  (
-                    (
-                      Number(
-                        item.cpm
-                      ) || 0
-                    ) * 0.5
-                  ).toFixed(6)
-                ),
+                (Number(item.cpm) || 0) * 0.5,
 
-              // =======================================
-              // REDUCE COUNTRY REVENUE 50%
-              // =======================================
-
+              // 50% REVENUE
               revenue:
-                Number(
-                  (
-                    (
-                      Number(
-                        item.revenue
-                      ) || 0
-                    ) * 0.5
-                  ).toFixed(6)
-                ),
+                (Number(item.revenue) || 0) * 0.5,
             };
 
             // =========================================
@@ -740,20 +678,19 @@ exports.fetchAndStoreAdsterraStats =
 
           {
             upsert: true,
-            new: true,
+            returnDocument: "after"
           }
         );
       }
 
       // =================================================
-      // UPDATE USER REVENUE DATE WISE
-      // =================================================
-
-      // =================================================
       // UPDATE USER REVENUE
+      // PERFECT FIX
       // =================================================
 
-      const user = await User.findById(userId);
+      const user = await User.findById(
+        userId
+      );
 
       if (!user) {
         return res.status(404).json({
@@ -763,102 +700,104 @@ exports.fetchAndStoreAdsterraStats =
       }
 
       // =================================================
-      // ENSURE MAP EXISTS
+      // INIT MAP
       // =================================================
 
       if (!user.lastRevenueMap) {
         user.lastRevenueMap = new Map();
       }
 
-      // =================================================
-      // TOTAL NEW REVENUE
-      // =================================================
-
       let newRevenueToAdd = 0;
 
       // =================================================
-      // PREVENT DUPLICATE
-      // =================================================
-
-      const processedKeys = new Set();
-
-      // =================================================
-      // LOOP DATA
+      // ONLY ADD REAL DIFFERENCE
       // =================================================
 
       for (const op of overallOps) {
-        const data = op.updateOne.update.$set;
 
-        const placement = String(
-          data.placement
-        ).trim();
+        const data =
+          op.updateOne.update.$set;
 
-        const revenueDate = String(
-          data.date
-        ).trim();
+        const date =
+          String(data.date).trim();
+
+        const placement =
+          String(data.placement).trim();
 
         const revenueKey =
-          `${placement}_${revenueDate}`;
+          `${placement}_${date}`;
+
+        const currentRevenue =
+          Number(data.revenue || 0);
+
+        const oldRevenue =
+          Number(
+            (
+              user.lastRevenueMap.get(
+                revenueKey
+              ) || 0
+            ).toFixed(6)
+          );
+
+        const finalCurrentRevenue =
+          Number(
+            currentRevenue.toFixed(6)
+          );
 
         // =============================================
-        // SKIP DUPLICATE
-        // =============================================
-
-        if (processedKeys.has(revenueKey)) {
-          continue;
-        }
-
-        processedKeys.add(revenueKey);
-
-        // =============================================
-        // ALREADY ADDED ?
+        // SKIP SAME OR LOWER
         // =============================================
 
         if (
-          user.lastRevenueMap.get(
-            revenueKey
-          )
+          finalCurrentRevenue <=
+          oldRevenue
         ) {
           continue;
         }
 
         // =============================================
-        // NEW REVENUE
+        // ONLY NEW DIFFERENCE
         // =============================================
 
-        const revenue =
-          Number(data.revenue) || 0;
+        const difference =
+          Number(
+            (
+              finalCurrentRevenue -
+              oldRevenue
+            ).toFixed(6)
+          );
 
-        newRevenueToAdd += revenue;
+        newRevenueToAdd += difference;
 
         // =============================================
-        // MARK AS ADDED
+        // UPDATE MAP
         // =============================================
 
         user.lastRevenueMap.set(
           revenueKey,
-          true
+          finalCurrentRevenue
         );
       }
 
       // =================================================
-      // ONLY ADD NEW REVENUE
+      // FINAL USER REVENUE
       // =================================================
 
-      user.revenue =
-        Number(user.revenue || 0) +
-        Number(newRevenueToAdd.toFixed(6));
+      if (newRevenueToAdd > 0) {
+
+        user.revenue = Number(
+          (
+            Number(user.revenue || 0) +
+            Number(newRevenueToAdd)
+          ).toFixed(6)
+        );
+      }
 
       // =================================================
-      // SAVE
+      // SAVE USER
       // =================================================
-
-      user.markModified(
-        "lastRevenueMap"
-      );
 
       await user.save();
-
       // =================================================
       // RESPONSE
       // =================================================
@@ -875,12 +814,12 @@ exports.fetchAndStoreAdsterraStats =
         countrySaved:
           smartLinkDocs.length,
 
-        totalRevenue: Number(
-          totalRevenue.toFixed(6)
-        ),
-
-        userRevenue:
-          user.revenue,
+        totalRevenue:
+          Number(
+            totalRevenue.toFixed(
+              6
+            )
+          ),
 
         start_date:
           finalStartDate,
@@ -909,6 +848,7 @@ exports.fetchAndStoreAdsterraStats =
       });
     }
   };
+
 
 
 exports.getAdsterraStatsFromDB =
@@ -1102,16 +1042,16 @@ exports.getAdsterraStatsFromDB =
 
       // ================= UPDATE USER =================
 
-      await User.findByIdAndUpdate(
-        userId,
-        {
-          $set: {
-            revenue:
-              totals.totalRevenue ||
-              0,
-          },
-        }
-      );
+      // await User.findByIdAndUpdate(
+      //   userId,
+      //   {
+      //     $set: {
+      //       revenue:
+      //         totals.totalRevenue ||
+      //         0,
+      //     },
+      //   }
+      // );
 
       // ================= RESPONSE =================
 

@@ -433,9 +433,9 @@ const [dateRange, setDateRange] =
         item.label,
         impressions,
         clicks,
-        ctr.toFixed(2) + "%",
-        cpm.toFixed(2),
-        "$" + revenue.toFixed(2),
+        ctr.toFixed(3) + "%",
+        cpm.toFixed(3),
+        "$" + revenue.toFixed(3),
       ];
     });
 
@@ -468,7 +468,7 @@ const [dateRange, setDateRange] =
     {
       title: "CTR",
       value: `${calculatedTotals.impressions > 0
-        ? ((calculatedTotals.clicks / calculatedTotals.impressions) * 100).toFixed(2)
+        ? ((calculatedTotals.clicks / calculatedTotals.impressions) * 100).toFixed(3)
         : "0.00"}%`,
       icon: TrendingUp,
       color: "from-purple-500 to-purple-600",
@@ -477,7 +477,7 @@ const [dateRange, setDateRange] =
     {
       title: "CPM",
       value: `$${calculatedTotals.impressions > 0
-        ? ((calculatedTotals.revenue / calculatedTotals.impressions) * 1000).toFixed(2)
+        ? ((calculatedTotals.revenue / calculatedTotals.impressions) * 1000).toFixed(3)
         : "0.000"}`,
       icon: DollarSign,
       color: "from-orange-500 to-orange-600",
@@ -485,7 +485,7 @@ const [dateRange, setDateRange] =
     },
     {
       title: "Total Revenue",
-      value: `$${calculatedTotals.revenue.toFixed(2)}`,
+      value: `$${calculatedTotals.revenue.toFixed(3)}`,
       icon: Zap,
       color: "from-yellow-500 to-yellow-600",
       bgGradient: "bg-gradient-to-br",
@@ -760,14 +760,14 @@ const [dateRange, setDateRange] =
                         </td>
                         <td className="p-4 text-right font-mono text-gray-700 dark:text-gray-300">
                           <span className={ctr > 2 ? "text-green-600 dark:text-green-400" : "text-gray-600 dark:text-gray-400"}>
-                            {ctr.toFixed(2)}%
+                            {ctr.toFixed(3)}%
                           </span>
                         </td>
                         <td className="p-4 text-right font-mono text-gray-700 dark:text-gray-300">
-                          ${cpm.toFixed(2)}
+                          ${cpm.toFixed(3)}
                         </td>
                         <td className="p-4 text-right font-mono text-green-600 dark:text-green-400 font-semibold">
-                          ${revenue.toFixed(2)}
+                          ${revenue.toFixed(3)}
                         </td>
                       </tr>
                     );
@@ -802,18 +802,18 @@ const [dateRange, setDateRange] =
                     </td>
                     <td className="p-4 text-right font-bold text-gray-900 dark:text-white">
                       {calculatedTotals.impressions > 0
-                        ? ((calculatedTotals.clicks / calculatedTotals.impressions) * 100).toFixed(2)
+                        ? ((calculatedTotals.clicks / calculatedTotals.impressions) * 100).toFixed(3)
                         : "0.00"}
                       %
                     </td>
                     <td className="p-4 text-right font-bold font-mono text-gray-900 dark:text-white">
                       $
                       {calculatedTotals.impressions > 0
-                        ? ((calculatedTotals.revenue / calculatedTotals.impressions) * 1000).toFixed(2)
+                        ? ((calculatedTotals.revenue / calculatedTotals.impressions) * 1000).toFixed(3)
                         : "0.000"}
                     </td>
                     <td className="p-4 text-right font-bold font-mono text-green-600 dark:text-green-400">
-                      ${calculatedTotals.revenue.toFixed(2)}
+                      ${calculatedTotals.revenue.toFixed(3)}
                     </td>
                   </tr>
                 </tfoot>
