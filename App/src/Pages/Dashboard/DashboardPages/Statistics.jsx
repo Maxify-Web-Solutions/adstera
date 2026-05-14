@@ -89,18 +89,23 @@ const Statistics = () => {
   // 📦 ADSTERRA STATE
   const {
     data,
+    totals,
+    countryData,
+    countryTotals,
     loading,
     fetchLoading,
     error,
   } = useSelector(
     (state) => state.adsterra
-
-
   );
+
+  console.log(data);
+
+  // 📦 SMARTLINK STATE)
 
   const {
     data: groupedReducerData,
-    totals,
+    totals: smartlinkTotals,
     error: smartlinkError,
     loading: smartlinkLoading,
   } = useSelector(
@@ -412,7 +417,9 @@ const Statistics = () => {
 
       const statsMap = {};
 
-      data.forEach((item) => {
+      (data || []).forEach((item) => {
+
+        if (!item?.date) return;
 
         const key = normalizeDate(
           item.date
@@ -478,13 +485,13 @@ const Statistics = () => {
 
     if (groupBy === "device") {
 
-      if (!Array.isArray(data)) {
+      if (!Array.isArray(countryData)) {
         return [];
       }
 
       const deviceMap = {};
 
-      data.forEach((item) => {
+      countryData.forEach((item) => {
 
         const key =
           item.device || "Unknown";
@@ -515,13 +522,13 @@ const Statistics = () => {
 
     if (groupBy === "os") {
 
-      if (!Array.isArray(data)) {
+      if (!Array.isArray(countryData)) {
         return [];
       }
 
       const osMap = {};
 
-      data.forEach((item) => {
+      countryData.forEach((item) => {
 
         const key =
           item.osName?.trim() || "No Data";
@@ -551,13 +558,13 @@ const Statistics = () => {
 
     if (groupBy === "browser") {
 
-      if (!Array.isArray(data)) {
+      if (!Array.isArray(countryData)) {
         return [];
       }
 
       const browserMap = {};
 
-      data.forEach((item) => {
+      countryData.forEach((item) => {
 
         const key =
           item.browserName?.trim() || "No Data";
@@ -604,20 +611,17 @@ const Statistics = () => {
           item.browserName ||
           "Unknown",
 
-        impressions:
-          Number(
-            item.impressions || 0
-          ),
+        impressions: Number(
+          item.impressions || 0
+        ),
 
-        clicks:
-          Number(
-            item.clicks || 0
-          ),
+        clicks: Number(
+          item.clicks || 0
+        ),
 
-        revenue:
-          Number(
-            item.revenue || 0
-          ),
+        revenue: Number(
+          item.revenue || 0
+        ),
       })
     );
 
@@ -658,18 +662,23 @@ const Statistics = () => {
       )
       : {
         impressions: Number(
-          totals?.totalImpressions || 0
+          countryTotals?.totalImpressions ||
+          smartlinkTotals?.totalImpressions ||
+          0
         ),
 
         clicks: Number(
-          totals?.totalClicks || 0
+          countryTotals?.totalClicks ||
+          smartlinkTotals?.totalClicks ||
+          0
         ),
 
         revenue: Number(
-          totals?.totalRevenue || 0
+          countryTotals?.totalRevenue ||
+          smartlinkTotals?.totalRevenue ||
+          0
         ),
       };
-
   // ====================================
   // EXPORT CSV
   // ====================================
