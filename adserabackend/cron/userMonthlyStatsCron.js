@@ -6,7 +6,7 @@ const {
 
 const {
   fetchAndStoreAdsterraStatsForAllUsers,
-} = require("../controllers/adsterraController");
+} = require("../controllers/adsterracontroller");
 
 // ======================================================
 // FETCH ADSTERRA REVENUE
