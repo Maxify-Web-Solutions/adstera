@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import AddWebsiteModal from "./AddWebsiteModal";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Construction, Hammer, Clock3 } from "lucide-react";
 
 const Websites = () => {
 
@@ -10,264 +11,73 @@ const Websites = () => {
     const [showSteps, setShowSteps] = useState(true);
     const [showTips, setShowTips] = useState(false);
 
-
     useEffect(() => {
         const params = new URLSearchParams(location.search);
+
         if (params.get("openModal") === "true") {
             setIsOpen(true);
         }
     }, [location]);
 
-
     return (
-        <div className="min-h-screen bg-white dark:bg-slate-900 text-gray-800 dark:text-gray-300">
+        <div className="min-h-[70vh] flex items-center justify-center px-4">
 
-            <div>
-                {isOpen && <AddWebsiteModal onClose={() => setIsOpen(false)} />}
-            </div>
+            <div className="w-full max-w-2xl bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-3xl shadow-xl p-8 md:p-12 text-center">
 
-            <div className="container md:py-10">
-
-                {/* Page Title */}
-                <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-8">
-
-                    <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">
-                        Websites
-                    </h1>
-
-                    <button className="bg-green-600 hover:bg-green-700 px-6 py-2.5 rounded-xl text-white font-medium shadow-lg shadow-green-600/20 transition-all hover:scale-[1.02]"
-                        onClick={() => navigate("/dashboard/websites?openModal=true")}
-                    >
-                        ADD WEBSITE
-                    </button>
-
-                </div>
-
-                {/* 3 Steps Section */}
-                {/* 3 Steps Section */}
-                <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-2xl p-6 md:p-8 mb-8 shadow-sm">
-                    <div className="flex flex-col sm:flex-row justify-between gap-4 mb-8">
-                        <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                            3 steps to monetize your website
-                        </h2>
-
-                        <button
-                            onClick={() => setShowSteps(!showSteps)}
-                            className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
-                        >
-                            {showSteps ? "HIDE TIPS" : "SHOW TIPS"}
-                        </button>
-                    </div>
-
-                    {/* Animated Steps Content */}
-                    <div
-                        className={`transition-all duration-500 ease-in-out overflow-hidden`}
-                        style={{
-                            maxHeight: showSteps ? "500px" : "0px",
-                            opacity: showSteps ? 1 : 0,
-                        }}
-                    >
-                        <div className="grid md:grid-cols-3 gap-8">
-                            <div>
-                                <h3 className="text-gray-900 dark:text-white font-semibold mb-2">
-                                    1 Add your website
-                                </h3>
-                                <p className="text-sm text-gray-500 dark:text-gray-400">
-                                    Click ADD WEBSITE to get started. Enter your website URL and category.
-                                </p>
-                            </div>
-
-                            <div>
-                                <h3 className="text-gray-900 dark:text-white font-semibold mb-2">
-                                    2 Create Ad Unit
-                                </h3>
-                                <p className="text-sm text-gray-500 dark:text-gray-400">
-                                    Choose an ad format and generate your ad code.
-                                </p>
-                            </div>
-
-                            <div>
-                                <h3 className="text-gray-900 dark:text-white font-semibold mb-2">
-                                    3 Copy and embed code
-                                </h3>
-                                <p className="text-sm text-gray-500 dark:text-gray-400">
-                                    Copy the code and paste it into your website HTML.
-                                </p>
-                            </div>
-                        </div>
+                {/* Icon */}
+                <div className="flex justify-center mb-6">
+                    <div className="w-24 h-24 rounded-full bg-yellow-100 dark:bg-yellow-500/10 flex items-center justify-center">
+                        <Construction className="w-12 h-12 text-yellow-500" />
                     </div>
                 </div>
 
-                {/* Tips Section */}
-                <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-2xl p-6 mb-4 shadow-sm">
-                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-                        <span className="text-gray-400">
-                            Get Anti-Adblock to increase your revenue
-                        </span>
+                {/* Heading */}
+                <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
+                    Feature Under Construction
+                </h1>
 
-                        <button
-                            onClick={() => setShowTips(!showTips)}
-                            className="text-sm text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors flex-shrink-0"
-                        >
-                            {showTips ? "HIDE TIPS" : "SHOW TIPS"}
-                        </button>
-                    </div>
+                {/* Description */}
+                <p className="text-gray-600 dark:text-gray-400 text-base md:text-lg leading-relaxed max-w-xl mx-auto">
+                    We're currently working on the <span className="font-semibold text-yellow-500">Websites</span> feature
+                    to make it faster, smoother, and more powerful for you.
+                </p>
 
-                    {/* Animated Tips Content */}
-                    <div
-                        className={`transition-all duration-500 ease-in-out overflow-hidden mt-4`}
-                        style={{
-                            maxHeight: showTips ? "200px" : "0px",
-                            opacity: showTips ? 1 : 0,
-                        }}
-                    >
-                        <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-4">
-                            <p className="text-sm text-blue-800 dark:text-blue-300">
-                                💡 Anti-Adblock helps you recover lost revenue from users with ad blockers.
-                                It shows alternative ads or asks users to whitelist your site.
-                            </p>
-                        </div>
-                    </div>
-                </div>
+                {/* Status Cards */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-10">
 
-                <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-2xl p-6 mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 shadow-sm">
-
-                    <span className="text-gray-400">
-                        If you don't have a website, GO TO SMARTLINKS page to create a link.
-                    </span>
-
-                    <Link to="/dashboard/smartlinks" className="text-blue-400 hover:text-blue-300 flex-shrink-0 text-right sm:text-left">
-                        GO TO SMARTLINKS
-                    </Link>
-
-                </div>
-
-                {/* Filters */}
-                <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-2xl p-6 md:p-8 mb-6 shadow-sm">
-
-                    <div className="flex flex-col md:flex-row justify-between gap-4 mb-6">
-
-                        <input
-                            type="text"
-                            placeholder="Website search"
-                            className="bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-xl px-4 py-2.5 w-full md:w-72 text-gray-800 dark:text-gray-300 focus:ring-2 focus:ring-green-500 outline-none"
-                        />
-
-                        <div className="space-x-3">
-
-                            <button className="border border-gray-300 dark:border-slate-700 px-6 py-2.5 rounded-xl text-gray-800 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors">
-                                EXPORT WEBSITES
-                            </button>
-
-                            <button className="bg-green-600 hover:bg-green-700 px-6 py-2.5 rounded-xl text-white font-medium shadow-lg shadow-green-600/20 transition-all hover:scale-[1.02]"
-                                onClick={() => navigate("/dashboard/websites?openModal=true")}
-                            >
-                                ADD WEBSITE
-                            </button>
-
-                        </div>
-
-                    </div>
-
-                    <div className="grid md:grid-cols-4 gap-4">
-
-                        <select className="bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-700 px-4 py-2.5 rounded-xl text-gray-800 dark:text-gray-300 focus:ring-2 focus:ring-green-500 outline-none">
-                            <option>Statistics</option>
-                            <option>Turned on</option>
-                            <option>Turned off</option>
-                        </select>
-
-                        <select className="bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-700 px-4 py-2.5 rounded-xl text-gray-800 dark:text-gray-300 focus:ring-2 focus:ring-green-500 outline-none">
-                            <option>Visibility</option>
-                            <option>Visible</option>
-                            <option>Hidden</option>
-                        </select>
-
-                        <select className="bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-700 px-4 py-2.5 rounded-xl text-gray-800 dark:text-gray-300 focus:ring-2 focus:ring-green-500 outline-none">
-                            <option>Website status</option>
-                            <option>Approved</option>
-                            <option>Declined</option>
-                            <option>Pending</option>
-                        </select>
-
-                        <select className="bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-700 px-4 py-2.5 rounded-xl text-gray-800 dark:text-gray-300 focus:ring-2 focus:ring-green-500 outline-none">
-                            <option>Ad Unit status</option>
-                            <option>Active</option>
-                            <option>Inactive</option>
-                            <option>Pending</option>
-                            <option>Not supported</option>
-                        </select>
-
-                    </div>
-
-                </div>
-
-                {/* Desktop Table */}
-                <div className="hidden md:block bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-2xl shadow-sm overflow-hidden">
-
-                    <div className="overflow-x-auto">
-
-                        <table className="w-full text-left min-w-[600px]">
-
-                            <thead className="bg-gray-50 dark:bg-slate-900 border-b border-gray-200 dark:border-slate-700 text-gray-500 dark:text-gray-400 text-sm">
-
-                                <tr>
-                                    <th className="p-4">ID</th>
-                                    <th className="p-4">Website</th>
-                                    <th className="p-4">Ad unit(s)</th>
-                                    <th className="p-4">Statistics</th>
-                                    <th className="p-4">About</th>
-                                </tr>
-
-                            </thead>
-
-                            <tbody>
-
-                                <tr className="border-b border-gray-200 dark:border-slate-700 hover:bg-gray-100 dark:hover:bg-slate-700">
-
-                                    <td className="p-4">5467803</td>
-                                    <td className="p-4">saroexstor.us.blogspot.com</td>
-                                    <td className="p-4">4 ad unit(s)</td>
-                                    <td className="p-4 text-blue-400">Statistics</td>
-                                    <td className="p-4 text-blue-400">About</td>
-
-                                </tr>
-
-                            </tbody>
-
-                        </table>
-
-                    </div>
-
-                </div>
-
-                {/* Mobile Cards */}
-                <div className="md:hidden space-y-4">
-
-                    <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-2xl p-5 shadow-sm space-y-3">
-
-                        <div className="flex justify-between items-center">
-                            <h3 className="text-gray-900 dark:text-white font-semibold">
-                                saroexstor.us.blogspot.com
-                            </h3>
-                            <span className="text-xs text-gray-400">ID: 5467803</span>
-                        </div>
-
+                    <div className="bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-2xl p-5">
+                        <Hammer className="w-8 h-8 text-blue-500 mx-auto mb-3" />
+                        <h3 className="font-semibold text-gray-900 dark:text-white mb-1">
+                            Development in Progress
+                        </h3>
                         <p className="text-sm text-gray-500 dark:text-gray-400">
-                            4 ad unit(s)
+                            New tools and website integrations are being added.
                         </p>
+                    </div>
 
-                        <div className="flex flex-wrap gap-3 text-sm pt-2">
-                            <button className="text-blue-400">Statistics</button>
-                            <button className="text-blue-400">About</button>
-                        </div>
-
+                    <div className="bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-2xl p-5">
+                        <Clock3 className="w-8 h-8 text-green-500 mx-auto mb-3" />
+                        <h3 className="font-semibold text-gray-900 dark:text-white mb-1">
+                            Coming Soon
+                        </h3>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                            This section will be available in a future update.
+                        </p>
                     </div>
 
                 </div>
 
-            </div>
+                {/* Back Button */}
+                <div className="mt-10">
+                    <button
+                        onClick={() => navigate("/dashboard")}
+                        className="px-6 py-3 rounded-xl bg-gradient-to-r from-indigo-500 to-indigo-600 text-white font-medium shadow-lg hover:scale-105 transition-all duration-300"
+                    >
+                        Back to Dashboard
+                    </button>
+                </div>
 
+            </div>
 
         </div>
     );

@@ -7,15 +7,17 @@ const Layout = () => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
     return (
-        <div className="min-h-screen bg-gray-100 dark:bg-slate-900 text-gray-800 dark:text-gray-300 flex flex-col overflow-x-hidden">
+        <div className="h-screen bg-gray-100 dark:bg-slate-900 text-gray-800 dark:text-gray-300 flex flex-col overflow-hidden">
 
-            {/* Header */}
-            <DashboardHeader
-                onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)}
-            />
+            {/* Sticky Header */}
+            <header className="sticky top-0 z-50 flex-shrink-0">
+                <DashboardHeader
+                    onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                />
+            </header>
 
-            {/* Main */}
-            <div className="flex flex-1 w-full overflow-hidden">
+            {/* Main Area */}
+            <div className="flex flex-1 overflow-hidden">
 
                 {/* Sidebar */}
                 <Sidebar
@@ -23,14 +25,11 @@ const Layout = () => {
                     onClose={() => setIsSidebarOpen(false)}
                 />
 
-                {/* Content */}
-                <div className="flex-1 flex flex-col min-w-0">
+                {/* Page Content */}
+                <main className="flex-1 md:ml-64 overflow-y-auto overflow-x-hidden p-4 md:p-8 min-w-0">
+                    <Outlet />
+                </main>
 
-                    <main className="flex-1 p-4 md:p-8 overflow-y-auto overflow-x-hidden">
-                        <Outlet />
-                    </main>
-
-                </div>
             </div>
         </div>
     );
