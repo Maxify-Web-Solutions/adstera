@@ -307,11 +307,11 @@ exports.sendWithdrawalOtp = async (req, res) => {
   try {
     const userId = req.user.id;
 
-
     const { amount } = req.body;
 
     // ✅ user check
     const user = await User.findById(userId);
+
     if (!user) {
       return res.status(404).json({
         success: false,
@@ -319,18 +319,33 @@ exports.sendWithdrawalOtp = async (req, res) => {
       });
     }
 
+    // ✅ BALANCE CHECK
+    if (Number(user.revenue) < Number(amount)) {
+      return res.status(400).json({
+        success: false,
+        message: "Insufficient balance",
+      });
+    }
+
     // ✅ OTP generate
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const otp = Math.floor(
+      100000 + Math.random() * 900000
+    ).toString();
 
     // ✅ DB me save
     await WithdrawalOtp.create({
       userId,
       otp,
-      expiresAt: Date.now() + 5 * 60 * 1000, // 5 min
+      expiresAt:
+        Date.now() + 5 * 60 * 1000,
     });
 
     // ✅ email send
-    await sendWithdrawalOTP(user.email, otp, amount);
+    await sendWithdrawalOTP(
+      user.email,
+      otp,
+      amount
+    );
 
     res.status(200).json({
       success: true,
@@ -339,6 +354,7 @@ exports.sendWithdrawalOtp = async (req, res) => {
 
   } catch (error) {
     console.log(error);
+
     res.status(500).json({
       success: false,
       message: "Server error",

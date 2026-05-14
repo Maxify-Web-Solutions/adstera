@@ -6,6 +6,7 @@ const ThemeToggle = () => {
   const { theme, toggleTheme } = useTheme();
 
   return (
+    
     <button
       onClick={toggleTheme}
       className="p-2 rounded-full text-gray-400 hover:text-white hover:bg-slate-800 dark:hover:bg-slate-700 transition"
