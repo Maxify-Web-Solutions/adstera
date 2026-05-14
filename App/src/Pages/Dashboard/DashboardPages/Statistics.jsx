@@ -493,7 +493,7 @@ const [dateRange, setDateRange] =
   ];
 
   return (
-    <div className="min-h-screen p-4 md:p-8">
+    <div className="min-h-screen md:p-8">
       <div className="max-w-[1600px] mx-auto space-y-6">
         {/* Header */}
         <div className="mb-8">
@@ -652,28 +652,33 @@ const [dateRange, setDateRange] =
           </div>
         </div>
 
-        {/* GROUP TABS */}
-        <div className="flex flex-wrap gap-2">
-          {[
-            { label: "Country", value: "country", icon: Globe },
-            { label: "Date", value: "date", icon: Calendar },
-            { label: " Device", value: "device", icon: Smartphone },
-            { label: "OS", value: "os", icon: Monitor },
-            { label: " Browser", value: "browser", icon: Globe2 },
-          ].map((tab) => (
-            <button
-              key={tab.value}
-              onClick={() => setGroupBy(tab.value)}
-              className={`px-5 py-2.5 rounded-xl text-sm font-medium transition-all duration-300 flex items-center gap-2 ${groupBy === tab.value
-                ? "bg-gradient-to-r from-green-500 to-green-600 text-white shadow-lg shadow-green-500/25 scale-105"
-                : "bg-white dark:bg-slate-800 border-2 border-gray-200 dark:border-slate-700 text-gray-600 dark:text-gray-400 hover:border-green-500 hover:scale-105"
-                }`}
-            >
-              <tab.icon className="w-4 h-4" />
-              {tab.label}
-            </button>
-          ))}
-        </div>
+       {/* GROUP TABS */}
+<div className="w-full overflow-x-auto scrollbar-thin pb-2">
+  
+  <div className="flex gap-2 min-w-max">
+    {[
+      { label: "Country", value: "country", icon: Globe },
+      { label: "Date", value: "date", icon: Calendar },
+      { label: "Device", value: "device", icon: Smartphone },
+      { label: "OS", value: "os", icon: Monitor },
+      { label: "Browser", value: "browser", icon: Globe2 },
+    ].map((tab) => (
+      <button
+        key={tab.value}
+        onClick={() => setGroupBy(tab.value)}
+        className={`shrink-0 px-5 py-2.5 rounded-xl text-sm font-medium transition-all duration-300 flex items-center gap-2 whitespace-nowrap ${
+          groupBy === tab.value
+            ? "bg-gradient-to-r from-green-500 to-green-600 text-white shadow-lg shadow-green-500/25"
+            : "bg-white dark:bg-slate-800 border-2 border-gray-200 dark:border-slate-700 text-gray-600 dark:text-gray-400 hover:border-green-500"
+        }`}
+      >
+        <tab.icon className="w-4 h-4" />
+        {tab.label}
+      </button>
+    ))}
+  </div>
+
+</div>
 
         {/* TABLE CARD */}
         <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-gray-200 dark:border-slate-700 overflow-hidden">
