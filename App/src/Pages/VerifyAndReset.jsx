@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { resetPassword } from "../redux/slice/authSlice";
+import Swal from "sweetalert2";
+import { BiShow, BiSolidHide } from "react-icons/bi";
 
 const VerifyAndReset = () => {
 
@@ -9,6 +11,9 @@ const VerifyAndReset = () => {
     }, []);
 
     const dispatch = useDispatch();
+
+    const [showPassword, setShowPassword] = useState(false);
+const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
     const { loading } = useSelector(
         (state) => state.auth
@@ -30,61 +35,93 @@ const VerifyAndReset = () => {
     const [error, setError] = useState("");
 
     const handleSubmit = async (e) => {
-        e.preventDefault();
+    e.preventDefault();
 
-        setError("");
+    setError("");
 
-        if (otp.length !== 6) {
-            return setError(
-                "Enter valid 6 digit OTP"
-            );
-        }
+    if (otp.length !== 6) {
 
-        if (password.length < 6) {
-            return setError(
-                "Password must be at least 6 characters"
-            );
-        }
+        Swal.fire({
+            icon: "error",
+            title: "Invalid OTP",
+            text: "Enter valid 6 digit OTP",
+            confirmButtonColor: "#2563eb",
+        });
 
-        if (password !== confirmPass) {
-            return setError(
-                "Passwords do not match"
-            );
-        }
+        return;
+    }
 
-        try {
+    if (password.length < 6) {
 
-            const res = await dispatch(
-                resetPassword({
-                    email,
-                    otp,
-                    newPassword: password,
-                })
-            );
+        Swal.fire({
+            icon: "error",
+            title: "Weak Password",
+            text: "Password must be at least 6 characters",
+            confirmButtonColor: "#2563eb",
+        });
 
-            if (
-                res.meta.requestStatus ===
-                "fulfilled"
-            ) {
+        return;
+    }
 
-                window.location.href =
-                    "/login";
+    if (password !== confirmPass) {
 
-            } else {
+        Swal.fire({
+            icon: "error",
+            title: "Password Mismatch",
+            text: "Passwords do not match",
+            confirmButtonColor: "#2563eb",
+        });
 
-                setError(
+        return;
+    }
+
+    try {
+
+        const res = await dispatch(
+            resetPassword({
+                email,
+                otp,
+                newPassword: password,
+            })
+        );
+
+        if (
+            res.meta.requestStatus === "fulfilled"
+        ) {
+
+           await Swal.fire({
+    icon: "success",
+    title: "Password Reset Successful",
+    text: "Redirecting to login page...",
+    timer: 3000,
+    showConfirmButton: false,
+    timerProgressBar: true,
+});
+
+window.location.href = "/login";
+
+        } else {
+
+            Swal.fire({
+                icon: "error",
+                title: "Reset Failed",
+                text:
                     res.payload ||
-                    "Failed to reset password"
-                );
-            }
-
-        } catch (error) {
-
-            setError(
-                "Something went wrong"
-            );
+                    "Failed to reset password",
+                confirmButtonColor: "#dc2626",
+            });
         }
-    };
+
+    } catch (error) {
+
+        Swal.fire({
+            icon: "error",
+            title: "Something Went Wrong",
+            text: "Please try again later",
+            confirmButtonColor: "#dc2626",
+        });
+    }
+};
 
     return (
 
@@ -130,41 +167,71 @@ const VerifyAndReset = () => {
                         />
                     </div>
 
-                    <div>
-                        <label className="block text-gray-300 mb-2">
-                            New Password
-                        </label>
+                  <div>
+    <label className="block text-gray-300 mb-2">
+        New Password
+    </label>
 
-                        <input
-                            type="password"
-                            placeholder="Enter new password"
-                            value={password}
-                            onChange={(e) =>
-                                setPassword(
-                                    e.target.value
-                                )
-                            }
-                            className="w-full px-4 py-3 rounded-xl bg-[#0f172a] border border-gray-600 text-white placeholder-gray-400 outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                    </div>
+    <div className="relative">
 
-                    <div>
-                        <label className="block text-gray-300 mb-2">
-                            Confirm Password
-                        </label>
+        <input
+            type={showPassword ? "text" : "password"}
+            placeholder="Enter new password"
+            value={password}
+            onChange={(e) =>
+                setPassword(e.target.value)
+            }
+            className="w-full px-4 py-3 pr-14 rounded-xl bg-[#0f172a] border border-gray-600 text-white placeholder-gray-400 outline-none focus:ring-2 focus:ring-blue-500"
+        />
 
-                        <input
-                            type="password"
-                            placeholder="Confirm password"
-                            value={confirmPass}
-                            onChange={(e) =>
-                                setConfirmPass(
-                                    e.target.value
-                                )
-                            }
-                            className="w-full px-4 py-3 rounded-xl bg-[#0f172a] border border-gray-600 text-white placeholder-gray-400 outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                    </div>
+        <button
+            type="button"
+            onClick={() =>
+                setShowPassword(!showPassword)
+            }
+            className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-blue-400 hover:text-blue-300"
+        >
+            {showPassword ? <BiSolidHide size={18} /> : <BiShow size={18}/>}
+        </button>
+
+    </div>
+</div>
+
+<div>
+    <label className="block text-gray-300 mb-2">
+        Confirm Password
+    </label>
+
+    <div className="relative">
+
+        <input
+            type={
+                showConfirmPassword
+                    ? "text"
+                    : "password"
+            }
+            placeholder="Confirm password"
+            value={confirmPass}
+            onChange={(e) =>
+                setConfirmPass(e.target.value)
+            }
+            className="w-full px-4 py-3 pr-14 rounded-xl bg-[#0f172a] border border-gray-600 text-white placeholder-gray-400 outline-none focus:ring-2 focus:ring-blue-500"
+        />
+
+        <button
+            type="button"
+            onClick={() =>
+                setShowConfirmPassword(
+                    !showConfirmPassword
+                )
+            }
+            className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-blue-400 hover:text-blue-300"
+        >
+            {showPassword ? <BiSolidHide size={18} /> : <BiShow size={18}/>}
+        </button>
+
+    </div>
+</div>
 
                     <button
                         type="submit"

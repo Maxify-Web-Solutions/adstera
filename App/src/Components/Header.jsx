@@ -346,9 +346,49 @@ const Header = () => {
                     )}
 
                     {/* THEME TOGGLE */}
-                    <div className="pt-2">
-                        <ThemeToggle />
-                    </div>
+                    {/* THEME TOGGLE */}
+<div className="pt-2">
+
+    <div className="flex items-center justify-between px-4 py-3 rounded-xl bg-gray-100 dark:bg-slate-800 border border-gray-200 dark:border-slate-700">
+
+        <div className="flex items-center gap-3">
+
+            <div className="w-10 h-10 rounded-xl bg-indigo-100 dark:bg-indigo-500/10 flex items-center justify-center">
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="w-5 h-5 text-indigo-600 dark:text-indigo-400"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                >
+                    <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M12 3v1m0 16v1m8-9h1M3 12H2m15.364 6.364l.707.707M5.636 5.636l-.707-.707m12.728 0l-.707.707M5.636 18.364l-.707.707"
+                    />
+                </svg>
+            </div>
+
+            <div>
+                <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
+                    Theme Mode
+                </h3>
+
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                    Light / Dark appearance
+                </p>
+            </div>
+
+        </div>
+
+        <div className="shrink-0">
+            <ThemeToggle />
+        </div>
+
+    </div>
+
+</div>
                 </div>
             </div>
         </>

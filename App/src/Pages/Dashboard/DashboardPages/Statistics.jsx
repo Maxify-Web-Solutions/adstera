@@ -63,17 +63,17 @@ const Statistics = () => {
 
   // 📅 DATE SETUP
   const today = new Date();
-const sevenDaysAgo = new Date();
+  const sevenDaysAgo = new Date();
 
-sevenDaysAgo.setDate(
-  today.getDate() - 7
-);
+  sevenDaysAgo.setDate(
+    today.getDate() - 7
+  );
 
-const [dateRange, setDateRange] =
-  useState([
-    sevenDaysAgo,
-    today,
-  ]);
+  const [dateRange, setDateRange] =
+    useState([
+      sevenDaysAgo,
+      today,
+    ]);
 
   const [startDate, endDate] = dateRange;
 
@@ -101,6 +101,8 @@ const [dateRange, setDateRange] =
   const {
     data: groupedReducerData,
     totals,
+    error: smartlinkError,
+    loading: smartlinkLoading,
   } = useSelector(
     (state) => state.smartlinkFilter
   );
@@ -114,16 +116,47 @@ const [dateRange, setDateRange] =
 
   // 📅 FORMAT DATE
   const formatDate = (date) => {
-    return date?.toISOString()?.split("T")[0];
+
+    if (!date) return "";
+
+    const year =
+      date.getFullYear();
+
+    const month = String(
+      date.getMonth() + 1
+    ).padStart(2, "0");
+
+    const day = String(
+      date.getDate()
+    ).padStart(2, "0");
+
+    return `${year}-${month}-${day}`;
+  };
+
+  const normalizeDate = (date) => {
+
+    const d = new Date(date);
+
+    const year = d.getFullYear();
+
+    const month = String(
+      d.getMonth() + 1
+    ).padStart(2, "0");
+
+    const day = String(
+      d.getDate()
+    ).padStart(2, "0");
+
+    return `${year}-${month}-${day}`;
   };
 
   // ====================================
   // AUTO FETCH FUNCTION
   // ====================================
   const autoFetchStats = useCallback(
-    (customPlacement = null, customDomain = null, customCountry = null) => {
-      const start = formatDate(startDate);
-      const end = formatDate(endDate);
+    (customPlacement = null, customDomain = null, customCountry = null, customStartDate = null, customEndDate = null) => {
+      const start = formatDate(customStartDate || startDate);
+      const end = formatDate(customEndDate || endDate);
 
       const params = {
         start_date: start,
@@ -146,7 +179,6 @@ const [dateRange, setDateRange] =
         })
       );
 
-
       const dbParams = {
         start_date: start,
         end_date: end,
@@ -157,10 +189,14 @@ const [dateRange, setDateRange] =
       if (customPlacement && customPlacement !== "") dbParams.placement = customPlacement;
       if (customCountry && customCountry !== "") dbParams.country = customCountry;
 
-      dispatch(getAdsterraStats(dbParams));
-      dispatch(
-        getSmartLinkStats(dbParams)
-      );
+      try {
+        dispatch(getAdsterraStats(dbParams));
+        dispatch(
+          getSmartLinkStats(dbParams)
+        );
+      } catch (err) {
+        console.error("Error fetching stats:", err);
+      }
     },
     [
       dispatch,
@@ -174,53 +210,48 @@ const [dateRange, setDateRange] =
   // ====================================
   useEffect(() => {
 
-  const start =
-    formatDate(startDate);
+    const start =
+      formatDate(startDate);
 
-  const end =
-    formatDate(endDate);
+    const end =
+      formatDate(endDate);
 
-  // ====================================
-  // FETCH API DATA
-  // ====================================
+    // ====================================
+    // FETCH API DATA
+    // ====================================
 
-  dispatch(
-    fetchAdsterraStats({
-      start_date: start,
-      end_date: end,
-    })
-  );
 
-  // ====================================
-  // OLD DB STATS
-  // ====================================
 
-  dispatch(
-    getAdsterraStats({
-      start_date: start,
-      end_date: end,
-      groupBy,
-    })
-  );
+    // ====================================
+    // OLD DB STATS
+    // ====================================
 
-  // ====================================
-  // COUNTRY / DEVICE / OS / BROWSER
-  // ====================================
+    dispatch(
+      getAdsterraStats({
+        start_date: start,
+        end_date: end,
+        groupBy,
+      })
+    );
 
-  dispatch(
-    getSmartLinkStats({
-      start_date: start,
-      end_date: end,
-      groupBy,
-    })
-  );
+    // ====================================
+    // COUNTRY / DEVICE / OS / BROWSER
+    // ====================================
 
-}, [
-  dispatch,
-  groupBy,
-  startDate,
-  endDate,
-]);
+    dispatch(
+      getSmartLinkStats({
+        start_date: start,
+        end_date: end,
+        groupBy,
+      })
+    );
+
+  }, [
+    dispatch,
+    groupBy,
+    startDate,
+    endDate,
+  ]);
   // ====================================
   // LOCATION STATE AUTO FILTER
   // ====================================
@@ -236,6 +267,28 @@ const [dateRange, setDateRange] =
   }, [location.state, autoFetchStats, countryCode]);
 
   // ====================================
+  // DATE RANGE SYNC TO REDUX
+  // ====================================
+  useEffect(() => {
+    const start = formatDate(startDate);
+    const end = formatDate(endDate);
+
+    dispatch(
+      setFilters({
+        start_date: start,
+        end_date: end,
+        placement,
+        country: countryCode || "",
+      })
+    );
+
+    // Auto-fetch stats with new date range
+    if (placement || countryCode || domain) {
+      autoFetchStats(placement, domain, countryCode, startDate, endDate);
+    }
+  }, [startDate, endDate, dispatch]);
+
+  // ====================================
   // AUTO FILTER ON COUNTRY CHANGE
   // ====================================
   useEffect(() => {
@@ -247,9 +300,23 @@ const [dateRange, setDateRange] =
   // APPLY FILTERS
   // ====================================
   const handleApply = async () => {
+
+    if (!startDate || !endDate) {
+      return;
+    }
+
     try {
-      autoFetchStats(placement, domain, countryCode);
+
+      await autoFetchStats(
+        placement,
+        domain,
+        countryCode,
+        startDate,
+        endDate
+      );
+
     } catch (err) {
+
       console.error(err);
     }
   };
@@ -258,18 +325,36 @@ const [dateRange, setDateRange] =
   // RESET
   // ====================================
   const handleReset = () => {
+
     setSelectedCountry("");
     setDomain("");
     setPlacement("");
-    setDateRange([twoDaysAgo, today]);
+
+    const today = new Date();
+
+    const sevenDaysAgo = new Date();
+
+    sevenDaysAgo.setDate(
+      today.getDate() - 7
+    );
+
+    setDateRange([
+      sevenDaysAgo,
+      today,
+    ]);
+
     dispatch(
       getAdsterraStats({
+        start_date: formatDate(sevenDaysAgo),
+        end_date: formatDate(today),
         groupBy,
       })
     );
 
     dispatch(
       getSmartLinkStats({
+        start_date: formatDate(sevenDaysAgo),
+        end_date: formatDate(today),
         groupBy,
       })
     );
@@ -286,18 +371,54 @@ const [dateRange, setDateRange] =
 
     if (groupBy === "date") {
 
-      if (!Array.isArray(data)) {
+      if (
+        !Array.isArray(data) ||
+        !startDate ||
+        !endDate
+      ) {
         return [];
       }
 
-      return data
-        .map((item, index) => ({
+      // ====================================
+      // CREATE DATE RANGE
+      // ====================================
 
-          id: index,
+      const allDates = [];
 
-          label: item.date
-            ? new Date(item.date).toLocaleDateString("en-GB")
-            : "Unknown",
+      const current =
+        new Date(startDate);
+
+      const last =
+        new Date(endDate);
+
+      current.setHours(0, 0, 0, 0);
+
+      last.setHours(0, 0, 0, 0);
+
+      while (current <= last) {
+
+        allDates.push(
+          new Date(current)
+        );
+
+        current.setDate(
+          current.getDate() + 1
+        );
+      }
+
+      // ====================================
+      // CREATE API DATA MAP
+      // ====================================
+
+      const statsMap = {};
+
+      data.forEach((item) => {
+
+        const key = normalizeDate(
+          item.date
+        );
+
+        statsMap[key] = {
 
           impressions: Number(
             item.impressions || 0
@@ -311,27 +432,159 @@ const [dateRange, setDateRange] =
             item.revenue || 0
           ),
 
-          placement: item.placement || "",
-        }))
+          placement:
+            item.placement || "",
+        };
+      });
 
-        .sort((a, b) => {
+      // ====================================
+      // RETURN FINAL DATA
+      // ====================================
 
-          const [dayA, monthA, yearA] =
-            a.label.split("/");
+      return allDates.map(
+        (date, index) => {
 
-          const [dayB, monthB, yearB] =
-            b.label.split("/");
+          const normalized =
+            normalizeDate(date);
 
-          return (
-            new Date(
-              `${yearB}-${monthB}-${dayB}`
-            ) -
-            new Date(
-              `${yearA}-${monthA}-${dayA}`
-            )
-          );
-        });
+          const existing =
+            statsMap[normalized];
+
+          return {
+
+            id: index,
+
+            label:
+              new Date(date)
+                .toLocaleDateString(
+                  "en-GB"
+                ),
+
+            impressions:
+              existing?.impressions || 0,
+
+            clicks:
+              existing?.clicks || 0,
+
+            revenue:
+              existing?.revenue || 0,
+
+            placement:
+              existing?.placement || "",
+          };
+        }
+      );
     }
+
+    if (groupBy === "device") {
+
+      if (!Array.isArray(data)) {
+        return [];
+      }
+
+      const deviceMap = {};
+
+      data.forEach((item) => {
+
+        const key =
+          item.device || "Unknown";
+
+        if (!deviceMap[key]) {
+
+          deviceMap[key] = {
+            label: key,
+            impressions: 0,
+            clicks: 0,
+            revenue: 0,
+          };
+        }
+
+        deviceMap[key].impressions +=
+          Number(item.impressions || 0);
+
+        deviceMap[key].clicks +=
+          Number(item.clicks || 0);
+
+        deviceMap[key].revenue +=
+          Number(item.revenue || 0);
+      });
+
+      return Object.values(deviceMap);
+    }
+
+
+    if (groupBy === "os") {
+
+      if (!Array.isArray(data)) {
+        return [];
+      }
+
+      const osMap = {};
+
+      data.forEach((item) => {
+
+        const key =
+          item.osName?.trim() || "No Data";
+
+        if (!osMap[key]) {
+
+          osMap[key] = {
+            label: key,
+            impressions: 0,
+            clicks: 0,
+            revenue: 0,
+          };
+        }
+
+        osMap[key].impressions +=
+          Number(item.impressions || 0);
+
+        osMap[key].clicks +=
+          Number(item.clicks || 0);
+
+        osMap[key].revenue +=
+          Number(item.revenue || 0);
+      });
+
+      return Object.values(osMap);
+    }
+
+    if (groupBy === "browser") {
+
+      if (!Array.isArray(data)) {
+        return [];
+      }
+
+      const browserMap = {};
+
+      data.forEach((item) => {
+
+        const key =
+          item.browserName?.trim() || "No Data";
+
+        if (!browserMap[key]) {
+
+          browserMap[key] = {
+            label: key,
+            impressions: 0,
+            clicks: 0,
+            revenue: 0,
+          };
+        }
+
+        browserMap[key].impressions +=
+          Number(item.impressions || 0);
+
+        browserMap[key].clicks +=
+          Number(item.clicks || 0);
+
+        browserMap[key].revenue +=
+          Number(item.revenue || 0);
+      });
+
+      return Object.values(browserMap);
+    }
+
 
     if (
       !Array.isArray(
@@ -506,7 +759,7 @@ const [dateRange, setDateRange] =
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
           {statsCards.map((card, idx) => (
             <div
               key={idx}
@@ -565,10 +818,25 @@ const [dateRange, setDateRange] =
                     Date Range
                   </label>
                   <DatePicker
-                    selectsRange
+                    selectsRange={true}
                     startDate={startDate}
                     endDate={endDate}
-                    onChange={(update) => setDateRange(update)}
+                    onChange={(update) => {
+
+                      if (!update) return;
+
+                      const [start, end] = update;
+
+                      setDateRange([
+                        start,
+                        end,
+                      ]);
+                    }}
+                    dateFormat="dd/MM/yyyy"
+                    monthsShown={1}
+                    maxDate={new Date()}
+                    isClearable={false}
+                    placeholderText="Select date range"
                     className="w-full border-2 border-gray-200 dark:border-slate-700 px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-slate-900 dark:text-gray-300 outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all"
                   />
                 </div>
@@ -626,11 +894,11 @@ const [dateRange, setDateRange] =
               <div className="flex flex-wrap gap-3 mt-6">
                 <button
                   onClick={handleApply}
-                  disabled={loading || fetchLoading}
+                  disabled={loading || fetchLoading || smartlinkLoading}
                   className="relative overflow-hidden group bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white px-8 py-2.5 rounded-xl font-medium transition-all duration-300 shadow-lg hover:shadow-xl disabled:opacity-50"
                 >
                   <span className="relative z-10">
-                    {fetchLoading ? "Fetching..." : loading ? "Loading..." : "APPLY FILTERS"}
+                    {fetchLoading || smartlinkLoading ? "Fetching..." : loading ? "Loading..." : "APPLY FILTERS"}
                   </span>
                 </button>
 
@@ -643,42 +911,37 @@ const [dateRange, setDateRange] =
                 </button>
               </div>
 
-              {error && (
+              {(smartlinkError) && (
                 <div className="mt-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl text-red-600 dark:text-red-400 text-sm">
-                  {error}
+                  ❌ Fetch Failed: {smartlinkError}
                 </div>
               )}
             </div>
           </div>
         </div>
 
-       {/* GROUP TABS */}
-<div className="w-full overflow-x-auto scrollbar-thin pb-2">
-  
-  <div className="flex gap-2 min-w-max">
-    {[
-      { label: "Country", value: "country", icon: Globe },
-      { label: "Date", value: "date", icon: Calendar },
-      { label: "Device", value: "device", icon: Smartphone },
-      { label: "OS", value: "os", icon: Monitor },
-      { label: "Browser", value: "browser", icon: Globe2 },
-    ].map((tab) => (
-      <button
-        key={tab.value}
-        onClick={() => setGroupBy(tab.value)}
-        className={`shrink-0 px-5 py-2.5 rounded-xl text-sm font-medium transition-all duration-300 flex items-center gap-2 whitespace-nowrap ${
-          groupBy === tab.value
-            ? "bg-gradient-to-r from-green-500 to-green-600 text-white shadow-lg shadow-green-500/25"
-            : "bg-white dark:bg-slate-800 border-2 border-gray-200 dark:border-slate-700 text-gray-600 dark:text-gray-400 hover:border-green-500"
-        }`}
-      >
-        <tab.icon className="w-4 h-4" />
-        {tab.label}
-      </button>
-    ))}
-  </div>
-
-</div>
+        {/* GROUP TABS */}
+        <div className="flex flex-wrap gap-2">
+          {[
+            { label: "Country", value: "country", icon: Globe },
+            { label: "Date", value: "date", icon: Calendar },
+            { label: " Device", value: "device", icon: Smartphone },
+            { label: "OS", value: "os", icon: Monitor },
+            { label: " Browser", value: "browser", icon: Globe2 },
+          ].map((tab) => (
+            <button
+              key={tab.value}
+              onClick={() => setGroupBy(tab.value)}
+              className={`px-5 py-2.5 rounded-xl text-sm font-medium transition-all duration-300 flex items-center gap-2 ${groupBy === tab.value
+                ? "bg-gradient-to-r from-green-500 to-green-600 text-white shadow-lg shadow-green-500/25 scale-105"
+                : "bg-white dark:bg-slate-800 border-2 border-gray-200 dark:border-slate-700 text-gray-600 dark:text-gray-400 hover:border-green-500 hover:scale-105"
+                }`}
+            >
+              <tab.icon className="w-4 h-4" />
+              {tab.label}
+            </button>
+          ))}
+        </div>
 
         {/* TABLE CARD */}
         <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-gray-200 dark:border-slate-700 overflow-hidden">
@@ -782,12 +1045,18 @@ const [dateRange, setDateRange] =
                     <td colSpan="6" className="p-12 text-center">
                       <div className="flex flex-col items-center gap-3">
                         <BarChart3 className="w-12 h-12 text-gray-400" />
-                        <p className="text-gray-500 dark:text-gray-400">
+                        <p className="text-gray-500 dark:text-gray-400 text-center">
                           {loading
                             ? "Loading statistics..."
-                            : groupBy === "date"
-                              ? "No stats available for selected dates"
-                              : "No data found"}
+                            : groupBy === "os"
+                              ? "No OS data to show here yet"
+                              : groupBy === "browser"
+                                ? "No Browser data to show here yet"
+                                : groupBy === "device"
+                                  ? "No Device data to show here yet"
+                                  : groupBy === "country"
+                                    ? "No Country data to show here yet"
+                                    : "No stats available for selected dates"}
                         </p>
                       </div>
                     </td>
