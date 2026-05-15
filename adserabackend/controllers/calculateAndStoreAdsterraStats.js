@@ -1,6 +1,7 @@
 const RawAdsterraStats =
     require("../models/RawAdsterraStats");
-    const RawsmartLinkStats =
+
+const RawsmartLinkStats =
     require("../models/RawSmartLinkStats");
 
 const CalculatedAdsterraStats =
@@ -13,133 +14,625 @@ const CalculatedSmartLinkStats =
     );
 const StatsConfig =
     require("../models/StatsConfig");
+    const User = require("../models/authmodel");
+    const mongoose = require("mongoose");
+
+
+
+
+
 
 const calculateAndStoreAdsterraStats =
-    async () => {
+  async (
+    req = null,
+    res = null
+  ) => {
+    try {
+      // =================================================
+      // QUERY
+      // =================================================
+
+      const start_date =
+        req?.query?.start_date;
+
+      const end_date =
+        req?.query?.end_date;
+
+      // =================================================
+      // GET ALL USERS
+      // =================================================
+
+      const users = await User.find({});
+
+      if (!users.length) {
+        if (res) {
+          return res.status(404).json({
+            success: false,
+            message: "No users found",
+          });
+        }
+
+        console.log(
+          "NO USERS FOUND"
+        );
+
+        return;
+      }
+
+      // =================================================
+      // DATE HELPERS
+      // =================================================
+
+      const today = new Date();
+
+      const normalizeDate = (d) => {
+        if (!d) {
+          return today
+            .toISOString()
+            .split("T")[0];
+        }
+
+        if (typeof d === "string") {
+          return d.includes("T")
+            ? d.split("T")[0]
+            : d;
+        }
+
+        if (d instanceof Date) {
+          return d
+            .toISOString()
+            .split("T")[0];
+        }
+
+        return today
+          .toISOString()
+          .split("T")[0];
+      };
+
+      // =================================================
+      // DEFAULT DATES
+      // =================================================
+
+      const currentDate =
+        normalizeDate(new Date());
+
+      const oldDate = new Date();
+
+      oldDate.setDate(
+        oldDate.getDate() - 15
+      );
+
+      const defaultStartDate =
+        normalizeDate(oldDate);
+
+      const defaultEndDate =
+        currentDate;
+
+      const finalStartDate =
+        start_date ||
+        defaultStartDate;
+
+      const finalEndDate =
+        end_date ||
+        defaultEndDate;
+
+      // =================================================
+      // TOTAL STORAGE
+      // =================================================
+
+      let totalUsers = 0;
+
+      let totalStats = 0;
+
+      let totalRevenue = 0;
+
+      // =================================================
+      // GET STATS CONFIG
+      // =================================================
+
+      let statsConfig =
+        await StatsConfig.findOne();
+
+      if (!statsConfig) {
+        statsConfig =
+          await StatsConfig.create({
+            impressionPercent: 10,
+            cpmPercent: 40,
+          });
+      }
+
+      // =================================================
+      // LOOP USERS
+      // =================================================
+
+      for (const user of users) {
         try {
-            // GET CONFIG
-            let config =
-                await StatsConfig.findOne();
+          const userId = user._id;
 
-            if (!config) {
-                config =
-                    await StatsConfig.create({
-                        impressionPercent: 10,
-                        cpmPercent: 40,
-                    });
-            }
+          console.log(
+            "PROCESSING USER =>",
+            userId
+          );
 
-            // GET RAW DATA
-            const rawStats =
-                await RawAdsterraStats.find();
+          // =============================================
+          // GET RAW STATS
+          // =============================================
 
-            for (const item of rawStats) {
-                // APPLY %
-                const finalImpressions =
-                    item.impressions -
-                    (item.impressions *
-                        config.impressionPercent) /
-                    100;
+          const rawStats =
+            await RawAdsterraStats.find({
+              userId,
 
-                const finalCpm =
-                    item.cpm -
-                    (item.cpm *
-                        config.cpmPercent) /
-                    100;
+              date: {
+                $gte:
+                  finalStartDate,
 
-                // REVENUE
-                const finalRevenue =
-                    (finalImpressions / 1000) *
-                    finalCpm;
+                $lte:
+                  finalEndDate,
+              },
+            });
 
-                // CHECK EXISTING
-                const existing =
-                    await CalculatedAdsterraStats.findOne(
-                        {
-                            domain: item.domain,
-                            placement:
-                                item.placement,
-                            country: item.country,
-                            date: item.date,
-                        }
-                    );
+          // =============================================
+          // NO STATS
+          // =============================================
 
-                // DATA
-                const calculatedData = {
-                    userId: item.userId,
+          if (!rawStats.length) {
+            console.log(
+              "NO RAW STATS =>",
+              userId
+            );
 
-                    domain: item.domain,
+            continue;
+          }
 
-                    placement: item.placement,
+          totalUsers += 1;
 
-                    country: item.country,
+          totalStats +=
+            rawStats.length;
 
-                    device: item.device,
+          // =============================================
+          // STORAGE
+          // =============================================
 
-                    deviceModel:
-                        item.deviceModel,
+          const overallOps = [];
 
-                    deviceVendor:
-                        item.deviceVendor,
+          const revenueTracker =
+            new Set();
 
-                    osName: item.osName,
+          let userNewRevenue = 0;
 
-                    osVersion:
-                        item.osVersion,
+          // =============================================
+          // LOOP RAW STATS
+          // =============================================
 
-                    browserName:
-                        item.browserName,
+          for (const item of rawStats) {
+            try {
+              // =========================================
+              // APPLY CONFIG %
+              // =========================================
 
-                    browserVersion:
-                        item.browserVersion,
+              const finalImpressions =
+                Number(
+                  item.impressions || 0
+                ) -
+                (
+                  (Number(
+                    item.impressions || 0
+                  ) *
+                    Number(
+                      statsConfig.impressionPercent ||
+                        0
+                    )) /
+                  100
+                );
 
-                    clicks: item.clicks,
+              const finalCpm =
+                Number(item.cpm || 0) -
+                (
+                  (Number(
+                    item.cpm || 0
+                  ) *
+                    Number(
+                      statsConfig.cpmPercent ||
+                        0
+                    )) /
+                  100
+                );
 
-                    ctr: item.ctr,
+              // =========================================
+              // FINAL REVENUE
+              // =========================================
 
-                    date: item.date,
+              const finalRevenue =
+                (finalImpressions /
+                  1000) *
+                finalCpm;
 
-                    impressions:
-                        Math.floor(
+              // =========================================
+              // CTR
+              // =========================================
+
+              const ctr =
+                Number(
+                  finalImpressions
+                ) > 0
+                  ? Number(
+                      (
+                        (Number(
+                          item.clicks || 0
+                        ) /
+                          Number(
                             finalImpressions
+                          )) *
+                        100
+                      ).toFixed(2)
+                    )
+                  : 0;
+
+              // =========================================
+              // DATE
+              // =========================================
+
+              const adsterraDate =
+                String(
+                  normalizeDate(
+                    item.date
+                  )
+                ).trim();
+
+              // =========================================
+              // REVENUE KEY
+              // =========================================
+
+              const revenueKey = [
+                item.placement,
+                adsterraDate,
+              ].join("|");
+
+              // =========================================
+              // TOTAL REVENUE
+              // =========================================
+
+              if (
+                !revenueTracker.has(
+                  revenueKey
+                )
+              ) {
+                totalRevenue +=
+                  Number(
+                    finalRevenue.toFixed(
+                      6
+                    )
+                  );
+
+                revenueTracker.add(
+                  revenueKey
+                );
+              }
+
+              // =========================================
+              // BULK UPDATE
+              // =========================================
+
+              overallOps.push({
+                updateOne: {
+                  filter: {
+                    userId:
+                      new mongoose.Types.ObjectId(
+                        userId
+                      ),
+
+                    placement:
+                      String(
+                        item.placement
+                      ),
+
+                    country:
+                      String(
+                        item.country ||
+                          "ALL"
+                      ),
+
+                    date: String(
+                      adsterraDate
+                    ),
+                  },
+
+                  update: {
+                    $set: {
+                      userId:
+                        new mongoose.Types.ObjectId(
+                          userId
                         ),
 
-                    cpm: Number(
-                        finalCpm.toFixed(3)
-                    ),
+                      domain:
+                        item.domain ||
+                        "unknown",
 
-                    revenue: Number(
-                        finalRevenue.toFixed(2)
-                    ),
+                      placement:
+                        String(
+                          item.placement
+                        ),
 
-                    impressionPercent:
-                        config.impressionPercent,
+                      country:
+                        String(
+                          item.country ||
+                            "ALL"
+                        ),
 
-                    cpmPercent:
-                        config.cpmPercent,
-                };
+                      date: String(
+                        adsterraDate
+                      ),
 
-                // UPDATE / CREATE
-                if (existing) {
-                    await CalculatedAdsterraStats.findByIdAndUpdate(
-                        existing._id,
-                        calculatedData
-                    );
-                } else {
-                    await CalculatedAdsterraStats.create(
-                        calculatedData
-                    );
-                }
+                      device:
+                        item.device ||
+                        "desktop",
+
+                      deviceModel:
+                        item.deviceModel ||
+                        "",
+
+                      deviceVendor:
+                        item.deviceVendor ||
+                        "",
+
+                      osName:
+                        item.osName ||
+                        "",
+
+                      osVersion:
+                        item.osVersion ||
+                        "",
+
+                      browserName:
+                        item.browserName ||
+                        "",
+
+                      browserVersion:
+                        item.browserVersion ||
+                        "",
+
+                      impressions:
+                        Math.floor(
+                          finalImpressions
+                        ),
+
+                      clicks:
+                        Number(
+                          item.clicks || 0
+                        ),
+
+                      ctr,
+
+                      cpm: Number(
+                        finalCpm.toFixed(
+                          6
+                        )
+                      ),
+
+                      revenue:
+                        Number(
+                          finalRevenue.toFixed(
+                            6
+                          )
+                        ),
+
+                      impressionPercent:
+                        Number(
+                          statsConfig.impressionPercent ||
+                            0
+                        ),
+
+                      cpmPercent:
+                        Number(
+                          statsConfig.cpmPercent ||
+                            0
+                        ),
+                    },
+                  },
+
+                  upsert: true,
+                },
+              });
+            } catch (err) {
+              console.log(
+                "RAW STATS ERROR =>",
+                err.message
+              );
+            }
+          }
+
+          // =============================================
+          // SAVE STATS
+          // =============================================
+
+          if (overallOps.length) {
+            await CalculatedAdsterraStats.bulkWrite(
+              overallOps,
+              {
+                ordered: false,
+              }
+            );
+          }
+
+          // =============================================
+          // USER REVENUE MAP
+          // =============================================
+
+          if (!user.lastRevenueMap) {
+            user.lastRevenueMap =
+              new Map();
+          }
+
+          // =============================================
+          // UPDATE USER REVENUE
+          // =============================================
+
+          for (const op of overallOps) {
+            const data =
+              op.updateOne.update.$set;
+
+            const date = String(
+              data.date
+            ).trim();
+
+            const placement =
+              String(
+                data.placement
+              ).trim();
+
+            const revenueKey = `${placement}_${date}`;
+
+            const currentRevenue =
+              Number(
+                data.revenue || 0
+              );
+
+            const oldRevenue =
+              Number(
+                (
+                  user.lastRevenueMap.get(
+                    revenueKey
+                  ) || 0
+                ).toFixed(6)
+              );
+
+            const finalCurrentRevenue =
+              Number(
+                currentRevenue.toFixed(
+                  6
+                )
+              );
+
+            // =========================================
+            // SKIP SAME OR LOWER
+            // =========================================
+
+            if (
+              finalCurrentRevenue <=
+              oldRevenue
+            ) {
+              continue;
             }
 
-            console.log(
-                "Calculated stats stored successfully"
-            );
-        } catch (error) {
-            console.log(error);
-        }
-    };
+            // =========================================
+            // ONLY DIFFERENCE
+            // =========================================
 
+            const difference =
+              Number(
+                (
+                  finalCurrentRevenue -
+                  oldRevenue
+                ).toFixed(6)
+              );
+
+            userNewRevenue +=
+              difference;
+
+            // =========================================
+            // UPDATE MAP
+            // =========================================
+
+            user.lastRevenueMap.set(
+              revenueKey,
+              finalCurrentRevenue
+            );
+          }
+
+          // =============================================
+          // FINAL USER REVENUE
+          // =============================================
+
+          if (userNewRevenue > 0) {
+            user.revenue = Number(
+              (
+                Number(
+                  user.revenue || 0
+                ) +
+                Number(
+                  userNewRevenue
+                )
+              ).toFixed(6)
+            );
+          }
+
+          // =============================================
+          // SAVE USER
+          // =============================================
+
+          await user.save();
+
+          console.log(
+            "USER UPDATED =>",
+            userId,
+            "NEW REVENUE =>",
+            userNewRevenue
+          );
+        } catch (err) {
+          console.log(
+            "USER PROCESS ERROR =>",
+            user?._id,
+            err.message
+          );
+        }
+      }
+
+      // =================================================
+      // FINAL RESPONSE
+      // =================================================
+
+      const finalResponse = {
+        success: true,
+
+        message:
+          "All users stats updated successfully",
+
+        totalUsers,
+
+        totalStats,
+
+        totalRevenue: Number(
+          totalRevenue.toFixed(6)
+        ),
+
+        start_date:
+          finalStartDate,
+
+        end_date: finalEndDate,
+      };
+
+      console.log(finalResponse);
+
+      if (res) {
+        return res.status(200).json(
+          finalResponse
+        );
+      }
+
+      return finalResponse;
+    } catch (error) {
+      console.error(
+        "ADSTERRA FETCH ERROR =>",
+        error.message
+      );
+
+      if (res) {
+        return res.status(500).json({
+          success: false,
+
+          message:
+            "Failed to process stats",
+
+          error: error.message,
+        });
+      }
+
+      return {
+        success: false,
+        error: error.message,
+      };
+    }
+  };
 
 
 const calculateAndStoreSmartLinkStats =

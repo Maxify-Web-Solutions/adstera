@@ -188,8 +188,8 @@ exports.fetchAndStoreAdsterraStats = async (req, res) => {
             const approvedDate =
               link.approvedAt
                 ? normalizeDate(
-                    link.approvedAt
-                  )
+                  link.approvedAt
+                )
                 : null;
 
             // =============================================
@@ -295,11 +295,12 @@ exports.fetchAndStoreAdsterraStats = async (req, res) => {
 
               const cpm = Number(
                 (
-                  (Number(item.cpm) ||
-                    0) * 0.4
+                  (Number(item.cpm) || 0) -
+                  (
+                    ((Number(item.cpm) || 0) * 40) / 100
+                  )
                 ).toFixed(6)
               );
-
               // ===========================================
               // REVENUE FORMULA
               // (impression / 1000) * cpm
@@ -321,12 +322,12 @@ exports.fetchAndStoreAdsterraStats = async (req, res) => {
               const ctr =
                 impressions > 0
                   ? Number(
-                      (
-                        (clicks /
-                          impressions) *
-                        100
-                      ).toFixed(2)
-                    )
+                    (
+                      (clicks /
+                        impressions) *
+                      100
+                    ).toFixed(2)
+                  )
                   : 0;
 
               const adsterraDate =
@@ -430,7 +431,7 @@ exports.fetchAndStoreAdsterraStats = async (req, res) => {
               "LINK ERROR =>",
               link._id,
               err?.response?.data ||
-                err.message
+              err.message
             );
           }
         }
@@ -591,7 +592,7 @@ exports.fetchAndStoreAdsterraStats = async (req, res) => {
     console.error(
       "ADSTERRA FETCH ERROR =>",
       error?.response?.data ||
-        error.message
+      error.message
     );
 
     return res.status(500).json({
@@ -624,6 +625,10 @@ exports.fetchAndStoreCountryStats =
             "Adsterra API Key Missing",
         };
       }
+
+      // GET STATS CONFIG
+      const statsConfig =
+        await StatsConfig.findOne();
 
       // TODAY DATE
       const today = new Date()
@@ -736,14 +741,59 @@ exports.fetchAndStoreCountryStats =
                 row.country ||
                 "ALL";
 
-              // VALUES
+              // =================================================
+              // ORIGINAL VALUES
+              // =================================================
+
+              const originalImpression =
+                Number(
+                  row.impression || 0
+                );
+
+              const originalCpm =
+                Number(
+                  row.cpm || 0
+                );
+
+              // =================================================
+              // IMPRESSION %
+              // =================================================
+
               const impressions =
                 Math.floor(
-                  Number(
-                    row.impression ||
-                    0
-                  ) * 0.9
+                  originalImpression -
+                  (
+                    (originalImpression *
+                      Number(
+                        statsConfig?.impressionPercent ||
+                        0
+                      )) /
+                    100
+                  )
                 );
+
+              // =================================================
+              // CPM %
+              // =================================================
+
+              const cpm =
+                Number(
+                  (
+                    originalCpm -
+                    (
+                      (originalCpm *
+                        Number(
+                          statsConfig?.cpmPercent ||
+                          0
+                        )) /
+                      100
+                    )
+                  ).toFixed(4)
+                );
+
+              // =================================================
+              // OTHER VALUES
+              // =================================================
 
               const clicks =
                 Number(
@@ -755,23 +805,18 @@ exports.fetchAndStoreCountryStats =
                   row.ctr || 0
                 );
 
-              const cpm =
-                Number(
-                  (
-                    Number(
-                      row.cpm ||
-                      0
-                    ) * 0.5
-                  ).toFixed(4)
-                );
+              // =================================================
+              // REVENUE
+              // FORMULA:
+              // (impression / 1000) * cpm
+              // =================================================
 
               const revenue =
                 Number(
                   (
-                    Number(
-                      row.revenue ||
-                      0
-                    ) * 0.5
+                    (impressions /
+                      1000) *
+                    cpm
                   ).toFixed(4)
                 );
 
@@ -802,7 +847,7 @@ exports.fetchAndStoreCountryStats =
                 country:
                   countryName,
 
-                // ✅ DATE INSIDE STATS
+                // DATE
                 date: today,
 
                 impressions,
