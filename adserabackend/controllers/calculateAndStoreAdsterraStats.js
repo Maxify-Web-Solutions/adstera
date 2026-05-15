@@ -1,311 +1,286 @@
-const RawAdsterraStats =
-    require("../models/RawAdsterraStats");
+const RawAdsterraStats = require("../models/RawAdsterraStats");
 
-const CalculatedAdsterraStats =
-    require(
-        "../models/CalculatedAdsterraStats"
+const RawsmartLinkStats = require("../models/RawsmartLinkStats");
+
+const CalculatedAdsterraStats = require(
+  "../models/CalculatedAdsterraStats"
+);
+
+const CalculatedSmartLinkStats = require(
+  "../models/CalculatedSmartLinkStats"
+);
+
+const StatsConfig = require("../models/StatsConfig");
+
+// ======================================================
+// CALCULATE ADSTERRA STATS
+// ======================================================
+
+const calculateAndStoreAdsterraStats = async () => {
+  try {
+    // GET CONFIG
+    let config = await StatsConfig.findOne();
+
+    if (!config) {
+      config = await StatsConfig.create({
+        impressionPercent: 0,
+        cpmPercent: 0,
+      });
+    }
+
+    // GET RAW DATA
+    const rawStats = await RawAdsterraStats.find();
+
+    for (const item of rawStats) {
+      // ======================================================
+      // DIRECT VALUES (NO % CALCULATION)
+      // ======================================================
+
+      const finalImpressions = Number(item.impressions || 0);
+
+      const finalCpm = Number(item.cpm || 0);
+
+      // ======================================================
+      // REVENUE
+      // FORMULA = (IMPRESSIONS / 1000) * CPM
+      // ======================================================
+
+      const finalRevenue =
+        (finalImpressions / 1000) * finalCpm;
+
+      // ======================================================
+      // CHECK EXISTING
+      // ======================================================
+
+      const existing =
+        await CalculatedAdsterraStats.findOne({
+          domain: item.domain,
+
+          placement: item.placement,
+
+          country: item.country,
+
+          date: item.date,
+        });
+
+      // ======================================================
+      // FINAL DATA
+      // ======================================================
+
+      const calculatedData = {
+        userId: item.userId,
+
+        domain: item.domain,
+
+        placement: item.placement,
+
+        country: item.country,
+
+        device: item.device,
+
+        deviceModel: item.deviceModel,
+
+        deviceVendor: item.deviceVendor,
+
+        osName: item.osName,
+
+        osVersion: item.osVersion,
+
+        browserName: item.browserName,
+
+        browserVersion: item.browserVersion,
+
+        clicks: Number(item.clicks || 0),
+
+        ctr: Number(item.ctr || 0),
+
+        date: item.date,
+
+        impressions: Math.floor(finalImpressions),
+
+        cpm: Number(finalCpm.toFixed(3)),
+
+        revenue: Number(finalRevenue.toFixed(2)),
+      };
+
+      // ======================================================
+      // UPDATE / CREATE
+      // ======================================================
+
+      if (existing) {
+        await CalculatedAdsterraStats.findByIdAndUpdate(
+          existing._id,
+          calculatedData,
+          {
+            new: true,
+          }
+        );
+      } else {
+        await CalculatedAdsterraStats.create(
+          calculatedData
+        );
+      }
+    }
+
+    console.log(
+      "Calculated Adsterra stats stored successfully"
     );
-const CalculatedSmartLinkStats =
-    require(
-        "../models/CalculatedSmartLinkStats"
+  } catch (error) {
+    console.log(
+      "calculateAndStoreAdsterraStats Error:",
+      error
     );
-const StatsConfig =
-    require("../models/StatsConfig");
+  }
+};
 
-const calculateAndStoreAdsterraStats =
-    async () => {
-        try {
-            // GET CONFIG
-            let config =
-                await StatsConfig.findOne();
-
-            if (!config) {
-                config =
-                    await StatsConfig.create({
-                        impressionPercent: 10,
-                        cpmPercent: 40,
-                    });
-            }
-
-            // GET RAW DATA
-            const rawStats =
-                await RawAdsterraStats.find();
-
-            for (const item of rawStats) {
-                // APPLY %
-                const finalImpressions =
-                    item.impressions -
-                    (item.impressions *
-                        config.impressionPercent) /
-                    100;
-
-                const finalCpm =
-                    item.cpm -
-                    (item.cpm *
-                        config.cpmPercent) /
-                    100;
-
-                // REVENUE
-                const finalRevenue =
-                    (finalImpressions / 1000) *
-                    finalCpm;
-
-                // CHECK EXISTING
-                const existing =
-                    await CalculatedAdsterraStats.findOne(
-                        {
-                            domain: item.domain,
-                            placement:
-                                item.placement,
-                            country: item.country,
-                            date: item.date,
-                        }
-                    );
-
-                // DATA
-                const calculatedData = {
-                    userId: item.userId,
-
-                    domain: item.domain,
-
-                    placement: item.placement,
-
-                    country: item.country,
-
-                    device: item.device,
-
-                    deviceModel:
-                        item.deviceModel,
-
-                    deviceVendor:
-                        item.deviceVendor,
-
-                    osName: item.osName,
-
-                    osVersion:
-                        item.osVersion,
-
-                    browserName:
-                        item.browserName,
-
-                    browserVersion:
-                        item.browserVersion,
-
-                    clicks: item.clicks,
-
-                    ctr: item.ctr,
-
-                    date: item.date,
-
-                    impressions:
-                        Math.floor(
-                            finalImpressions
-                        ),
-
-                    cpm: Number(
-                        finalCpm.toFixed(3)
-                    ),
-
-                    revenue: Number(
-                        finalRevenue.toFixed(2)
-                    ),
-
-                    impressionPercent:
-                        config.impressionPercent,
-
-                    cpmPercent:
-                        config.cpmPercent,
-                };
-
-                // UPDATE / CREATE
-                if (existing) {
-                    await CalculatedAdsterraStats.findByIdAndUpdate(
-                        existing._id,
-                        calculatedData
-                    );
-                } else {
-                    await CalculatedAdsterraStats.create(
-                        calculatedData
-                    );
-                }
-            }
-
-            console.log(
-                "Calculated stats stored successfully"
-            );
-        } catch (error) {
-            console.log(error);
-        }
-    };
-
-module.exports =
-    calculateAndStoreAdsterraStats;
-
+// ======================================================
+// CALCULATE SMARTLINK STATS
+// ======================================================
 
 const calculateAndStoreSmartLinkStats =
-    async () => {
-        try {
-            // ============================================
-            // GET CONFIG
-            // ============================================
+  async () => {
+    try {
+      // GET CONFIG
+      let config =
+        await StatsConfig.findOne();
 
-            let config =
-                await StatsConfig.findOne();
+      if (!config) {
+        config =
+          await StatsConfig.create({
+            impressionPercent: 0,
 
-            if (!config) {
-                config =
-                    await StatsConfig.create({
-                        impressionPercent: 10,
+            cpmPercent: 0,
+          });
+      }
 
-                        cpmPercent: 40,
-                    });
-            }
+      // GET RAW DATA
+      const rawStats =
+        await RawsmartLinkStats.find();
 
-            // ============================================
-            // GET RAW DATA
-            // ============================================
+      // LOOP ALL DOCS
+      for (const rawDoc of rawStats) {
+        const calculatedStats = [];
 
-            const rawStats =
-                await RawsmartLinkStats.find();
+        // LOOP STATS ARRAY
+        for (const item of rawDoc.stats) {
+          // ======================================================
+          // DIRECT VALUES (NO % CALCULATION)
+          // ======================================================
 
-            // ============================================
-            // LOOP DOCS
-            // ============================================
+          const finalImpressions =
+            Number(item.impressions || 0);
 
-            for (const rawDoc of rawStats) {
-                const calculatedStats = [];
+          const finalCpm = Number(
+            item.cpm || 0
+          );
 
-                // ============================================
-                // LOOP STATS ARRAY
-                // ============================================
+          // ======================================================
+          // REVENUE
+          // ======================================================
 
-                for (const item of rawDoc.stats) {
-                    // ============================================
-                    // APPLY %
-                    // ============================================
+          const finalRevenue =
+            (finalImpressions / 1000) *
+            finalCpm;
 
-                    const finalImpressions =
-                        item.impressions -
-                        (item.impressions *
-                            config.impressionPercent) /
-                        100;
+          // PUSH FINAL DATA
+          calculatedStats.push({
+            placement: item.placement,
 
-                    const finalCpm =
-                        item.cpm -
-                        (item.cpm *
-                            config.cpmPercent) /
-                        100;
+            domain: item.domain,
 
-                    // ============================================
-                    // REVENUE
-                    // ============================================
+            country: item.country,
 
-                    const finalRevenue =
-                        (finalImpressions / 1000) *
-                        finalCpm;
+            date: item.date,
 
-                    // ============================================
-                    // PUSH FINAL DATA
-                    // ============================================
+            clicks: Number(
+              item.clicks || 0
+            ),
 
-                    calculatedStats.push({
-                        placement:
-                            item.placement,
+            ctr: Number(item.ctr || 0),
 
-                        domain: item.domain,
+            impressions: Math.floor(
+              finalImpressions
+            ),
 
-                        country:
-                            item.country,
+            cpm: Number(
+              finalCpm.toFixed(3)
+            ),
 
-                        date: item.date,
-
-                        clicks: item.clicks,
-
-                        ctr: item.ctr,
-
-                        impressions:
-                            Math.floor(
-                                finalImpressions
-                            ),
-
-                        cpm: Number(
-                            finalCpm.toFixed(3)
-                        ),
-
-                        revenue: Number(
-                            finalRevenue.toFixed(2)
-                        ),
-
-                        impressionPercent:
-                            config.impressionPercent,
-
-                        cpmPercent:
-                            config.cpmPercent,
-                    });
-                }
-
-                // ============================================
-                // CHECK EXISTING
-                // ============================================
-
-                const existing =
-                    await CalculatedSmartLinkStats.findOne(
-                        {
-                            userId:
-                                rawDoc.userId,
-
-                            device:
-                                rawDoc.device,
-
-                            date: rawDoc.date,
-                        }
-                    );
-
-                // ============================================
-                // FINAL DOC
-                // ============================================
-
-                const finalDoc = {
-                    userId: rawDoc.userId,
-
-                    device: rawDoc.device,
-
-                    osName: rawDoc.osName,
-
-                    browserName:
-                        rawDoc.browserName,
-
-                    date: rawDoc.date,
-
-                    stats: calculatedStats,
-                };
-
-                // ============================================
-                // UPDATE / CREATE
-                // ============================================
-
-                if (existing) {
-                    await CalculatedSmartLinkStats.findByIdAndUpdate(
-                        existing._id,
-                        finalDoc,
-                        {
-                            new: true,
-                        }
-                    );
-                } else {
-                    await CalculatedSmartLinkStats.create(
-                        finalDoc
-                    );
-                }
-            }
-
-            console.log(
-                "Calculated SmartLink stats stored successfully"
-            );
-        } catch (error) {
-            console.log(error);
+            revenue: Number(
+              finalRevenue.toFixed(2)
+            ),
+          });
         }
-    };
 
-module.exports =
-    calculateAndStoreSmartLinkStats;
+        // ======================================================
+        // CHECK EXISTING
+        // ======================================================
+
+        const existing =
+          await CalculatedSmartLinkStats.findOne(
+            {
+              userId: rawDoc.userId,
+
+              device: rawDoc.device,
+
+              date: rawDoc.date,
+            }
+          );
+
+        // ======================================================
+        // FINAL DOC
+        // ======================================================
+
+        const finalDoc = {
+          userId: rawDoc.userId,
+
+          device: rawDoc.device,
+
+          osName: rawDoc.osName,
+
+          browserName:
+            rawDoc.browserName,
+
+          date: rawDoc.date,
+
+          stats: calculatedStats,
+        };
+
+        // ======================================================
+        // UPDATE / CREATE
+        // ======================================================
+
+        if (existing) {
+          await CalculatedSmartLinkStats.findByIdAndUpdate(
+            existing._id,
+            finalDoc,
+            {
+              new: true,
+            }
+          );
+        } else {
+          await CalculatedSmartLinkStats.create(
+            finalDoc
+          );
+        }
+      }
+
+      console.log(
+        "Calculated SmartLink stats stored successfully"
+      );
+    } catch (error) {
+      console.log(
+        "calculateAndStoreSmartLinkStats Error:",
+        error
+      );
+    }
+  };
+
+// ======================================================
+// EXPORTS
+// ======================================================
+
+module.exports = {
+  calculateAndStoreAdsterraStats,
+  calculateAndStoreSmartLinkStats,
+};
