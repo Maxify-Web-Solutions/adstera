@@ -94,26 +94,14 @@ const DashboardHeader = ({ onMenuClick }) => {
 
                     <span>
                         $
-                        {Object.values(
-                            user?.lastRevenueMap || {}
-                        ).reduce(
-                            (acc, val) =>
-                                acc + Number(val || 0),
-                            0
-                        ).toFixed(3)}
+                        {user.revenue.toFixed(2)}
                     </span>
                 </div>
 
                 {/* Mobile Balance */}
                 <div className="flex md:hidden items-center gap-1 px-3 py-1.5 rounded-lg bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-sm font-semibold">
                     $
-                    {Object.values(
-                        user?.lastRevenueMap || {}
-                    ).reduce(
-                        (acc, val) =>
-                            acc + Number(val || 0),
-                        0
-                    ).toFixed(3)}
+                    {user.revenue.toFixed(2)}
                 </div>
 
                 {/* User */}

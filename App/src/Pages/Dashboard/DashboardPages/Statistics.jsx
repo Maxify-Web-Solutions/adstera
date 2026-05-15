@@ -489,112 +489,94 @@ const Statistics = () => {
 
     if (groupBy === "device") {
 
-      if (!Array.isArray(countryData)) {
-        return [];
-      }
+  const sourceData = Array.isArray(groupedReducerData)
+    ? groupedReducerData
+    : [];
 
-      const deviceMap = {};
+  const deviceMap = {};
 
-      countryData.forEach((item) => {
+  sourceData.forEach((item) => {
 
-        const key =
-          item.device || "Unknown";
+    const key = item.device || "Unknown";
 
-        if (!deviceMap[key]) {
-
-          deviceMap[key] = {
-            label: key,
-            impressions: 0,
-            clicks: 0,
-            revenue: 0,
-          };
-        }
-
-        deviceMap[key].impressions +=
-          Number(item.impressions || 0);
-
-        deviceMap[key].clicks +=
-          Number(item.clicks || 0);
-
-        deviceMap[key].revenue +=
-          Number(item.revenue || 0);
-      });
-
-      return Object.values(deviceMap);
+    if (!deviceMap[key]) {
+      deviceMap[key] = {
+        label: key,
+        impressions: 0,
+        clicks: 0,
+        revenue: 0,
+      };
     }
+
+    deviceMap[key].impressions += Number(item.impressions || 0);
+    deviceMap[key].clicks += Number(item.clicks || 0);
+    deviceMap[key].revenue += Number(item.revenue || 0);
+
+  });
+
+  return Object.values(deviceMap);
+}
 
 
     if (groupBy === "os") {
 
-      if (!Array.isArray(countryData)) {
-        return [];
-      }
+  const sourceData = Array.isArray(groupedReducerData)
+    ? groupedReducerData
+    : [];
 
-      const osMap = {};
+  const osMap = {};
 
-      countryData.forEach((item) => {
+  sourceData.forEach((item) => {
 
-        const key =
-          item.osName?.trim() || "No Data";
+    const key = item.osName?.trim() || "No Data";
 
-        if (!osMap[key]) {
-
-          osMap[key] = {
-            label: key,
-            impressions: 0,
-            clicks: 0,
-            revenue: 0,
-          };
-        }
-
-        osMap[key].impressions +=
-          Number(item.impressions || 0);
-
-        osMap[key].clicks +=
-          Number(item.clicks || 0);
-
-        osMap[key].revenue +=
-          Number(item.revenue || 0);
-      });
-
-      return Object.values(osMap);
+    if (!osMap[key]) {
+      osMap[key] = {
+        label: key,
+        impressions: 0,
+        clicks: 0,
+        revenue: 0,
+      };
     }
+
+    osMap[key].impressions += Number(item.impressions || 0);
+    osMap[key].clicks += Number(item.clicks || 0);
+    osMap[key].revenue += Number(item.revenue || 0);
+
+  });
+
+  return Object.values(osMap);
+}
 
     if (groupBy === "browser") {
 
-      if (!Array.isArray(countryData)) {
-        return [];
-      }
+  const sourceData = Array.isArray(groupedReducerData)
+    ? groupedReducerData
+    : [];
 
-      const browserMap = {};
+  const browserMap = {};
 
-      countryData.forEach((item) => {
+  sourceData.forEach((item) => {
 
-        const key =
-          item.browserName?.trim() || "No Data";
+    const key = item.browserName?.trim() || "No Data";
 
-        if (!browserMap[key]) {
-
-          browserMap[key] = {
-            label: key,
-            impressions: 0,
-            clicks: 0,
-            revenue: 0,
-          };
-        }
-
-        browserMap[key].impressions +=
-          Number(item.impressions || 0);
-
-        browserMap[key].clicks +=
-          Number(item.clicks || 0);
-
-        browserMap[key].revenue +=
-          Number(item.revenue || 0);
-      });
-
-      return Object.values(browserMap);
+    if (!browserMap[key]) {
+      browserMap[key] = {
+        label: key,
+        impressions: 0,
+        clicks: 0,
+        revenue: 0,
+      };
     }
+
+    browserMap[key].impressions += Number(item.impressions || 0);
+    browserMap[key].clicks += Number(item.clicks || 0);
+    browserMap[key].revenue += Number(item.revenue || 0);
+
+  });
+
+  return Object.values(browserMap);
+}
 
 
     if (
@@ -608,12 +590,13 @@ const Statistics = () => {
     return groupedReducerData.map(
       (item) => ({
         label:
-          item.label ||
-          item.country ||
-          item.device ||
-          item.osName ||
-          item.browserName ||
-          "Unknown",
+  groupBy === "country"
+    ? lookup.byIso(item.country)?.country || item.country || "Unknown"
+    : item.label ||
+      item.device ||
+      item.osName ||
+      item.browserName ||
+      "Unknown",
 
         impressions: Number(
           item.impressions || 0
@@ -716,48 +699,41 @@ const Statistics = () => {
   };
 
   // Stats Cards Data
-  const statsCards = [
-    {
-      title: "Total Impressions",
-      value: calculatedTotals.impressions.toLocaleString(),
-      icon: Eye,
-      color: "from-blue-500 to-blue-600",
-      bgGradient: "bg-gradient-to-br",
-    },
-    {
-      title: "Total Clicks",
-      value: calculatedTotals.clicks.toLocaleString(),
-      icon: MousePointerClick,
-      color: "from-green-500 to-green-600",
-      bgGradient: "bg-gradient-to-br",
-    },
-    {
-      title: "CTR",
-      value: `${calculatedTotals.impressions > 0
-        ? ((calculatedTotals.clicks / calculatedTotals.impressions) * 100).toFixed(2)
-        : "0.00"}%`,
-      icon: TrendingUp,
-      color: "from-purple-500 to-purple-600",
-      bgGradient: "bg-gradient-to-br",
-    },
-    {
-      title: "CPM",
-      value: `$${calculatedTotals.impressions > 0
-        ? ((calculatedTotals.revenue / calculatedTotals.impressions) * 1000).toFixed(2)
-        : "0.000"}`,
-      icon: DollarSign,
-      color: "from-orange-500 to-orange-600",
-      bgGradient: "bg-gradient-to-br",
-    },
-    {
-      title: "Total Revenue",
-      value: `$${calculatedTotals.revenue.toFixed(2)}`,
-      icon: Zap,
-      color: "from-yellow-500 to-yellow-600",
-      bgGradient: "bg-gradient-to-br",
-    },
-  ];
+  // const overallTotals = statsData?.overall?.totals || {};
 
+const statsCards = [
+  {
+    title: "Total Impressions",
+    value: (totals?.totalImpressions || 0).toLocaleString(),
+    icon: Eye,
+    color: "from-blue-500 to-blue-600",
+    bgGradient: "bg-gradient-to-br",
+  },
+
+  {
+    title: "CTR",
+    value: `${(totals?.ctr || 0).toFixed(2)}%`,
+    icon: TrendingUp,
+    color: "from-purple-500 to-purple-600",
+    bgGradient: "bg-gradient-to-br",
+  },
+
+  {
+    title: "CPM",
+    value: `$${(totals?.cpm || 0).toFixed(3)}`,
+    icon: DollarSign,
+    color: "from-orange-500 to-orange-600",
+    bgGradient: "bg-gradient-to-br",
+  },
+
+  {
+    title: "Total Revenue",
+    value: `$${(totals?.totalRevenue || 0).toFixed(2)}`,
+    icon: Zap,
+    color: "from-yellow-500 to-yellow-600",
+    bgGradient: "bg-gradient-to-br",
+  },
+];
   return (
     <div className="min-h-screen md:p-8">
       <div className="max-w-[1600px] mx-auto space-y-6">
@@ -772,7 +748,7 @@ const Statistics = () => {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {statsCards.map((card, idx) => (
             <div
               key={idx}
@@ -934,27 +910,33 @@ const Statistics = () => {
         </div>
 
         {/* GROUP TABS */}
-        <div className="flex flex-wrap gap-2">
-          {[
-            { label: "Country", value: "country", icon: Globe },
-            { label: "Date", value: "date", icon: Calendar },
-            { label: " Device", value: "device", icon: Smartphone },
-            { label: "OS", value: "os", icon: Monitor },
-            { label: " Browser", value: "browser", icon: Globe2 },
-          ].map((tab) => (
-            <button
-              key={tab.value}
-              onClick={() => setGroupBy(tab.value)}
-              className={`px-5 py-2.5 rounded-xl text-sm font-medium transition-all duration-300 flex items-center gap-2 ${groupBy === tab.value
-                ? "bg-gradient-to-r from-green-500 to-green-600 text-white shadow-lg shadow-green-500/25 scale-105"
-                : "bg-white dark:bg-slate-800 border-2 border-gray-200 dark:border-slate-700 text-gray-600 dark:text-gray-400 hover:border-green-500 hover:scale-105"
-                }`}
-            >
-              <tab.icon className="w-4 h-4" />
-              {tab.label}
-            </button>
-          ))}
-        </div>
+        {/* GROUP TABS */}
+<div className="w-full overflow-x-auto scrollbar-thin pb-2">
+  
+  <div className="flex gap-2 min-w-max">
+    {[
+      { label: "Country", value: "country", icon: Globe },
+      { label: "Date", value: "date", icon: Calendar },
+      // { label: "Device", value: "device", icon: Smartphone },
+      // { label: "OS", value: "os", icon: Monitor },
+      // { label: "Browser", value: "browser", icon: Globe2 },
+    ].map((tab) => (
+      <button
+        key={tab.value}
+        onClick={() => setGroupBy(tab.value)}
+        className={`shrink-0 px-5 py-2.5 rounded-xl text-sm font-medium transition-all duration-300 flex items-center gap-2 whitespace-nowrap ${
+          groupBy === tab.value
+            ? "bg-gradient-to-r from-green-500 to-green-600 text-white shadow-lg shadow-green-500/25"
+            : "bg-white dark:bg-slate-800 border-2 border-gray-200 dark:border-slate-700 text-gray-600 dark:text-gray-400 hover:border-green-500"
+        }`}
+      >
+        <tab.icon className="w-4 h-4" />
+        {tab.label}
+      </button>
+    ))}
+  </div>
+
+</div>
 
         {/* TABLE CARD */}
         <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-gray-200 dark:border-slate-700 overflow-hidden">
@@ -1078,33 +1060,36 @@ const Statistics = () => {
               </tbody>
 
               {groupedData.length > 0 && (
-                <tfoot>
-                  <tr className="border-t-2 border-gray-200 dark:border-slate-600 bg-gray-50 dark:bg-slate-900/50">
-                    <td className="p-4 font-bold text-gray-900 dark:text-white">Total</td>
-                    <td className="p-4 text-right font-bold font-mono text-gray-900 dark:text-white">
-                      {calculatedTotals.impressions.toLocaleString()}
-                    </td>
-                    <td className="p-4 text-right font-bold font-mono text-gray-900 dark:text-white">
-                      {calculatedTotals.clicks.toLocaleString()}
-                    </td>
-                    <td className="p-4 text-right font-bold text-gray-900 dark:text-white">
-                      {calculatedTotals.impressions > 0
-                        ? ((calculatedTotals.clicks / calculatedTotals.impressions) * 100).toFixed(2)
-                        : "0.00"}
-                      %
-                    </td>
-                    <td className="p-4 text-right font-bold font-mono text-gray-900 dark:text-white">
-                      $
-                      {calculatedTotals.impressions > 0
-                        ? ((calculatedTotals.revenue / calculatedTotals.impressions) * 1000).toFixed(2)
-                        : "0.000"}
-                    </td>
-                    <td className="p-4 text-right font-bold font-mono text-green-600 dark:text-green-400">
-                      ${calculatedTotals.revenue.toFixed(2)}
-                    </td>
-                  </tr>
-                </tfoot>
-              )}
+  <tfoot>
+    <tr className="border-t-2 border-gray-200 dark:border-slate-600 bg-gray-50 dark:bg-slate-900/50">
+      
+      <td className="p-4 font-bold text-gray-900 dark:text-white">
+        Total
+      </td>
+
+      <td className="p-4 text-right font-bold font-mono text-gray-900 dark:text-white">
+        {(totals?.totalImpressions || 0).toLocaleString()}
+      </td>
+
+      <td className="p-4 text-right font-bold font-mono text-gray-900 dark:text-white">
+        {(totals?.totalClicks || 0).toLocaleString()}
+      </td>
+
+      <td className="p-4 text-right font-bold text-gray-900 dark:text-white">
+        {(totals?.ctr || 0).toFixed(2)}%
+      </td>
+
+      <td className="p-4 text-right font-bold font-mono text-gray-900 dark:text-white">
+        ${(totals?.cpm || 0).toFixed(3)}
+      </td>
+
+      <td className="p-4 text-right font-bold font-mono text-green-600 dark:text-green-400">
+        ${(totals?.totalRevenue || 0).toFixed(2)}
+      </td>
+
+    </tr>
+  </tfoot>
+)}
             </table>
           </div>
         </div>
