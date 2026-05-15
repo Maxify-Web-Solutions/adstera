@@ -6,6 +6,9 @@ const AdsterraStats = require("../models/AdsterraStats");
 const SmartLinkStats = require("../models/SmartLinkStats");
 const User = require("../models/authmodel");
 const Config = require("../models/Config");
+const StatsConfig =
+    require("../models/StatsConfig");
+
 
 
 
