@@ -165,22 +165,43 @@ const verifyOTP = async (req, res) => {
       $or: [
         { email: tempUser.email.toLowerCase().trim() },
         { mobile: tempUser.mobile },
+        { name: tempUser.name.trim() }, // NAME CHECK
       ],
     });
 
     if (existingUser) {
+      let errorMessage = "User already exists";
+
+      if (
+        existingUser.email === tempUser.email.toLowerCase().trim()
+      ) {
+        errorMessage = "Email already registered";
+      } else if (
+        existingUser.mobile === tempUser.mobile
+      ) {
+        errorMessage = "Mobile number already registered";
+      } else if (
+        existingUser.name.trim().toLowerCase() ===
+        tempUser.name.trim().toLowerCase()
+      ) {
+        errorMessage = "Username already taken";
+      }
+
       return res.status(400).json({
         success: false,
-        message: "User already exists",
+        message: errorMessage,
       });
     }
 
     // HASH PASSWORD
-    const hashedPassword = await bcrypt.hash(tempUser.password, 10);
+    const hashedPassword = await bcrypt.hash(
+      tempUser.password,
+      10
+    );
 
     // CREATE USER
     const user = await User.create({
-      name: tempUser.name,
+      name: tempUser.name.trim(),
       email: tempUser.email.toLowerCase().trim(),
       mobile: tempUser.mobile,
       password: hashedPassword,
@@ -213,6 +234,27 @@ const verifyOTP = async (req, res) => {
     });
 
   } catch (error) {
+
+    // DUPLICATE KEY ERROR HANDLE
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyPattern)[0];
+
+      let message = "Duplicate field error";
+
+      if (field === "email") {
+        message = "Email already registered";
+      } else if (field === "mobile") {
+        message = "Mobile number already registered";
+      } else if (field === "name") {
+        message = "Username already taken";
+      }
+
+      return res.status(400).json({
+        success: false,
+        message,
+      });
+    }
+
     return res.status(500).json({
       success: false,
       message: error.message,
