@@ -35,14 +35,7 @@ const Payouts = () => {
   (state) => state.auth
 );
 
-const totalRevenue =
-  Object.values(
-    user?.lastRevenueMap || {}
-  ).reduce(
-    (acc, val) =>
-      acc + Number(val || 0),
-    0
-  );
+const totalRevenue = Number(user?.revenue || 0);
 
   const {
     withdrawals = [],
@@ -183,7 +176,7 @@ const totalRevenue =
       </div>
 
       <h2 className="text-5xl md:text-6xl font-black text-white tracking-tight">
-        ${totalRevenue.toFixed(2)}
+        ${user.revenue.toFixed(2)}
       </h2>
 
       <p className="mt-4 text-sm md:text-base text-white/70 leading-relaxed max-w-xl">

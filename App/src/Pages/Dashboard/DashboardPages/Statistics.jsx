@@ -577,8 +577,6 @@ const Statistics = () => {
 
   return Object.values(browserMap);
 }
-
-
     if (
       !Array.isArray(
         groupedReducerData
