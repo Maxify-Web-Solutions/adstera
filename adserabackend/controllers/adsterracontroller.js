@@ -1138,7 +1138,7 @@ exports.fetchAndStoreCountryStats =
       let totalUpdated = 0;
 
       for (const user of users) {
-        // CURRENT DATE STATS
+        // ONLY CURRENT DATE DATA
         const stats =
           await AdsterraStats.find(
             {
@@ -1155,7 +1155,7 @@ exports.fetchAndStoreCountryStats =
           continue;
         }
 
-        // FIND EXISTING DOC
+        // FIND TODAY DOCUMENT ONLY
         let existingDoc =
           await SmartLinkStats.findOne(
             {
@@ -1165,7 +1165,7 @@ exports.fetchAndStoreCountryStats =
             }
           );
 
-        // CREATE DOC
+        // CREATE TODAY DOC
         if (!existingDoc) {
           existingDoc =
             new SmartLinkStats({
@@ -1176,6 +1176,14 @@ exports.fetchAndStoreCountryStats =
               date: today,
               stats: [],
             });
+        }
+
+        // EXTRA SAFETY
+        if (
+          existingDoc.date !==
+          today
+        ) {
+          continue;
         }
 
         // LOOP PLACEMENTS
@@ -1228,7 +1236,7 @@ exports.fetchAndStoreCountryStats =
               continue;
             }
 
-            // LOOP COUNTRY DATA
+            // COUNTRY LOOP
             for (const row of apiData) {
               const countryName =
                 row.country ||
@@ -1239,7 +1247,7 @@ exports.fetchAndStoreCountryStats =
                 Math.floor(
                   Number(
                     row.impression ||
-                      0
+                    0
                   ) * 0.9
                 );
 
@@ -1258,7 +1266,7 @@ exports.fetchAndStoreCountryStats =
                   (
                     Number(
                       row.cpm ||
-                        0
+                      0
                     ) * 0.5
                   ).toFixed(4)
                 );
@@ -1268,48 +1276,48 @@ exports.fetchAndStoreCountryStats =
                   (
                     Number(
                       row.revenue ||
-                        0
+                      0
                     ) * 0.5
                   ).toFixed(4)
                 );
 
-              // FIND EXISTING
+              // FIND EXISTING ONLY FOR TODAY
               const existingIndex =
                 existingDoc.stats.findIndex(
                   (s) =>
                     String(
                       s.placement
                     ) ===
-                      placementId &&
+                    placementId &&
                     s.country ===
-                      countryName
+                    countryName
                 );
 
-              // OBJECT
+              // NEW OBJECT
               const statData =
-                {
-                  placement:
-                    placementId,
+              {
+                placement:
+                  placementId,
 
-                  domain:
-                    row.domain ||
-                    "",
+                domain:
+                  row.domain ||
+                  "",
 
-                  country:
-                    countryName,
+                country:
+                  countryName,
 
-                  impressions,
+                impressions,
 
-                  clicks,
+                clicks,
 
-                  ctr,
+                ctr,
 
-                  cpm,
+                cpm,
 
-                  revenue,
-                };
+                revenue,
+              };
 
-              // UPDATE
+              // UPDATE ONLY CURRENT DATE DATA
               if (
                 existingIndex !==
                 -1
@@ -1319,7 +1327,7 @@ exports.fetchAndStoreCountryStats =
                 ] = statData;
               }
 
-              // CREATE
+              // NEW ENTRY
               else {
                 existingDoc.stats.push(
                   statData
@@ -1329,8 +1337,21 @@ exports.fetchAndStoreCountryStats =
               totalUpdated++;
             }
           } catch (
-            apiError
-          ) {}
+          apiError
+          ) {
+            console.log(
+              "API ERROR:",
+              apiError.message
+            );
+          }
+        }
+
+        // FINAL SAFETY
+        if (
+          existingDoc.date !==
+          today
+        ) {
+          continue;
         }
 
         // FORCE UPDATE
@@ -1338,7 +1359,7 @@ exports.fetchAndStoreCountryStats =
           "stats"
         );
 
-        // SAVE
+        // SAVE ONLY TODAY DOC
         await existingDoc.save();
       }
 
@@ -1356,7 +1377,7 @@ exports.fetchAndStoreCountryStats =
       };
     }
   };
-
+  
 exports.getAdsterraStatsFromDB =
   async (req, res) => {
     try {

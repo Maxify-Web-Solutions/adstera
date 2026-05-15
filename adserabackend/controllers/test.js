@@ -217,6 +217,7 @@ const getUserPlacementData = async () => {
     }
 
     console.log("\nALL DONE ✅");
+    process.exit(0);    
   } catch (error) {
     console.log("Main Error:", error.message);
   }
