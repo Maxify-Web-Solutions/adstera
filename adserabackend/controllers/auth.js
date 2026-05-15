@@ -42,6 +42,14 @@ const register = async (req, res) => {
     email = email.toLowerCase().trim();
     mobile = mobile.trim();
 
+    // NAME SPACE CHECK
+    if (/\s/.test(name)) {
+      return res.status(400).json({
+        success: false,
+        message: "Space is not allowed in name",
+      });
+    }
+
     // PASSWORD CHECK
     if (password.length < 6) {
       return res.status(400).json({

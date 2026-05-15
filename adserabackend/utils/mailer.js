@@ -32,7 +32,7 @@ const emailWrapper = ({
 
     body{
       margin:0;
-      padding:4px;
+      padding:6px;
       background:#f3f3f5;
       font-family:Arial,Helvetica,sans-serif;
       -webkit-text-size-adjust:none;
@@ -43,29 +43,29 @@ const emailWrapper = ({
       border-collapse:collapse;
     }
 
-    .main{
-      width:100%;
-      max-width:500px;
-      margin:auto;
-      background:#ffffff;
-      border-radius:18px;
-      overflow:hidden;
-      border:2px solid #000000;
-      box-shadow:0 6px 18px rgba(0,0,0,0.12);
-    }
+.main{
+  width:100%;
+  max-width:500px;
+  margin:auto;
+  background:#ffffff;
+  border-radius:18px;
+  overflow:hidden;
+  border:2px solid #000000; /* BLACK OUTLINE */
+  box-shadow:0 6px 18px rgba(0,0,0,0.12);
+}
 
     /* ================= HEADER ================= */
 
     .header{
       background:#14003d;
-      padding:14px 16px;
+      padding:16px 18px;
     }
 
     .logo{
       color:#ffffff;
-      font-size:26px;
+      font-size:28px;
       font-weight:800;
-      line-height:28px;
+      line-height:30px;
     }
 
     .logo span{
@@ -74,73 +74,73 @@ const emailWrapper = ({
 
     .secure{
       color:#ffffff;
-      font-size:11px;
+      font-size:12px;
       font-weight:600;
-      line-height:13px;
+      line-height:14px;
     }
 
     /* ================= CONTENT ================= */
 
     .content{
-      padding:14px 12px 8px;
+      padding:18px 14px 12px;
       text-align:center;
     }
 
     .lock-wrap{
-      width:60px;
-      height:60px;
+      width:68px;
+      height:68px;
       border-radius:50%;
       background:#f4f1ff;
-      margin:0 auto 10px;
+      margin:0 auto 12px;
       text-align:center;
-      line-height:60px;
-      font-size:24px;
+      line-height:68px;
+      font-size:28px;
     }
 
     .title{
       margin:0;
       color:#12003d;
-      font-size:22px;
-      line-height:26px;
+      font-size:24px;
+      line-height:30px;
       font-weight:800;
       text-align:center;
     }
 
     .subtitle{
-      margin:8px auto 0;
-      max-width:320px;
+      margin:10px auto 0;
+      max-width:340px;
       color:#666680;
-      font-size:13px;
-      line-height:20px;
+      font-size:14px;
+      line-height:22px;
       text-align:center;
     }
 
     /* ================= OTP ================= */
 
     .otp-box{
-      margin-top:12px;
+      margin-top:16px;
       border:1px solid #ece8ff;
-      border-radius:14px;
+      border-radius:16px;
       background:#ffffff;
-      padding:12px 6px;
+      padding:14px 8px;
       text-align:center;
     }
 
     .otp-label{
       margin:0;
       color:#666680;
-      font-size:13px;
+      font-size:14px;
       font-weight:700;
       text-align:center;
     }
 
     .otp{
-      margin:8px 0 0;
-      font-size:34px;
-      line-height:38px;
+      margin:10px 0 0;
+      font-size:40px;
+      line-height:44px;
       font-weight:900;
       color:#5c45ff;
-      letter-spacing:5px;
+      letter-spacing:6px;
       text-align:center;
     }
 
@@ -148,13 +148,13 @@ const emailWrapper = ({
 
     .valid-table{
       width:100%;
-      margin-top:10px;
+      margin-top:12px;
     }
 
     .valid-text{
       color:#666680;
-      font-size:12px;
-      line-height:15px;
+      font-size:13px;
+      line-height:16px;
       text-align:center;
     }
 
@@ -168,7 +168,7 @@ const emailWrapper = ({
     .divider{
       height:1px;
       background:#ececf3;
-      margin:12px 0;
+      margin:16px 0;
     }
 
     /* ================= INFO ================= */
@@ -178,13 +178,13 @@ const emailWrapper = ({
     }
 
     .info-icon{
-      width:38px;
-      height:38px;
+      width:42px;
+      height:42px;
       border:1px solid #ececf3;
       border-radius:50%;
       text-align:center;
-      line-height:38px;
-      font-size:16px;
+      line-height:42px;
+      font-size:18px;
       background:#ffffff;
       margin:auto;
     }
@@ -192,32 +192,32 @@ const emailWrapper = ({
     .info-title{
       margin:0;
       color:#12003d;
-      font-size:14px;
+      font-size:15px;
       font-weight:800;
     }
 
     .info-text{
-      margin:3px 0 0;
+      margin:4px 0 0;
       color:#666680;
-      font-size:11px;
-      line-height:17px;
+      font-size:12px;
+      line-height:18px;
     }
 
     /* ================= FOOTER ================= */
 
     .footer-box{
-      margin-top:12px;
+      margin-top:16px;
       background:#f7f5ff;
-      border-radius:12px;
-      padding:10px 8px;
+      border-radius:14px;
+      padding:12px 10px;
       text-align:center;
     }
 
     .footer-title{
       margin:0;
       color:#55556d;
-      font-size:12px;
-      line-height:18px;
+      font-size:13px;
+      line-height:20px;
       text-align:center;
     }
 
@@ -229,22 +229,22 @@ const emailWrapper = ({
     .copyright{
       margin:4px 0 0;
       color:#666680;
-      font-size:10px;
+      font-size:11px;
       text-align:center;
     }
 
     /* ================= BOTTOM ================= */
 
     .bottom{
-      padding:8px 0 0;
+      padding:12px 0 2px;
       text-align:center;
     }
 
     .bottom-item{
       display:inline-block;
-      margin:0 5px;
+      margin:0 6px;
       color:#555577;
-      font-size:10px;
+      font-size:11px;
       font-weight:600;
       text-align:center;
     }
@@ -285,15 +285,14 @@ const emailWrapper = ({
                         <td valign="middle">
 
                           <div style="
-                            width:26px;
-                            height:26px;
+                            width:28px;
+                            height:28px;
                             border-radius:50%;
                             background:rgba(255,255,255,0.08);
                             text-align:center;
-                            line-height:26px;
-                            font-size:13px;
+                            line-height:28px;
+                            font-size:14px;
                             color:#ffffff;
-                            margin:auto;
                           ">
                             🛡️
                           </div>
@@ -364,11 +363,11 @@ const emailWrapper = ({
                     <table cellpadding="0" cellspacing="0">
                       <tr>
 
-                        <td valign="middle" style="padding-right:5px;">
+                        <td valign="middle" style="padding-right:6px;">
 
                           <div style="
-                            font-size:13px;
-                            line-height:13px;
+                            font-size:14px;
+                            line-height:14px;
                             text-align:center;
                           ">
                             ⏰
@@ -400,7 +399,7 @@ const emailWrapper = ({
               <table class="info-wrap">
                 <tr>
 
-                  <td width="48" valign="top">
+                  <td width="56" valign="top">
 
                     <div class="info-icon">
                       ✅
@@ -442,15 +441,15 @@ const emailWrapper = ({
               <div class="bottom">
 
                 <span class="bottom-item">
-                  🛡️ Secure
+                  🛡️ Secure & Trusted
                 </span>
 
                 <span class="bottom-item">
-                  ⚡ Fast
+                  ⚡ Instant Access
                 </span>
 
                 <span class="bottom-item">
-                  🎧 Support
+                  🎧 24/7 Support
                 </span>
 
               </div>
