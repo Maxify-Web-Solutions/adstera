@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useDispatch } from 'react-redux'
-import { loginUser } from '../redux/slice/authSlice'
+import { getUser, loginUser } from '../redux/slice/authSlice'
 import { BiSolidHide, BiSolidShow } from "react-icons/bi"
 import { MdEmail, MdLock } from "react-icons/md"
 import Swal from "sweetalert2"
@@ -26,17 +26,19 @@ const Login = () => {
     // LOGIN HANDLER
     // =========================
     const handleLogin = async (e) => {
-        e.preventDefault()
+        e.preventDefault();
 
         const userData = {
             email,
             password
-        }
+        };
 
-        const result = await dispatch(loginUser(userData))
+        const result = await dispatch(loginUser(userData));
 
         // ✅ SUCCESS
         if (result.meta.requestStatus === "fulfilled") {
+
+            // ✅ LOGIN KE TURANT BAAD PROFILE FETCH
 
             await Swal.fire({
                 icon: "success",
@@ -52,9 +54,9 @@ const Login = () => {
                     title: "text-lg font-semibold",
                     htmlContainer: "text-sm text-slate-400"
                 }
-            })
+            });
 
-            navigate("/dashboard")
+            navigate("/dashboard");
 
         } else {
 
@@ -71,9 +73,9 @@ const Login = () => {
                     popup: "rounded-2xl shadow-2xl",
                     confirmButton: "px-6 py-2 rounded-lg"
                 }
-            })
+            });
         }
-    }
+    };
 
     return (
         <>

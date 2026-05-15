@@ -4,11 +4,10 @@ import { GiHamburgerMenu } from "react-icons/gi";
 import ThemeToggle from "../../Components/ThemeToggle";
 import { useSelector, useDispatch } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
-import { logoutUser } from "../../redux/slice/authSlice";
+import { getUser, logoutUser } from "../../redux/slice/authSlice";
 
 const DashboardHeader = ({ onMenuClick }) => {
     const { user } = useSelector((state) => state.auth);
-    console.log(user, "mai huuuuuu");
     const dispatch = useDispatch();
     const navigate = useNavigate();
 
@@ -30,6 +29,10 @@ const DashboardHeader = ({ onMenuClick }) => {
         return () =>
             document.removeEventListener("mousedown", handleClickOutside);
     }, []);
+
+    useEffect(() => {
+        dispatch(getUser())
+    },[dispatch])
 
     const handleLogout = async () => {
         try {
