@@ -32,6 +32,7 @@ import { fetchPlacements } from "./redux/slice/adsterraPlacementSlice";
 import SmartlinkStatistics from "./Pages/Dashboard/DashboardPages/SmartlinkStatistics";
 import { fetchAdsterraStats } from "./redux/slice/adsterraStatsSlice";
 import VerifyAndReset from "./Pages/VerifyAndReset";
+import AdsterraRawData from "./Pages/Dashboard/DashboardPages/AdsterraRawData";
 
 function App() {
 
@@ -77,6 +78,7 @@ function App() {
             <Route index element={<Overview />} />
             <Route path="websites" element={<Websites />} />
             <Route path="statistics" element={<Statistics />} />
+            <Route path="stats" element={<AdsterraRawData />} />
             <Route path="stats" element={<SmartlinkStatistics />} />
             <Route path="smartlinks" element={<Smartlinks />} />
             <Route path="referrals" element={<Refrels />} />

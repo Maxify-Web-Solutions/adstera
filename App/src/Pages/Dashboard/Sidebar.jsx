@@ -118,6 +118,13 @@ const Sidebar = ({ isOpen, onClose }) => {
                     />
 
                     <NavItem
+                        to="/dashboard/stats"
+                        icon={IoStatsChart}
+                        label="Stats"
+                        onClick={handleNavClick}
+                    />
+
+                    <NavItem
                         to="/dashboard/smartlinks"
                         icon={MdOutlineAttachment}
                         label="Smartlinks"
