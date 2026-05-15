@@ -1060,29 +1060,80 @@ const statsCards = [
               {groupedData.length > 0 && (
   <tfoot>
     <tr className="border-t-2 border-gray-200 dark:border-slate-600 bg-gray-50 dark:bg-slate-900/50">
-      
+
       <td className="p-4 font-bold text-gray-900 dark:text-white">
         Total
       </td>
 
+      {/* 👇 Filtered Impressions Total */}
       <td className="p-4 text-right font-bold font-mono text-gray-900 dark:text-white">
-        {(totals?.totalImpressions || 0).toLocaleString()}
+        {groupedData
+          .reduce(
+            (acc, item) => acc + Number(item.impressions || 0),
+            0
+          )
+          .toLocaleString()}
       </td>
 
+      {/* 👇 Filtered Clicks Total */}
       <td className="p-4 text-right font-bold font-mono text-gray-900 dark:text-white">
-        {(totals?.totalClicks || 0).toLocaleString()}
+        {groupedData
+          .reduce(
+            (acc, item) => acc + Number(item.clicks || 0),
+            0
+          )
+          .toLocaleString()}
       </td>
 
+      {/* 👇 Filtered CTR */}
       <td className="p-4 text-right font-bold text-gray-900 dark:text-white">
-        {(totals?.ctr || 0).toFixed(2)}%
+        {(() => {
+          const impressions = groupedData.reduce(
+            (acc, item) => acc + Number(item.impressions || 0),
+            0
+          );
+
+          const clicks = groupedData.reduce(
+            (acc, item) => acc + Number(item.clicks || 0),
+            0
+          );
+
+          return impressions > 0
+            ? ((clicks / impressions) * 100).toFixed(2)
+            : "0.00";
+        })()}
+        %
       </td>
 
+      {/* 👇 Filtered CPM */}
       <td className="p-4 text-right font-bold font-mono text-gray-900 dark:text-white">
-        ${(totals?.cpm || 0).toFixed(3)}
+        $
+        {(() => {
+          const impressions = groupedData.reduce(
+            (acc, item) => acc + Number(item.impressions || 0),
+            0
+          );
+
+          const revenue = groupedData.reduce(
+            (acc, item) => acc + Number(item.revenue || 0),
+            0
+          );
+
+          return impressions > 0
+            ? ((revenue / impressions) * 1000).toFixed(3)
+            : "0.000";
+        })()}
       </td>
 
+      {/* 👇 Filtered Revenue */}
       <td className="p-4 text-right font-bold font-mono text-green-600 dark:text-green-400">
-        ${(totals?.totalRevenue || 0).toFixed(2)}
+        $
+        {groupedData
+          .reduce(
+            (acc, item) => acc + Number(item.revenue || 0),
+            0
+          )
+          .toFixed(2)}
       </td>
 
     </tr>

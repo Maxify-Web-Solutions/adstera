@@ -439,7 +439,7 @@ const totalRevenue = Number(user?.revenue || 0);
             >
               {loading
                 ? "Sending OTP..."
-                : "Send OTP"}
+                : "Next"}
             </button>
 
           ) : (
