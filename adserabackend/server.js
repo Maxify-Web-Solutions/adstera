@@ -10,6 +10,7 @@ const adsterraRoutes = require("./routes/adsterraroutes");
 const adsterraPlacementRoutes = require("./routes/adsterraPlacementRoutes");
 const withdrawalRoutes = require("./routes/withdrawalRoutes");
 const userMonthlyStatsRoutes = require("./routes/userMonthlyStatsRoutes");
+const statsConfigRoutes = require("./routes/statsConfigRoutes");
 require("./cron/userMonthlyStatsCron");
 
 const connectDB = require("./config/connectdb");
@@ -18,6 +19,8 @@ const connectDB = require("./config/connectdb");
 
 const dns = require("dns");
 const path = require("path");
+const calculateAndStoreAdsterraStats = require("./controllers/calculateAndStoreAdsterraStats");
+const { RawfetchAndStoreAdsterraStats, RawfetchAndStoreCountryStats } = require("./controllers/Rawcontroller");
 // Change DNS
 dns.setServers(["1.1.1.1", "8.8.8.8"]);
 
@@ -44,10 +47,8 @@ app.use("/api", adsterraPlacementRoutes);
 
 app.use("/api/withdrawal", withdrawalRoutes);
 app.use('/', require('./controllers/redirectLink.controller'))
-app.use(
-  "/api/monthly-stats",
-  userMonthlyStatsRoutes
-);
+app.use("/api/monthly-stats",userMonthlyStatsRoutes);
+app.use("/api/stats-config",statsConfigRoutes);
 
 
 
@@ -56,8 +57,6 @@ app.use(express.static(path.join(__dirname, "../App/dist")));
 app.get(/.*/, (req, res) => {
   res.sendFile(path.join(__dirname, "../App/dist/index.html"));
 });
-
-
 
 connectDB();
 
