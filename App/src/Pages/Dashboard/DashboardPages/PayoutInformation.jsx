@@ -540,25 +540,30 @@ const PayoutInformation = () => {
 
               {/* OTP Section */}
               <div className="border-t border-gray-200 dark:border-slate-700 pt-6">
-                <div className="flex gap-3 mb-4">
-                  <input
-                    type="text"
-                    name="otp"
-                    value={formData.otp}
-                    onChange={handleInputChange}
-                    placeholder="Enter OTP"
-                    className="flex-1 px-4 py-3 rounded-xl border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none"
-                    required
-                  />
-                  <button
-                    type="button"
-                    onClick={handleSendOtp}
-                    disabled={otpSent}
-                    className="px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-medium transition-colors"
-                  >
-                    {otpSent ? "OTP Sent" : "Send OTP"}
-                  </button>
-                </div>
+                <div className="space-y-4">
+  
+  <button
+    type="button"
+    onClick={handleSendOtp}
+    disabled={otpSent}
+    className="w-full px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-medium transition-colors"
+  >
+    {otpSent ? "OTP Sent Successfully" : "Send OTP"}
+  </button>
+
+  {otpSent && (
+    <input
+      type="text"
+      name="otp"
+      value={formData.otp}
+      onChange={handleInputChange}
+      placeholder="Enter OTP"
+      className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none"
+      required
+    />
+  )}
+
+</div>
                 <p className="text-sm text-gray-600 dark:text-gray-400">
                   {otpSent ? "OTP sent to your email. Please check your inbox." : "Click 'Send OTP' to receive verification code via email."}
                 </p>

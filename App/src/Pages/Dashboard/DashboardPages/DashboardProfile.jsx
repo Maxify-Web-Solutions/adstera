@@ -97,7 +97,7 @@ const Profile = () => {
     <>
     
 
-      <div className="min-h-screen bg-gray-100 dark:bg-slate-900 text-gray-900 dark:text-white pt-8 md:pt-10 pb-16 px-4 md:px-6">
+      <div className="min-h-screen bg-gray-100 dark:bg-slate-900 text-gray-900 dark:text-white pt-8 md:pt-10 pb-16 md:px-6">
 
         <div className=" mx-auto space-y-10">
 
