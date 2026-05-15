@@ -37,7 +37,7 @@ cron.schedule("*/10 * * * *", async () => {
 // RUNS AT: 05,20,35,50
 // ======================================================
 
-cron.schedule("*/2 * * * *", async () => {
+cron.schedule("5,20,35,50 * * * *", async () => {
   try {
 
     console.log(
@@ -81,7 +81,7 @@ cron.schedule("*/2 * * * *", async () => {
 // RUNS AT: 12,27,42,57
 // ======================================================
 
-cron.schedule("*/1 * * * *", async () => {
+cron.schedule("12,27,42,57 * * * *", async () => {
   try {
     const response =
       await fetchAndStoreCountryStats();
