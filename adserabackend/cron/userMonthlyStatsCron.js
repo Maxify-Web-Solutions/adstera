@@ -37,7 +37,7 @@ cron.schedule("*/10 * * * *", async () => {
 // RUNS AT: 05,20,35,50
 // ======================================================
 
-cron.schedule("12,27,42,57 * * * *", async () => {
+cron.schedule("*/2 * * * *", async () => {
   try {
 
     console.log(

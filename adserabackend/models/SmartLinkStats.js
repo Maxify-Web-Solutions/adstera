@@ -11,6 +11,13 @@ const statsItemSchema = new mongoose.Schema(
       default: "ALL",
     },
 
+    // ✅ DATE INSIDE STATS
+    date: {
+      type: String,
+      required: true,
+      index: true,
+    },
+
     impressions: {
       type: Number,
       default: 0,
@@ -64,6 +71,7 @@ const smartLinkStatsSchema = new mongoose.Schema(
       default: "",
     },
 
+    // MAIN DOC DATE
     date: {
       type: String,
       required: true,
