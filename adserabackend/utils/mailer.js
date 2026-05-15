@@ -15,191 +15,240 @@ const transporter = nodemailer.createTransport({
    EMAIL TEMPLATE
 ============================================================ */
 const emailWrapper = ({
-  title,
-  subtitle,
-  otp,
-  icon = "🔒",
-  accent = "#5b42ff",
-  warningText = "",
+  title = "Reset Password",
+  subtitle = "Use the OTP below to reset your password securely.",
+  otp = "969457",
 }) => `
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 
   <title>${title}</title>
 
   <style>
+
     body{
       margin:0;
-      padding:8px;
-      background:#f5f5f7;
+      padding:6px;
+      background:#f3f3f5;
       font-family:Arial,Helvetica,sans-serif;
+      -webkit-text-size-adjust:none;
     }
 
     table{
       border-spacing:0;
+      border-collapse:collapse;
     }
 
-    .container{
-      width:100%;
-      max-width:500px;
-      margin:auto;
-      background:#ffffff;
-      border-radius:16px;
-      overflow:hidden;
-      box-shadow:0 3px 12px rgba(0,0,0,0.08);
-    }
+.main{
+  width:100%;
+  max-width:500px;
+  margin:auto;
+  background:#ffffff;
+  border-radius:18px;
+  overflow:hidden;
+  border:2px solid #000000; /* BLACK OUTLINE */
+  box-shadow:0 6px 18px rgba(0,0,0,0.12);
+}
+
+    /* ================= HEADER ================= */
 
     .header{
-      background:#120043;
-      padding:14px;
-      text-align:center;
+      background:#14003d;
+      padding:16px 18px;
     }
 
-    .content{
-      padding:18px 16px;
-      text-align:center;
-    }
-
-    .icon-wrap{
-      width:52px;
-      height:52px;
-      background:#f3efff;
-      border-radius:50%;
-      margin:auto;
-      line-height:52px;
-      font-size:24px;
-    }
-
-    .title{
-      margin:14px 0 6px;
-      color:#120043;
-      font-size:24px;
+    .logo{
+      color:#ffffff;
+      font-size:28px;
       font-weight:800;
       line-height:30px;
     }
 
+    .logo span{
+      color:#6958ff;
+    }
+
+    .secure{
+      color:#ffffff;
+      font-size:12px;
+      font-weight:600;
+      line-height:14px;
+    }
+
+    /* ================= CONTENT ================= */
+
+    .content{
+      padding:18px 14px 12px;
+      text-align:center;
+    }
+
+    .lock-wrap{
+      width:68px;
+      height:68px;
+      border-radius:50%;
+      background:#f4f1ff;
+      margin:0 auto 12px;
+      text-align:center;
+      line-height:68px;
+      font-size:28px;
+    }
+
+    .title{
+      margin:0;
+      color:#12003d;
+      font-size:24px;
+      line-height:30px;
+      font-weight:800;
+      text-align:center;
+    }
+
     .subtitle{
+      margin:10px auto 0;
+      max-width:340px;
       color:#666680;
       font-size:14px;
       line-height:22px;
-      margin:0 auto;
-      max-width:340px;
+      text-align:center;
     }
 
+    /* ================= OTP ================= */
+
     .otp-box{
-      margin:18px 0 12px;
-      padding:14px 10px;
+      margin-top:16px;
       border:1px solid #ece8ff;
-      border-radius:12px;
-      background:#fbfaff;
+      border-radius:16px;
+      background:#ffffff;
+      padding:14px 8px;
+      text-align:center;
     }
 
     .otp-label{
       margin:0;
       color:#666680;
       font-size:14px;
-      font-weight:600;
+      font-weight:700;
+      text-align:center;
     }
 
     .otp{
-      margin:8px 0 0;
-      color:${accent};
-      font-size:32px;
-      letter-spacing:5px;
+      margin:10px 0 0;
+      font-size:40px;
+      line-height:44px;
+      font-weight:900;
+      color:#5c45ff;
+      letter-spacing:6px;
+      text-align:center;
+    }
+
+    /* ================= VALID ================= */
+
+    .valid-table{
+      width:100%;
+      margin-top:12px;
+    }
+
+    .valid-text{
+      color:#666680;
+      font-size:13px;
+      line-height:16px;
+      text-align:center;
+    }
+
+    .valid-text span{
+      color:#5c45ff;
       font-weight:800;
     }
 
-    .valid{
-      color:#666680;
-      font-size:13px;
-      margin-bottom:14px;
-    }
+    /* ================= DIVIDER ================= */
 
     .divider{
-      width:100%;
       height:1px;
       background:#ececf3;
-      margin:14px 0;
+      margin:16px 0;
+    }
+
+    /* ================= INFO ================= */
+
+    .info-wrap{
+      width:100%;
     }
 
     .info-icon{
-      width:40px;
-      height:40px;
+      width:42px;
+      height:42px;
       border:1px solid #ececf3;
       border-radius:50%;
+      text-align:center;
+      line-height:42px;
+      font-size:18px;
+      background:#ffffff;
       margin:auto;
-      line-height:40px;
-      font-size:16px;
     }
 
     .info-title{
-      margin:8px 0 5px;
-      color:#120043;
-      font-size:16px;
-      font-weight:700;
+      margin:0;
+      color:#12003d;
+      font-size:15px;
+      font-weight:800;
     }
 
     .info-text{
-      margin:0;
+      margin:4px 0 0;
       color:#666680;
       font-size:12px;
-      line-height:20px;
-    }
-
-    .warning{
-      margin-top:6px;
-      color:#ef4444;
-      font-size:11px;
       line-height:18px;
     }
 
+    /* ================= FOOTER ================= */
+
     .footer-box{
-      margin-top:14px;
+      margin-top:16px;
       background:#f7f5ff;
-      border-radius:10px;
-      padding:12px;
+      border-radius:14px;
+      padding:12px 10px;
       text-align:center;
     }
 
     .footer-title{
-      margin:0 0 4px;
-      color:#444466;
-      font-size:14px;
-    }
-
-    .footer-copy{
       margin:0;
-      color:#666680;
-      font-size:11px;
-    }
-
-    .bottom{
-      margin-top:12px;
+      color:#55556d;
+      font-size:13px;
+      line-height:20px;
       text-align:center;
     }
 
-    .bottom span{
+    .footer-title span{
+      color:#5c45ff;
+      font-weight:800;
+    }
+
+    .copyright{
+      margin:4px 0 0;
+      color:#666680;
+      font-size:11px;
+      text-align:center;
+    }
+
+    /* ================= BOTTOM ================= */
+
+    .bottom{
+      padding:12px 0 2px;
+      text-align:center;
+    }
+
+    .bottom-item{
       display:inline-block;
-      margin:2px 5px;
+      margin:0 6px;
       color:#555577;
       font-size:11px;
+      font-weight:600;
+      text-align:center;
     }
 
-    @media screen and (max-width:600px){
-
-      .otp{
-        font-size:26px !important;
-        letter-spacing:3px !important;
-      }
-
-      .title{
-        font-size:22px !important;
-      }
-    }
   </style>
 </head>
 
@@ -209,18 +258,62 @@ const emailWrapper = ({
     <tr>
       <td align="center">
 
-        <table class="container" cellpadding="0" cellspacing="0">
+        <table class="main" cellpadding="0" cellspacing="0">
 
           <!-- HEADER -->
           <tr>
             <td class="header">
 
-              <img
-                src="https://i.ibb.co/gbrn443W/Adstorx-logo.png"
-                alt="Adstorx"
-                width="120"
-                style="margin:auto;display:block;"
-              />
+              <table width="100%">
+                <tr>
+
+                  <!-- LOGO -->
+                  <td align="left">
+
+                    <div class="logo">
+                      Adstor<span>X</span>
+                    </div>
+
+                  </td>
+
+                  <!-- SECURE -->
+                  <td align="right">
+
+                    <table cellpadding="0" cellspacing="0" style="margin-left:auto;">
+                      <tr>
+
+                        <td valign="middle">
+
+                          <div style="
+                            width:28px;
+                            height:28px;
+                            border-radius:50%;
+                            background:rgba(255,255,255,0.08);
+                            text-align:center;
+                            line-height:28px;
+                            font-size:14px;
+                            color:#ffffff;
+                          ">
+                            🛡️
+                          </div>
+
+                        </td>
+
+                        <td valign="middle" style="padding-left:6px;">
+
+                          <span class="secure">
+                            Secure Verification
+                          </span>
+
+                        </td>
+
+                      </tr>
+                    </table>
+
+                  </td>
+
+                </tr>
+              </table>
 
             </td>
           </tr>
@@ -229,14 +322,17 @@ const emailWrapper = ({
           <tr>
             <td class="content">
 
-              <div class="icon-wrap">
-                ${icon}
+              <!-- LOCK -->
+              <div class="lock-wrap">
+                🔐
               </div>
 
+              <!-- TITLE -->
               <h1 class="title">
                 ${title}
               </h1>
 
+              <!-- SUBTITLE -->
               <p class="subtitle">
                 ${subtitle}
               </p>
@@ -248,61 +344,94 @@ const emailWrapper = ({
                   Your OTP
                 </p>
 
-                <h2 class="otp">
+                <div class="otp">
                   ${otp}
-                </h2>
+                </div>
 
               </div>
 
-              <p class="valid">
-                ⏰ OTP valid for
-                <span style="
-                  color:${accent};
-                  font-weight:700;
-                ">
-                  5 minutes
-                </span>
-              </p>
+              <!-- VALID -->
+              <table
+                class="valid-table"
+                cellpadding="0"
+                cellspacing="0"
+              >
+                <tr>
 
+                  <td align="center">
+
+                    <table cellpadding="0" cellspacing="0">
+                      <tr>
+
+                        <td valign="middle" style="padding-right:6px;">
+
+                          <div style="
+                            font-size:14px;
+                            line-height:14px;
+                            text-align:center;
+                          ">
+                            ⏰
+                          </div>
+
+                        </td>
+
+                        <td valign="middle">
+
+                          <div class="valid-text">
+                            This OTP is valid for
+                            <span>5 minutes</span>
+                          </div>
+
+                        </td>
+
+                      </tr>
+                    </table>
+
+                  </td>
+
+                </tr>
+              </table>
+
+              <!-- DIVIDER -->
               <div class="divider"></div>
 
               <!-- INFO -->
-              <div class="info-icon">
-                ✅
-              </div>
+              <table class="info-wrap">
+                <tr>
 
-              <h3 class="info-title">
-                Didn't request this?
-              </h3>
+                  <td width="56" valign="top">
 
-              <p class="info-text">
-                If you did not perform this action, safely ignore this email.
-              </p>
+                    <div class="info-icon">
+                      ✅
+                    </div>
 
-              ${
-                warningText
-                  ? `
-                <p class="warning">
-                  ${warningText}
-                </p>
-              `
-                  : ""
-              }
+                  </td>
+
+                  <td align="left">
+
+                    <h3 class="info-title">
+                      Didn't request this?
+                    </h3>
+
+                    <p class="info-text">
+                      If you did not sign up for this account,
+                      you can safely ignore this email.
+                    </p>
+
+                  </td>
+
+                </tr>
+              </table>
 
               <!-- FOOTER -->
               <div class="footer-box">
 
                 <p class="footer-title">
                   Thank you for choosing
-                  <span style="
-                    color:${accent};
-                    font-weight:700;
-                  ">
-                    Adstorx
-                  </span>
+                  <span>Adstorx</span>
                 </p>
 
-                <p class="footer-copy">
+                <p class="copyright">
                   © 2025 Adstorx. All rights reserved.
                 </p>
 
@@ -310,9 +439,19 @@ const emailWrapper = ({
 
               <!-- BOTTOM -->
               <div class="bottom">
-                <span>🛡️ Secure</span>
-                <span>⚡ Fast</span>
-                <span>🎧 Support</span>
+
+                <span class="bottom-item">
+                  🛡️ Secure & Trusted
+                </span>
+
+                <span class="bottom-item">
+                  ⚡ Instant Access
+                </span>
+
+                <span class="bottom-item">
+                  🎧 24/7 Support
+                </span>
+
               </div>
 
             </td>
