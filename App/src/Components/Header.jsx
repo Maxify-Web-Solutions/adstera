@@ -171,7 +171,16 @@ const Header = () => {
 
                             {user && (
                                 <div className="px-4 py-2 rounded-lg bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 font-semibold">
-                                    ₹ {user?.revenue || user?.revenue || 0}
+                                    <span>
+                        $
+                        {Object.values(
+                            user?.lastRevenueMap || {}
+                        ).reduce(
+                            (acc, val) =>
+                                acc + Number(val || 0),
+                            0
+                        ).toFixed(3)}
+                    </span>
                                 </div>
                             )}
 
@@ -300,7 +309,16 @@ const Header = () => {
 
                     {user && (
                         <div className="px-4 py-3 rounded-xl bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 font-bold text-center">
-                            Balance : ₹ {user?.credit || user?.balance || 0}
+                            Balance : <span>
+                        $
+                        {Object.values(
+                            user?.lastRevenueMap || {}
+                        ).reduce(
+                            (acc, val) =>
+                                acc + Number(val || 0),
+                            0
+                        ).toFixed(3)}
+                    </span>
                         </div>
                     )}
 

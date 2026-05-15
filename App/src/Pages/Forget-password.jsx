@@ -4,6 +4,7 @@ import { forgotPassword } from "../redux/slice/authSlice";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useNavigate } from "react-router-dom";
+import Header from "../Components/Header";
 
 const ForgotPassword = () => {
     const dispatch = useDispatch();
@@ -50,6 +51,8 @@ const ForgotPassword = () => {
     };
 
     return (
+        <>
+        <Header />
         <div className="flex items-center justify-center min-h-screen bg-[#0f172a] px-4 py-10">
 
             <ToastContainer
@@ -113,6 +116,7 @@ const ForgotPassword = () => {
 
             </div>
         </div>
+        </>
     );
 };
 

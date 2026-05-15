@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { resetPassword } from "../redux/slice/authSlice";
 import Swal from "sweetalert2";
 import { BiShow, BiSolidHide } from "react-icons/bi";
+import Header from "../Components/Header";
 
 const VerifyAndReset = () => {
 
@@ -124,7 +125,9 @@ window.location.href = "/login";
 };
 
     return (
+        <>
 
+<Header />
         <div className="flex justify-center items-center min-h-screen bg-[#0f172a] px-4 py-10">
 
             <div className="w-full max-w-md bg-[#1e293b] border border-gray-700 shadow-2xl rounded-2xl p-8">
@@ -252,7 +255,7 @@ window.location.href = "/login";
             </div>
 
         </div>
-
+</>
     );
 };
 
