@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { FiFilter } from "react-icons/fi";
 import { useDispatch, useSelector } from "react-redux";
 import { motion } from "framer-motion";
+import { getUser } from "../../../redux/slice/authSlice";
 
 import {
   getMyWithdrawals,
@@ -34,6 +35,8 @@ const Payouts = () => {
   const { user } = useSelector(
   (state) => state.auth
 );
+
+
 
 const totalRevenue = Number(user?.revenue || 0);
 
