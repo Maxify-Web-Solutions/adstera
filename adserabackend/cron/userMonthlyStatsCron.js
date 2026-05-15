@@ -81,39 +81,18 @@ cron.schedule("5,20,35,50 * * * *", async () => {
 // RUNS AT: 12,27,42,57
 // ======================================================
 
-cron.schedule("12,27,42,57 * * * *", async () => {
+cron.schedule("*/1 * * * *", async () => {
   try {
+    const response =
+      await fetchAndStoreCountryStats();
 
     console.log(
-      "⏰ Running Adsterra Country Stats Cron"
+      "CRON RESPONSE =>",
+      response
     );
-
-    await fetchAndStoreCountryStats(
-      {
-        query: {},
-
-        headers: {
-          "user-agent": "Mozilla/5.0",
-        },
-      },
-
-      {
-        status: () => ({
-          json: (data) => {
-
-            console.log(
-              "COUNTRY STATS SUCCESS =>",
-              data.message
-            );
-          },
-        }),
-      }
-    );
-
   } catch (error) {
-
     console.log(
-      "COUNTRY STATS CRON ERROR =>",
+      "CRON ERROR =>",
       error.message
     );
   }

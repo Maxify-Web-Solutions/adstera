@@ -5,17 +5,9 @@ const userschema = new mongoose.Schema(
     name: {
       type: String,
       required: true,
-      unique: true, // ✅ Unique username
+      unique: true,
       trim: true,
       lowercase: true,
-
-      // ❌ Space not allowed
-      validate: {
-        validator: function (v) {
-          return !/\s/.test(v);
-        },
-        message: 'Username should not contain spaces',
-      },
     },
 
     email: {
