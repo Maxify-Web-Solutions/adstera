@@ -12,10 +12,14 @@ const Config = require("../models/Config");
 
 exports.fetchAndStoreAdsterraStats = async (req, res) => {
   try {
+    // =================================================
+    // QUERY
+    // =================================================
+
     const { start_date, end_date } = req.query;
 
     // =================================================
-    // USERS
+    // GET ALL USERS
     // =================================================
 
     const users = await User.find({});
@@ -44,11 +48,27 @@ exports.fetchAndStoreAdsterraStats = async (req, res) => {
     // DATE HELPERS
     // =================================================
 
-    const normalizeDate = (d) => {
-      const date = d ? new Date(d) : new Date();
+    const today = new Date();
 
-      return date.toISOString().split("T")[0];
+    const normalizeDate = (d) => {
+      if (!d) {
+        return today.toISOString().split("T")[0];
+      }
+
+      if (typeof d === "string") {
+        return d.includes("T") ? d.split("T")[0] : d;
+      }
+
+      if (d instanceof Date) {
+        return d.toISOString().split("T")[0];
+      }
+
+      return today.toISOString().split("T")[0];
     };
+
+    // =================================================
+    // DEFAULT DATES
+    // =================================================
 
     const currentDate = normalizeDate(new Date());
 
@@ -56,11 +76,15 @@ exports.fetchAndStoreAdsterraStats = async (req, res) => {
 
     oldDate.setDate(oldDate.getDate() - 15);
 
+    const defaultStartDate = normalizeDate(oldDate);
+
+    const defaultEndDate = currentDate;
+
     const finalStartDate =
-      start_date || normalizeDate(oldDate);
+      start_date || defaultStartDate;
 
     const finalEndDate =
-      end_date || currentDate;
+      end_date || defaultEndDate;
 
     // =================================================
     // DEVICE INFO
@@ -87,7 +111,7 @@ exports.fetchAndStoreAdsterraStats = async (req, res) => {
       browser.name || "";
 
     // =================================================
-    // TOTALS
+    // TOTAL STORAGE
     // =================================================
 
     let totalUsers = 0;
@@ -97,7 +121,7 @@ exports.fetchAndStoreAdsterraStats = async (req, res) => {
     let totalRevenue = 0;
 
     // =================================================
-    // LOOP USERS
+    // LOOP ALL USERS
     // =================================================
 
     for (const user of users) {
@@ -105,7 +129,7 @@ exports.fetchAndStoreAdsterraStats = async (req, res) => {
         const userId = user._id;
 
         // =================================================
-        // LINKS
+        // GET LINKS
         // =================================================
 
         const links = await SmartLink.find({
@@ -120,7 +144,13 @@ exports.fetchAndStoreAdsterraStats = async (req, res) => {
 
         totalLinks += links.length;
 
+        // =================================================
+        // STORAGE
+        // =================================================
+
         const overallOps = [];
+
+        let userNewRevenue = 0;
 
         // =================================================
         // LOOP LINKS
@@ -132,13 +162,19 @@ exports.fetchAndStoreAdsterraStats = async (req, res) => {
               link.placementId || ""
             ).trim();
 
-            if (!placementId) {
-              continue;
-            }
+            if (!placementId) continue;
+
+            // =============================================
+            // APPROVED DATE
+            // =============================================
 
             const approvedDate = link.approvedAt
               ? normalizeDate(link.approvedAt)
               : null;
+
+            // =============================================
+            // FINAL START DATE
+            // =============================================
 
             let apiStartDate =
               finalStartDate;
@@ -153,61 +189,62 @@ exports.fetchAndStoreAdsterraStats = async (req, res) => {
               link.targetUrl ||
               "unknown";
 
-            // =================================================
-            // API CALL
-            // =================================================
+            // =============================================
+            // OVERALL API
+            // =============================================
 
-            const response = await axios.get(
-              "https://api3.adsterratools.com/publisher/stats.json",
-              {
-                params: {
-                  placement: placementId,
-                  start_date: apiStartDate,
-                  finish_date: finalEndDate,
-                  group_by: "date",
-                },
+            const overallResponse =
+              await axios.get(
+                "https://api3.adsterratools.com/publisher/stats.json",
+                {
+                  params: {
+                    placement: placementId,
+                    start_date: apiStartDate,
+                    finish_date: finalEndDate,
+                    group_by: "date",
+                  },
 
-                headers: {
-                  Accept:
-                    "application/json",
+                  headers: {
+                    Accept:
+                      "application/json",
 
-                  "X-API-Key":
-                    config.adsterraApiKey,
+                    "X-API-Key":
+                      config.adsterraApiKey,
 
-                  "User-Agent":
-                    "Mozilla/5.0",
-                },
-              }
-            );
-
-            let stats =
-              response.data?.items || [];
-
-            // =================================================
-            // FILTER APPROVED DATE
-            // =================================================
-
-            stats = stats.filter((item) => {
-              if (!approvedDate)
-                return true;
-
-              const itemDate =
-                normalizeDate(item.date);
-
-              return (
-                itemDate >= approvedDate
+                    "User-Agent":
+                      "Mozilla/5.0",
+                  },
+                }
               );
-            });
 
-            // =================================================
-            // SAVE STATS
-            // =================================================
+            let overallData =
+              overallResponse.data?.items ||
+              [];
 
-            for (const item of stats) {
-              const adsterraDate = String(
-                normalizeDate(item.date)
-              ).trim();
+            // =============================================
+            // FILTER APPROVED DATE
+            // =============================================
 
+            overallData =
+              overallData.filter((item) => {
+                if (!approvedDate)
+                  return true;
+
+                const itemDate =
+                  normalizeDate(
+                    item.date
+                  );
+
+                return (
+                  itemDate >= approvedDate
+                );
+              });
+
+            // =============================================
+            // SAVE OVERALL STATS
+            // =============================================
+
+            for (const item of overallData) {
               const impressions =
                 Math.floor(
                   (Number(
@@ -218,40 +255,32 @@ exports.fetchAndStoreAdsterraStats = async (req, res) => {
               const clicks =
                 Number(item.clicks) || 0;
 
-              const revenue = Number(
-                (
-                  (Number(item.revenue) ||
-                    0) * 0.5
-                ).toFixed(6)
-              );
+              const revenue =
+                (Number(item.revenue) ||
+                  0) * 0.5;
 
               const ctr =
                 impressions > 0
                   ? Number(
-                    (
-                      (clicks /
-                        impressions) *
-                      100
-                    ).toFixed(2)
-                  )
+                      (
+                        (clicks /
+                          impressions) *
+                        100
+                      ).toFixed(2)
+                    )
                   : 0;
 
-              const cpm = Number(
-                (
-                  (Number(item.cpm) ||
-                    0) * 0.5
-                ).toFixed(6)
-              );
+              const cpm =
+                (Number(item.cpm) ||
+                  0) * 0.5;
 
-              // =================================================
-              // TOTAL REVENUE
-              // =================================================
+              const adsterraDate = String(
+                normalizeDate(item.date)
+              ).trim();
 
               totalRevenue += revenue;
 
-              // =================================================
-              // SAVE STATS
-              // =================================================
+              userNewRevenue += revenue;
 
               overallOps.push({
                 updateOne: {
@@ -267,7 +296,9 @@ exports.fetchAndStoreAdsterraStats = async (req, res) => {
 
                     country: "ALL",
 
-                    date: adsterraDate,
+                    date: String(
+                      adsterraDate
+                    ),
                   },
 
                   update: {
@@ -285,7 +316,9 @@ exports.fetchAndStoreAdsterraStats = async (req, res) => {
 
                       country: "ALL",
 
-                      date: adsterraDate,
+                      date: String(
+                        adsterraDate
+                      ),
 
                       device:
                         deviceType,
@@ -316,7 +349,7 @@ exports.fetchAndStoreAdsterraStats = async (req, res) => {
         }
 
         // =================================================
-        // BULK SAVE
+        // SAVE OVERALL STATS
         // =================================================
 
         if (overallOps.length) {
@@ -329,19 +362,30 @@ exports.fetchAndStoreAdsterraStats = async (req, res) => {
         }
 
         // =================================================
-        // IMPORTANT
-        // USER REVENUE ADD NAHI HOGA
+        // FINAL USER REVENUE
         // =================================================
 
-        // await user.save();
+        if (userNewRevenue > 0) {
+          user.revenue = Number(
+            (
+              Number(user.revenue || 0) +
+              Number(userNewRevenue)
+            ).toFixed(6)
+          );
+        }
 
+        // =================================================
+        // SAVE USER
+        // =================================================
+
+        await user.save();
       } catch (err) {
         continue;
       }
     }
 
     // =================================================
-    // RESPONSE
+    // FINAL RESPONSE
     // =================================================
 
     return res.status(200).json({
@@ -371,6 +415,7 @@ exports.fetchAndStoreAdsterraStats = async (req, res) => {
     });
   }
 };
+
 
 
 exports.fetchAndStoreCountryStats =

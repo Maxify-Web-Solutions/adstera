@@ -188,8 +188,6 @@ exports.RawfetchAndStoreAdsterraStats =
           const revenueTracker =
             new Set();
 
-          let userNewRevenue = 0;
-
           // =================================================
           // LOOP LINKS
           // =================================================
@@ -211,8 +209,8 @@ exports.RawfetchAndStoreAdsterraStats =
               const approvedDate =
                 link.approvedAt
                   ? normalizeDate(
-                      link.approvedAt
-                    )
+                    link.approvedAt
+                  )
                   : null;
 
               // =============================================
@@ -320,12 +318,12 @@ exports.RawfetchAndStoreAdsterraStats =
                 const ctr =
                   impressions > 0
                     ? Number(
-                        (
-                          (clicks /
-                            impressions) *
-                          100
-                        ).toFixed(2)
-                      )
+                      (
+                        (clicks /
+                          impressions) *
+                        100
+                      ).toFixed(2)
+                    )
                     : 0;
 
                 const cpm =
@@ -422,13 +420,7 @@ exports.RawfetchAndStoreAdsterraStats =
                 });
               }
             } catch (err) {
-              console.log(
-                "LINK ERROR =>",
-                link?._id,
-                err?.response
-                  ?.data ||
-                  err.message
-              );
+              continue;
             }
           }
 
@@ -445,117 +437,8 @@ exports.RawfetchAndStoreAdsterraStats =
             );
           }
 
-          // =================================================
-          // USER REVENUE UPDATE
-          // =================================================
-
-          if (
-            !user.lastRevenueMap
-          ) {
-            user.lastRevenueMap =
-              new Map();
-          }
-
-          for (const op of overallOps) {
-            const data =
-              op.updateOne.update
-                .$set;
-
-            const date = String(
-              data.date
-            ).trim();
-
-            const placement = String(
-              data.placement
-            ).trim();
-
-            const revenueKey = `${placement}_${date}`;
-
-            const currentRevenue =
-              Number(
-                data.revenue || 0
-              );
-
-            const oldRevenue =
-              Number(
-                (
-                  user.lastRevenueMap.get(
-                    revenueKey
-                  ) || 0
-                ).toFixed(6)
-              );
-
-            const finalCurrentRevenue =
-              Number(
-                currentRevenue.toFixed(
-                  6
-                )
-              );
-
-            // =============================================
-            // SKIP SAME OR LOWER
-            // =============================================
-
-            if (
-              finalCurrentRevenue <=
-              oldRevenue
-            ) {
-              continue;
-            }
-
-            // =============================================
-            // ONLY DIFFERENCE
-            // =============================================
-
-            const difference =
-              Number(
-                (
-                  finalCurrentRevenue -
-                  oldRevenue
-                ).toFixed(6)
-              );
-
-            userNewRevenue +=
-              difference;
-
-            // =============================================
-            // UPDATE MAP
-            // =============================================
-
-            user.lastRevenueMap.set(
-              revenueKey,
-              finalCurrentRevenue
-            );
-          }
-
-          // =================================================
-          // FINAL USER REVENUE
-          // =================================================
-
-          if (userNewRevenue > 0) {
-            user.revenue = Number(
-              (
-                Number(
-                  user.revenue || 0
-                ) +
-                Number(
-                  userNewRevenue
-                )
-              ).toFixed(6)
-            );
-          }
-
-          // =================================================
-          // SAVE USER
-          // =================================================
-
-          await user.save();
         } catch (err) {
-          console.log(
-            "USER PROCESS ERROR =>",
-            user?._id,
-            err.message
-          );
+          continue;
         }
       }
 
@@ -591,12 +474,6 @@ exports.RawfetchAndStoreAdsterraStats =
 
       return finalResponse;
     } catch (error) {
-      console.error(
-        "ADSTERRA FETCH ERROR =>",
-        error?.response?.data ||
-          error.message
-      );
-
       const errorResponse = {
         success: false,
 
@@ -754,7 +631,7 @@ exports.RawfetchAndStoreCountryStats =
               const impressions =
                 Number(
                   row.impression ||
-                    0
+                  0
                 );
 
               const clicks =
@@ -778,7 +655,7 @@ exports.RawfetchAndStoreCountryStats =
                 Number(
                   Number(
                     row.revenue ||
-                      0
+                    0
                   ).toFixed(4)
                 );
 
@@ -789,9 +666,9 @@ exports.RawfetchAndStoreCountryStats =
                     String(
                       s.placement
                     ) ===
-                      placementId &&
+                    placementId &&
                     s.country ===
-                      countryName &&
+                    countryName &&
                     s.date === today
                 );
 
@@ -839,7 +716,7 @@ exports.RawfetchAndStoreCountryStats =
               totalUpdated++;
             }
           } catch (
-            apiError
+          apiError
           ) {
             console.log(
               "API ERROR:",
