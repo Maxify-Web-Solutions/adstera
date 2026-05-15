@@ -86,6 +86,7 @@ const RawsmartLinkStatsSchema = new mongoose.Schema(
 );
 
 // ✅ ONE DOC PER USER + DEVICE + DATE
+// ✅ ONE DOC PER USER + DEVICE + DATE
 RawsmartLinkStatsSchema.index(
   {
     userId: 1,
@@ -97,7 +98,10 @@ RawsmartLinkStatsSchema.index(
   }
 );
 
-module.exports = mongoose.model(
-  "RawsmartLinkStats",
-  RawsmartLinkStatsSchema
-);
+// ✅ FIX OVERWRITE MODEL ERROR
+module.exports =
+  mongoose.models.RawsmartLinkStats ||
+  mongoose.model(
+    "RawsmartLinkStats",
+    RawsmartLinkStatsSchema
+  );
