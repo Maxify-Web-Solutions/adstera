@@ -414,35 +414,49 @@ const Statistics = () => {
       // ====================================
       // CREATE API DATA MAP
       // ====================================
+// ====================================
+// CREATE API DATA MAP
+// ====================================
 
-      const statsMap = {};
+const statsMap = {};
 
-      (data || []).forEach((item) => {
+(data || []).forEach((item) => {
 
-        if (!item?.date) return;
+  if (!item?.date) return;
 
-        const key = normalizeDate(
-          item.date
-        );
+  const key = normalizeDate(item.date);
 
-        statsMap[key] = {
+  // 👇 agar date pehle se nahi h
+  if (!statsMap[key]) {
 
-          impressions: Number(
-            item.impressions || 0
-          ),
+    statsMap[key] = {
+      impressions: 0,
+      clicks: 0,
+      revenue: 0,
+      placements: [],
+    };
+  }
 
-          clicks: Number(
-            item.clicks || 0
-          ),
+  // 👇 same date ke sare placement data add honge
+  statsMap[key].impressions += Number(
+    item.impressions || 0
+  );
 
-          revenue: Number(
-            item.revenue || 0
-          ),
+  statsMap[key].clicks += Number(
+    item.clicks || 0
+  );
 
-          placement:
-            item.placement || "",
-        };
-      });
+  statsMap[key].revenue += Number(
+    item.revenue || 0
+  );
+
+  // 👇 placement ids collect
+  if (item.placement) {
+    statsMap[key].placements.push(
+      item.placement
+    );
+  }
+});
 
       // ====================================
       // RETURN FINAL DATA
@@ -452,39 +466,35 @@ const Statistics = () => {
   (a, b) => new Date(b) - new Date(a)
 );
 
-      return allDates.map(
-        (date, index) => {
+return allDates.map((date, index) => {
 
-          const normalized =
-            normalizeDate(date);
+  const normalized =
+    normalizeDate(date);
 
-          const existing =
-            statsMap[normalized];
+  const existing =
+    statsMap[normalized];
 
-          return {
+  return {
 
-            id: index,
+    id: index,
 
-            label:
-              new Date(date)
-                .toLocaleDateString(
-                  "en-GB"
-                ),
+    label: new Date(date)
+      .toLocaleDateString("en-GB"),
 
-            impressions:
-              existing?.impressions || 0,
+    impressions:
+      existing?.impressions || 0,
 
-            clicks:
-              existing?.clicks || 0,
+    clicks:
+      existing?.clicks || 0,
 
-            revenue:
-              existing?.revenue || 0,
+    revenue:
+      existing?.revenue || 0,
 
-            placement:
-              existing?.placement || "",
-          };
-        }
-      );
+    // 👇 sare placement ids
+    placement:
+      existing?.placements?.join(", ") || "",
+  };
+});
     }
 
     if (groupBy === "device") {
@@ -577,39 +587,95 @@ const Statistics = () => {
 
   return Object.values(browserMap);
 }
-    if (
-      !Array.isArray(
-        groupedReducerData
-      )
-    ) {
-      return [];
+if (
+  !Array.isArray(groupedReducerData)
+) {
+  return [];
+}
+
+// ====================================
+// COUNTRY GROUPING
+// ====================================
+
+if (groupBy === "country") {
+
+  const countryMap = {};
+
+  (countryData || []).forEach((item) => {
+
+    const key =
+      lookup.byIso(item.country)?.country ||
+      item.country ||
+      "Unknown";
+
+    // 👇 create first time
+    if (!countryMap[key]) {
+
+      countryMap[key] = {
+        label: key,
+        impressions: 0,
+        clicks: 0,
+        revenue: 0,
+        placements: [],
+      };
     }
 
-    return groupedReducerData.map(
-      (item) => ({
-        label:
-  groupBy === "country"
-    ? lookup.byIso(item.country)?.country || item.country || "Unknown"
-    : item.label ||
+    // 👇 add same country values
+    countryMap[key].impressions += Number(
+      item.impressions || 0
+    );
+
+    countryMap[key].clicks += Number(
+      item.clicks || 0
+    );
+
+    countryMap[key].revenue += Number(
+      item.revenue || 0
+    );
+
+    // 👇 store placement ids
+    if (
+      item.placement &&
+      !countryMap[key].placements.includes(
+        item.placement
+      )
+    ) {
+
+      countryMap[key].placements.push(
+        item.placement
+      );
+    }
+  });
+
+  return Object.values(countryMap);
+}
+
+// ====================================
+// DEFAULT GROUPING
+// ====================================
+
+return groupedReducerData.map(
+  (item) => ({
+    label:
+      item.label ||
       item.device ||
       item.osName ||
       item.browserName ||
       "Unknown",
 
-        impressions: Number(
-          item.impressions || 0
-        ),
+    impressions: Number(
+      item.impressions || 0
+    ),
 
-        clicks: Number(
-          item.clicks || 0
-        ),
+    clicks: Number(
+      item.clicks || 0
+    ),
 
-        revenue: Number(
-          item.revenue || 0
-        ),
-      })
-    );
-
+    revenue: Number(
+      item.revenue || 0
+    ),
+  })
+);
   }, [
     data,
     groupedReducerData,
