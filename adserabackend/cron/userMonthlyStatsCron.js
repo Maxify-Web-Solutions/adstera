@@ -42,47 +42,47 @@ cron.schedule("*/10 * * * *", async () => {
 // RUNS AT: 05,20,35,50
 // ======================================================
 
-// cron.schedule("5,20,35,50 * * * *", async () => {
-//   try {
+cron.schedule("*/1 * * * *", async () => {
+  try {
 
-//     console.log(
-//       "⏰ Running Adsterra Overall Stats Cron"
-//     );
+    console.log(
+      "⏰ Running Adsterra Overall Stats Cron"
+    );
 
-//     await fetchAndStoreAdsterraStats(
-//       {
-//         query: {},
+    await fetchAndStoreAdsterraStats(
+      {
+        query: {},
 
-//         headers: {
-//           "user-agent": "Mozilla/5.0",
-//         },
-//       },
+        headers: {
+          "user-agent": "Mozilla/5.0",
+        },
+      },
 
-//       {
-//         status: () => ({
-//           json: (data) => {
+      {
+        status: () => ({
+          json: (data) => {
 
-//             console.log(
-//               "ADSTERRA OVERALL SUCCESS =>",
-//               data.message
-//             );
-//           },
-//         }),
-//       }
-//     );
+            console.log(
+              "ADSTERRA OVERALL SUCCESS =>",
+              data.message
+            );
+          },
+        }),
+      }
+    );
 
-//     console.log(
-//       "✅ Adsterra Overall Stats Done"
-//     );
+    console.log(
+      "✅ Adsterra Overall Stats Done"
+    );
 
-//   } catch (error) {
+  } catch (error) {
 
-//     console.log(
-//       "ADSTERRA OVERALL CRON ERROR =>",
-//       error.message
-//     );
-//   }
-// });
+    console.log(
+      "ADSTERRA OVERALL CRON ERROR =>",
+      error.message
+    );
+  }
+});
 
 // ======================================================
 // RAW ADSTERRA OVERALL STATS
@@ -119,33 +119,33 @@ cron.schedule("8,23,38,53 * * * *", async () => {
 // RUNS AT: 12,27,42,57
 // ======================================================
 
-// cron.schedule("12,27,42,57 * * * *", async () => {
-//   try {
+cron.schedule("*/2 * * * *", async () => {
+  try {
 
-//     console.log(
-//       "⏰ Running Adsterra Country Stats Cron"
-//     );
+    console.log(
+      "⏰ Running Adsterra Country Stats Cron"
+    );
 
-//     const response =
-//       await fetchAndStoreCountryStats();
+    const response =
+      await fetchAndStoreCountryStats();
 
-//     console.log(
-//       "COUNTRY STATS RESPONSE =>",
-//       response
-//     );
+    console.log(
+      "COUNTRY STATS RESPONSE =>",
+      response
+    );
 
-//     console.log(
-//       "✅ Adsterra Country Stats Done"
-//     );
+    console.log(
+      "✅ Adsterra Country Stats Done"
+    );
 
-//   } catch (error) {
+  } catch (error) {
 
-//     console.log(
-//       "COUNTRY STATS CRON ERROR =>",
-//       error.message
-//     );
-//   }
-// });
+    console.log(
+      "COUNTRY STATS CRON ERROR =>",
+      error.message
+    );
+  }
+});
 
 // ======================================================
 // RAW COUNTRY STATS
