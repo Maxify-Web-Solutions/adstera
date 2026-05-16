@@ -1,13 +1,14 @@
 const mongoose = require("mongoose");
-const RawAdsterraStats = require("./models/CalculatedAdsterraStats");
+const RawAdsterraStats = require("./models/RawAdsterraStats");
 
 const dns = require("dns");
 dns.setServers(["1.1.1.1", "8.8.8.8"]);
 
-
 // ================== MONGODB CONNECT ==================
 mongoose
-  .connect("mongodb+srv://saqlainjin_db_user:4sUs6g3z2861Tkhx@cluster0.bb0ekzq.mongodb.net/?appName=Cluster0")
+  .connect(
+    "mongodb+srv://saqlainjin_db_user:4sUs6g3z2861Tkhx@cluster0.bb0ekzq.mongodb.net/?appName=Cluster0"
+  )
   .then(() => {
     console.log("✅ MongoDB Connected");
     seedData();
@@ -16,493 +17,123 @@ mongoose
     console.log("❌ MongoDB Error:", err);
   });
 
-// ================== RANDOM DATA ==================
-const rawData =
-[
+// ================== BASE DATA ==================
+const rawData = [
   {
-    "userId": "6a083cd97df6e30d0158b2fa",
-    "country": "ALL",
-    "placement": "28673024",
-    "date": "2026-04-24",
-    "browserName": "",
-    "browserVersion": "",
-    "clicks": 3,
-    "cpm": 3.912,
-    "ctr": 0.52,
-    "device": "desktop",
-    "deviceModel": "",
-    "deviceVendor": "",
-    "domain": "https://www.profitablecpmratenetwork.com/prqw5i07e3?key=4dd9b5af0bbdbcdf16211a03e41757e5",
-    "impressions": 280,
-    "osName": "",
-    "osVersion": "",
-    "revenue": 1.10
+    country: "ALL",
+    placement: "28673024",
+    date: "2026-05-16",
+    domain:
+      "https://www.profitablecpmratenetwork.com/prqw5i07e3?key=4dd9b5af0bbdbcdf16211a03e41757e5",
+    clicks: 7,
+    cpm: 5.004,
+    ctr: 0.95,
+    device: "desktop",
+    impressions: 640,
+    revenue: 13.2,
+    userId: "6a083cd97df6e30d0158b2fa",
   },
-  {
-    "userId": "6a083cd97df6e30d0158b2fa",
-    "country": "ALL",
-    "placement": "28673024",
-    "date": "2026-04-25",
-    "browserName": "",
-    "browserVersion": "",
-    "clicks": 5,
-    "cpm": 4.103,
-    "ctr": 0.63,
-    "device": "desktop",
-    "deviceModel": "",
-    "deviceVendor": "",
-    "domain": "https://www.profitablecpmratenetwork.com/prqw5i07e3?key=4dd9b5af0bbdbcdf16211a03e41757e5",
-    "impressions": 320,
-    "osName": "",
-    "osVersion": "",
-    "revenue": 1.31
-  },
-  {
-    "userId": "6a083cd97df6e30d0158b2fa",
-    "country": "ALL",
-    "placement": "28673024",
-    "date": "2026-04-26",
-    "browserName": "",
-    "browserVersion": "",
-    "clicks": 7,
-    "cpm": 4.554,
-    "ctr": 0.88,
-    "device": "desktop",
-    "deviceModel": "",
-    "deviceVendor": "",
-    "domain": "https://www.profitablecpmratenetwork.com/prqw5i07e3?key=4dd9b5af0bbdbcdf16211a03e41757e5",
-    "impressions": 410,
-    "osName": "",
-    "osVersion": "",
-    "revenue": 1.87
-  },
-  {
-    "userId": "6a083cd97df6e30d0158b2fa",
-    "country": "ALL",
-    "placement": "28673024",
-    "date": "2026-04-27",
-    "browserName": "",
-    "browserVersion": "",
-    "clicks": 2,
-    "cpm": 3.765,
-    "ctr": 0.41,
-    "device": "desktop",
-    "deviceModel": "",
-    "deviceVendor": "",
-    "domain": "https://www.profitablecpmratenetwork.com/prqw5i07e3?key=4dd9b5af0bbdbcdf16211a03e41757e5",
-    "impressions": 260,
-    "osName": "",
-    "osVersion": "",
-    "revenue": 0.97
-  },
-  {
-    "userId": "6a083cd97df6e30d0158b2fa",
-    "country": "ALL",
-    "placement": "28673024",
-    "date": "2026-04-28",
-    "browserName": "",
-    "browserVersion": "",
-    "clicks": 6,
-    "cpm": 4.811,
-    "ctr": 0.94,
-    "device": "desktop",
-    "deviceModel": "",
-    "deviceVendor": "",
-    "domain": "https://www.profitablecpmratenetwork.com/prqw5i07e3?key=4dd9b5af0bbdbcdf16211a03e41757e5",
-    "impressions": 500,
-    "osName": "",
-    "osVersion": "",
-    "revenue": 2.40
-  },
-  {
-    "userId": "6a083cd97df6e30d0158b2fa",
-    "country": "ALL",
-    "placement": "28673024",
-    "date": "2026-04-29",
-    "browserName": "",
-    "browserVersion": "",
-    "clicks": 4,
-    "cpm": 4.122,
-    "ctr": 0.58,
-    "device": "desktop",
-    "deviceModel": "",
-    "deviceVendor": "",
-    "domain": "https://www.profitablecpmratenetwork.com/prqw5i07e3?key=4dd9b5af0bbdbcdf16211a03e41757e5",
-    "impressions": 340,
-    "osName": "",
-    "osVersion": "",
-    "revenue": 1.40
-  },
-  {
-    "userId": "6a083cd97df6e30d0158b2fa",
-    "country": "ALL",
-    "placement": "28673024",
-    "date": "2026-04-30",
-    "browserName": "",
-    "browserVersion": "",
-    "clicks": 8,
-    "cpm": 5.001,
-    "ctr": 1.02,
-    "device": "desktop",
-    "deviceModel": "",
-    "deviceVendor": "",
-    "domain": "https://www.profitablecpmratenetwork.com/prqw5i07e3?key=4dd9b5af0bbdbcdf16211a03e41757e5",
-    "impressions": 620,
-    "osName": "",
-    "osVersion": "",
-    "revenue": 3.10
-  },
-  {
-    "userId": "6a083cd97df6e30d0158b2fa",
-    "country": "ALL",
-    "placement": "28673024",
-    "date": "2026-05-01",
-    "browserName": "",
-    "browserVersion": "",
-    "clicks": 3,
-    "cpm": 4.020,
-    "ctr": 0.49,
-    "device": "desktop",
-    "deviceModel": "",
-    "deviceVendor": "",
-    "domain": "https://www.profitablecpmratenetwork.com/prqw5i07e3?key=4dd9b5af0bbdbcdf16211a03e41757e5",
-    "impressions": 310,
-    "osName": "",
-    "osVersion": "",
-    "revenue": 1.25
-  },
-  {
-    "userId": "6a083cd97df6e30d0158b2fa",
-    "country": "ALL",
-    "placement": "28673024",
-    "date": "2026-05-02",
-    "browserName": "",
-    "browserVersion": "",
-    "clicks": 9,
-    "cpm": 5.225,
-    "ctr": 1.12,
-    "device": "desktop",
-    "deviceModel": "",
-    "deviceVendor": "",
-    "domain": "https://www.profitablecpmratenetwork.com/prqw5i07e3?key=4dd9b5af0bbdbcdf16211a03e41757e5",
-    "impressions": 710,
-    "osName": "",
-    "osVersion": "",
-    "revenue": 3.71
-  },
-  {
-    "userId": "6a083cd97df6e30d0158b2fa",
-    "country": "ALL",
-    "placement": "28673024",
-    "date": "2026-05-03",
-    "browserName": "",
-    "browserVersion": "",
-    "clicks": 5,
-    "cpm": 4.334,
-    "ctr": 0.77,
-    "device": "desktop",
-    "deviceModel": "",
-    "deviceVendor": "",
-    "domain": "https://www.profitablecpmratenetwork.com/prqw5i07e3?key=4dd9b5af0bbdbcdf16211a03e41757e5",
-    "impressions": 420,
-    "osName": "",
-    "osVersion": "",
-    "revenue": 1.82
-  },
-  {
-    "userId": "6a083cd97df6e30d0158b2fa",
-    "country": "ALL",
-    "placement": "28673024",
-    "date": "2026-05-04",
-    "browserName": "",
-    "browserVersion": "",
-    "clicks": 6,
-    "cpm": 4.721,
-    "ctr": 0.84,
-    "device": "desktop",
-    "deviceModel": "",
-    "deviceVendor": "",
-    "domain": "https://www.profitablecpmratenetwork.com/prqw5i07e3?key=4dd9b5af0bbdbcdf16211a03e41757e5",
-    "impressions": 470,
-    "osName": "",
-    "osVersion": "",
-    "revenue": 2.22
-  },
-  {
-    "userId": "6a083cd97df6e30d0158b2fa",
-    "country": "ALL",
-    "placement": "28673024",
-    "date": "2026-05-05",
-    "browserName": "",
-    "browserVersion": "",
-    "clicks": 10,
-    "cpm": 5.511,
-    "ctr": 1.33,
-    "device": "desktop",
-    "deviceModel": "",
-    "deviceVendor": "",
-    "domain": "https://www.profitablecpmratenetwork.com/prqw5i07e3?key=4dd9b5af0bbdbcdf16211a03e41757e5",
-    "impressions": 810,
-    "osName": "",
-    "osVersion": "",
-    "revenue": 4.46
-  },
-  {
-    "userId": "6a083cd97df6e30d0158b2fa",
-    "country": "ALL",
-    "placement": "28673024",
-    "date": "2026-05-06",
-    "browserName": "",
-    "browserVersion": "",
-    "clicks": 4,
-    "cpm": 4.212,
-    "ctr": 0.67,
-    "device": "desktop",
-    "deviceModel": "",
-    "deviceVendor": "",
-    "domain": "https://www.profitablecpmratenetwork.com/prqw5i07e3?key=4dd9b5af0bbdbcdf16211a03e41757e5",
-    "impressions": 360,
-    "osName": "",
-    "osVersion": "",
-    "revenue": 1.52
-  },
-  {
-    "userId": "6a083cd97df6e30d0158b2fa",
-    "country": "ALL",
-    "placement": "28673024",
-    "date": "2026-05-07",
-    "browserName": "",
-    "browserVersion": "",
-    "clicks": 11,
-    "cpm": 5.944,
-    "ctr": 1.48,
-    "device": "desktop",
-    "deviceModel": "",
-    "deviceVendor": "",
-    "domain": "https://www.profitablecpmratenetwork.com/prqw5i07e3?key=4dd9b5af0bbdbcdf16211a03e41757e5",
-    "impressions": 920,
-    "osName": "",
-    "osVersion": "",
-    "revenue": 5.46
-  },
-  {
-    "userId": "6a083cd97df6e30d0158b2fa",
-    "country": "ALL",
-    "placement": "28673024",
-    "date": "2026-05-08",
-    "browserName": "",
-    "browserVersion": "",
-    "clicks": 5,
-    "cpm": 4.611,
-    "ctr": 0.73,
-    "device": "desktop",
-    "deviceModel": "",
-    "deviceVendor": "",
-    "domain": "https://www.profitablecpmratenetwork.com/prqw5i07e3?key=4dd9b5af0bbdbcdf16211a03e41757e5",
-    "impressions": 430,
-    "osName": "",
-    "osVersion": "",
-    "revenue": 1.98
-  },
-  {
-    "userId": "6a083cd97df6e30d0158b2fa",
-    "country": "ALL",
-    "placement": "28673024",
-    "date": "2026-05-09",
-    "browserName": "",
-    "browserVersion": "",
-    "clicks": 7,
-    "cpm": 4.982,
-    "ctr": 0.91,
-    "device": "desktop",
-    "deviceModel": "",
-    "deviceVendor": "",
-    "domain": "https://www.profitablecpmratenetwork.com/prqw5i07e3?key=4dd9b5af0bbdbcdf16211a03e41757e5",
-    "impressions": 610,
-    "osName": "",
-    "osVersion": "",
-    "revenue": 3.04
-  },
-  {
-    "userId": "6a083cd97df6e30d0158b2fa",
-    "country": "ALL",
-    "placement": "28673024",
-    "date": "2026-05-10",
-    "browserName": "",
-    "browserVersion": "",
-    "clicks": 6,
-    "cpm": 4.566,
-    "ctr": 0.82,
-    "device": "desktop",
-    "deviceModel": "",
-    "deviceVendor": "",
-    "domain": "https://www.profitablecpmratenetwork.com/prqw5i07e3?key=4dd9b5af0bbdbcdf16211a03e41757e5",
-    "impressions": 540,
-    "osName": "",
-    "osVersion": "",
-    "revenue": 2.46
-  },
-  {
-    "userId": "6a083cd97df6e30d0158b2fa",
-    "country": "ALL",
-    "placement": "28673024",
-    "date": "2026-05-11",
-    "browserName": "",
-    "browserVersion": "",
-    "clicks": 8,
-    "cpm": 5.102,
-    "ctr": 1.01,
-    "device": "desktop",
-    "deviceModel": "",
-    "deviceVendor": "",
-    "domain": "https://www.profitablecpmratenetwork.com/prqw5i07e3?key=4dd9b5af0bbdbcdf16211a03e41757e5",
-    "impressions": 670,
-    "osName": "",
-    "osVersion": "",
-    "revenue": 3.41
-  },
-  {
-    "userId": "6a083cd97df6e30d0158b2fa",
-    "country": "ALL",
-    "placement": "28673024",
-    "date": "2026-05-12",
-    "browserName": "",
-    "browserVersion": "",
-    "clicks": 5,
-    "cpm": 4.305,
-    "ctr": 0.69,
-    "device": "desktop",
-    "deviceModel": "",
-    "deviceVendor": "",
-    "domain": "https://www.profitablecpmratenetwork.com/prqw5i07e3?key=4dd9b5af0bbdbcdf16211a03e41757e5",
-    "impressions": 390,
-    "osName": "",
-    "osVersion": "",
-    "revenue": 1.67
-  },
-  {
-    "userId": "6a083cd97df6e30d0158b2fa",
-    "country": "ALL",
-    "placement": "28673024",
-    "date": "2026-05-13",
-    "browserName": "",
-    "browserVersion": "",
-    "clicks": 0,
-    "cpm": 4.714,
-    "ctr": 0,
-    "device": "desktop",
-    "deviceModel": "",
-    "deviceVendor": "",
-    "domain": "https://www.profitablecpmratenetwork.com/prqw5i07e3?key=4dd9b5af0bbdbcdf16211a03e41757e5",
-    "impressions": 350,
-    "osName": "",
-    "osVersion": "",
-    "revenue": 1.65
-  },
-  {
-    "userId": "6a083cd97df6e30d0158b2fa",
-    "country": "ALL",
-    "placement": "28673024",
-    "date": "2026-05-14",
-    "browserName": "",
-    "browserVersion": "",
-    "clicks": 9,
-    "cpm": 5.220,
-    "ctr": 1.21,
-    "device": "desktop",
-    "deviceModel": "",
-    "deviceVendor": "",
-    "domain": "https://www.profitablecpmratenetwork.com/prqw5i07e3?key=4dd9b5af0bbdbcdf16211a03e41757e5",
-    "impressions": 760,
-    "osName": "",
-    "osVersion": "",
-    "revenue": 3.96
-  },
-  {
-    "userId": "6a083cd97df6e30d0158b2fa",
-    "country": "ALL",
-    "placement": "28673024",
-    "date": "2026-05-15",
-    "browserName": "",
-    "browserVersion": "",
-    "clicks": 6,
-    "cpm": 4.881,
-    "ctr": 0.87,
-    "device": "desktop",
-    "deviceModel": "",
-    "deviceVendor": "",
-    "domain": "https://www.profitablecpmratenetwork.com/prqw5i07e3?key=4dd9b5af0bbdbcdf16211a03e41757e5",
-    "impressions": 520,
-    "osName": "",
-    "osVersion": "",
-    "revenue": 2.53
-  },
-  {
-    "userId": "6a083cd97df6e30d0158b2fa",
-    "country": "ALL",
-    "placement": "28673024",
-    "date": "2026-05-16",
-    "browserName": "",
-    "browserVersion": "",
-    "clicks": 7,
-    "cpm": 5.004,
-    "ctr": 0.95,
-    "device": "desktop",
-    "deviceModel": "",
-    "deviceVendor": "",
-    "domain": "https://www.profitablecpmratenetwork.com/prqw5i07e3?key=4dd9b5af0bbdbcdf16211a03e41757e5",
-    "impressions": 640,
-    "osName": "",
-    "osVersion": "",
-    "revenue": 3.20
-  }
 ];
+
+// ================== DATE LOOP FUNCTION ==================
+function generateDateRange(startDate, endDate) {
+  const dates = [];
+
+  const current = new Date(startDate);
+  const end = new Date(endDate);
+
+  while (current <= end) {
+    dates.push(current.toISOString().split("T")[0]);
+
+    current.setDate(current.getDate() + 1);
+  }
+
+  return dates;
+}
+
+// ================== RANDOM NUMBER ==================
+function randomBetween(min, max, fixed = 2) {
+  return Number((Math.random() * (max - min) + min).toFixed(fixed));
+}
+
+// ================== GENERATE RANDOM STATS ==================
+function generateRandomStats(baseItem, date) {
+  const impressions = Math.floor(randomBetween(250, 1200, 0));
+
+  const clicks = Math.floor(impressions * randomBetween(0.005, 0.02, 4));
+
+  const cpm = randomBetween(3.5, 6.5, 3);
+
+  const revenue = Number(((impressions / 1000) * cpm).toFixed(6));
+
+  const ctr = Number(((clicks / impressions) * 100).toFixed(2));
+
+  return {
+    userId: new mongoose.Types.ObjectId(baseItem.userId),
+
+    domain: baseItem.domain,
+    placement: baseItem.placement,
+    country: baseItem.country,
+
+    device: "desktop",
+    deviceModel: "",
+    deviceVendor: "",
+
+    osName: "",
+    osVersion: "",
+
+    browserName: "",
+    browserVersion: "",
+
+    impressions,
+    clicks,
+    ctr,
+    cpm,
+    revenue,
+
+    date,
+  };
+}
 
 // ================== INSERT FUNCTION ==================
 async function seedData() {
   try {
-    for (const item of rawData) {
-      await RawAdsterraStats.updateOne(
-        {
-          domain: item.domain,
-          placement: item.placement,
-          country: item.country,
-          date: item.date,
-        },
-        {
-          $set: {
-            userId: new mongoose.Types.ObjectId(item.userId),
+    // START DATE
+    const startDate = "2026-04-23";
 
-            domain: item.domain,
-            placement: item.placement,
-            country: item.country,
+    // TODAY DATE
+    const today = new Date().toISOString().split("T")[0];
 
-            device: item.device,
-            deviceModel: item.deviceModel,
-            deviceVendor: item.deviceVendor,
+    // ALL DATES
+    const allDates = generateDateRange(startDate, today);
 
-            osName: item.osName,
-            osVersion: item.osVersion,
+    console.log(`📅 Total Dates: ${allDates.length}`);
 
-            browserName: item.browserName,
-            browserVersion: item.browserVersion,
+    for (const date of allDates) {
+      // CHECK IF DATE ALREADY EXISTS
+      const exists = await RawAdsterraStats.findOne({
+        date,
+        domain: rawData[0].domain,
+        placement: rawData[0].placement,
+        country: rawData[0].country,
+      });
 
-            impressions: Number(item.impressions || 0),
-            clicks: Number(item.clicks || 0),
-            ctr: Number(item.ctr || 0),
-            cpm: Number(item.cpm || 0),
-            revenue: Number(item.revenue || 0),
+      // SKIP IF EXISTS
+      if (exists) {
+        console.log(`⏩ Skipped Existing Date: ${date}`);
+        continue;
+      }
 
-            date: item.date,
-          },
-        },
-        {
-          upsert: true,
-        }
-      );
+      // GENERATE NEW DATA
+      const item = generateRandomStats(rawData[0], date);
+
+      // INSERT
+      await RawAdsterraStats.create(item);
+
+      console.log(`✅ Inserted: ${date}`);
     }
 
-    console.log("✅ RawAdsterraStats Data Uploaded Successfully");
+    console.log("🎉 All Missing Dates Inserted Successfully");
 
     process.exit();
   } catch (error) {

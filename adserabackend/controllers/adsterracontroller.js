@@ -1563,7 +1563,7 @@ exports.getAdsterraStatsFromDB =
         start_date,
         end_date,
         page = 1,
-        limit = 20,
+        limit = 40,
         placement,
         country,
       } = req.query;

@@ -5,8 +5,13 @@ const User = require("../models/authmodel");
 const { sendWithdrawalOTP } = require("../utils/mailer");
 const WithdrawalOtp = require("../models/WithdrawalOtp");
 const mongoose = require("mongoose");
+const PlatformFee = require("../models/PlatformFee");
+
 
 // ✅ 1. Create Withdrawal
+
+
+
 
 exports.createWithdrawal = async (req, res) => {
   try {
@@ -34,7 +39,7 @@ exports.createWithdrawal = async (req, res) => {
     // AMOUNT VALIDATION
     // =================================================
 
-    if (!amount || amount <= 25) {
+    if (!amount || Number(amount) <= 25) {
       return res.status(400).json({
         success: false,
         message: "Invalid amount",
@@ -47,9 +52,7 @@ exports.createWithdrawal = async (req, res) => {
 
     if (
       !paymentMethod ||
-      !["bank", "crypto"].includes(
-        paymentMethod
-      )
+      !["bank", "crypto"].includes(paymentMethod)
     ) {
       return res.status(400).json({
         success: false,
@@ -62,8 +65,7 @@ exports.createWithdrawal = async (req, res) => {
     // USER CHECK
     // =================================================
 
-    const user =
-      await User.findById(userId);
+    const user = await User.findById(userId);
 
     if (!user) {
       return res.status(404).json({
@@ -77,13 +79,11 @@ exports.createWithdrawal = async (req, res) => {
     // =================================================
 
     if (
-      Number(user.revenue) <
-      Number(amount)
+      Number(user.revenue) < Number(amount)
     ) {
       return res.status(400).json({
         success: false,
-        message:
-          "Insufficient balance",
+        message: "Insufficient balance",
       });
     }
 
@@ -91,9 +91,7 @@ exports.createWithdrawal = async (req, res) => {
     // BANK VALIDATION
     // =================================================
 
-    if (
-      paymentMethod === "bank"
-    ) {
+    if (paymentMethod === "bank") {
       if (
         !accountHolderName ||
         !bankName ||
@@ -112,9 +110,7 @@ exports.createWithdrawal = async (req, res) => {
     // CRYPTO VALIDATION
     // =================================================
 
-    if (
-      paymentMethod === "crypto"
-    ) {
+    if (paymentMethod === "crypto") {
       if (
         !cryptoType ||
         !walletAddress ||
@@ -162,8 +158,7 @@ exports.createWithdrawal = async (req, res) => {
     // =================================================
 
     if (
-      otpRecord.expiresAt <
-      Date.now()
+      otpRecord.expiresAt < Date.now()
     ) {
       return res.status(400).json({
         success: false,
@@ -175,7 +170,10 @@ exports.createWithdrawal = async (req, res) => {
     // OTP MATCH CHECK
     // =================================================
 
-    if (otpRecord.otp !== otp) {
+    if (
+      String(otpRecord.otp) !==
+      String(otp)
+    ) {
       return res.status(400).json({
         success: false,
         message: "Invalid OTP",
@@ -183,18 +181,38 @@ exports.createWithdrawal = async (req, res) => {
     }
 
     // =================================================
-    // DEDUCT REVENUE
+    // PLATFORM FEE CALCULATION
+    // =================================================
+
+    const originalAmount = Number(amount);
+
+    const feePercent = 3;
+
+    const feeAmount = Number(
+      (
+        (originalAmount * feePercent) /
+        100
+      ).toFixed(6)
+    );
+
+    const finalAmount = Number(
+      (
+        originalAmount - feeAmount
+      ).toFixed(6)
+    );
+
+    // =================================================
+    // DEDUCT USER BALANCE
     // =================================================
 
     user.revenue = Number(
       (
         Number(user.revenue) -
-        Number(amount)
+        originalAmount
       ).toFixed(6)
     );
 
     // =================================================
-    // IMPORTANT
     // SAVE LAST WITHDRAWAL DATE
     // =================================================
 
@@ -211,7 +229,15 @@ exports.createWithdrawal = async (req, res) => {
 
     const withdrawalData = {
       userId,
-      amount,
+
+      // user requested amount
+      amount: originalAmount,
+
+      // fee data
+      platformFee: feeAmount,
+      feePercent,
+      finalAmount,
+
       paymentMethod,
     };
 
@@ -219,9 +245,7 @@ exports.createWithdrawal = async (req, res) => {
     // BANK DATA
     // =================================================
 
-    if (
-      paymentMethod === "bank"
-    ) {
+    if (paymentMethod === "bank") {
       withdrawalData.accountHolderName =
         accountHolderName;
 
@@ -239,9 +263,7 @@ exports.createWithdrawal = async (req, res) => {
     // CRYPTO DATA
     // =================================================
 
-    if (
-      paymentMethod === "crypto"
-    ) {
+    if (paymentMethod === "crypto") {
       withdrawalData.cryptoType =
         cryptoType;
 
@@ -262,6 +284,21 @@ exports.createWithdrawal = async (req, res) => {
       );
 
     // =================================================
+    // SAVE PLATFORM FEE
+    // =================================================
+
+    await PlatformFee.create({
+      userId,
+      withdrawalId:
+        withdrawal._id,
+
+      originalAmount,
+      feePercent,
+      feeAmount,
+      finalAmount,
+    });
+
+    // =================================================
     // DELETE USED OTP
     // =================================================
 
@@ -280,6 +317,11 @@ exports.createWithdrawal = async (req, res) => {
 
       withdrawal,
 
+      platformFee: feeAmount,
+
+      userWillReceive:
+        finalAmount,
+
       remainingBalance:
         Number(
           user.revenue.toFixed(6)
@@ -297,6 +339,7 @@ exports.createWithdrawal = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Server error",
+      error: error.message,
     });
   }
 };

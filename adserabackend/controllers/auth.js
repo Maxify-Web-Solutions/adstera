@@ -271,7 +271,7 @@ const login = async (req, res) => {
   try {
     let { email, password } = req.body;
 
-    // VALIDATION
+    // ================= VALIDATION =================
     if (!email || !password) {
       return res.status(400).json({
         success: false,
@@ -279,11 +279,14 @@ const login = async (req, res) => {
       });
     }
 
-    // NORMALIZE
+    // ================= NORMALIZE =================
     email = email.toLowerCase().trim();
 
-    // FIND USER
-    const user = await User.findOne({ email }).select("+password");
+    // ================= FIND USER =================
+    // LEAN = faster query
+    const user = await User.findOne({ email })
+      .select("+password")
+      .lean(false);
 
     if (!user) {
       return res.status(404).json({
@@ -292,7 +295,7 @@ const login = async (req, res) => {
       });
     }
 
-    // PASSWORD MATCH
+    // ================= PASSWORD MATCH =================
     const isMatch = await bcrypt.compare(password, user.password);
 
     if (!isMatch) {
@@ -302,7 +305,7 @@ const login = async (req, res) => {
       });
     }
 
-    // ROLE CHECK
+    // ================= ROLE CHECK =================
     if (user.role !== "user") {
       return res.status(403).json({
         success: false,
@@ -310,52 +313,61 @@ const login = async (req, res) => {
       });
     }
 
-    // USER AGENT
-    const ua = req.headers["user-agent"];
-
-    const parser = new UAParser(ua);
+    // ================= USER AGENT =================
+    const parser = new UAParser(req.headers["user-agent"]);
 
     const device = parser.getDevice();
     const os = parser.getOS();
     const browser = parser.getBrowser();
 
-    // UPDATE LAST LOGIN
-    user.lastLogin = {
-      date: new Date(),
-      ip: req.ip || req.headers["x-forwarded-for"] || "Unknown",
-      device: device.model || "Desktop",
-      os: `${os.name || ""} ${os.version || ""}`,
-      browser: `${browser.name || ""} ${browser.version || ""}`,
-    };
+    // ================= FAST LAST LOGIN UPDATE =================
+    // save() ki jagah direct updateOne use kro
+    User.updateOne(
+      { _id: user._id },
+      {
+        $set: {
+          lastLogin: {
+            date: new Date(),
+            ip:
+              req.headers["x-forwarded-for"]?.split(",")[0] ||
+              req.socket.remoteAddress ||
+              "Unknown",
+            device: device.model || "Desktop",
+            os: `${os.name || ""} ${os.version || ""}`.trim(),
+            browser:
+              `${browser.name || ""} ${browser.version || ""}`.trim(),
+          },
+        },
+      }
+    ).exec(); // await nahi lagaya -> background me chalega
 
-    await user.save();
-
-    // TOKEN
+    // ================= TOKEN =================
     const token = generateToken(user._id);
 
-    // COOKIE
+    // ================= COOKIE =================
     res.cookie("token", token, {
       httpOnly: true,
-      secure: false,
+      secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
-    // REMOVE PASSWORD
-    const userObj = user.toObject();
-    delete userObj.password;
+    // ================= REMOVE PASSWORD =================
+    delete user.password;
 
+    // ================= RESPONSE =================
     return res.status(200).json({
       success: true,
       message: "Login successful",
       token,
-      user: userObj,
+      user,
     });
-
   } catch (error) {
+    console.error("LOGIN ERROR:", error);
+
     return res.status(500).json({
       success: false,
-      message: error.message,
+      message: "Internal server error",
     });
   }
 };
