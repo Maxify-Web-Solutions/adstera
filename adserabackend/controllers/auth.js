@@ -282,11 +282,10 @@ const login = async (req, res) => {
     // ================= NORMALIZE =================
     email = email.toLowerCase().trim();
 
-    // ================= FIND USER =================
-    // LEAN = faster query
+    // ================= FAST USER QUERY =================
     const user = await User.findOne({ email })
       .select("+password")
-      .lean(false);
+      .lean();
 
     if (!user) {
       return res.status(404).json({
@@ -295,7 +294,7 @@ const login = async (req, res) => {
       });
     }
 
-    // ================= PASSWORD MATCH =================
+    // ================= FAST PASSWORD CHECK =================
     const isMatch = await bcrypt.compare(password, user.password);
 
     if (!isMatch) {
@@ -312,34 +311,6 @@ const login = async (req, res) => {
         message: "Access denied",
       });
     }
-
-    // ================= USER AGENT =================
-    const parser = new UAParser(req.headers["user-agent"]);
-
-    const device = parser.getDevice();
-    const os = parser.getOS();
-    const browser = parser.getBrowser();
-
-    // ================= FAST LAST LOGIN UPDATE =================
-    // save() ki jagah direct updateOne use kro
-    User.updateOne(
-      { _id: user._id },
-      {
-        $set: {
-          lastLogin: {
-            date: new Date(),
-            ip:
-              req.headers["x-forwarded-for"]?.split(",")[0] ||
-              req.socket.remoteAddress ||
-              "Unknown",
-            device: device.model || "Desktop",
-            os: `${os.name || ""} ${os.version || ""}`.trim(),
-            browser:
-              `${browser.name || ""} ${browser.version || ""}`.trim(),
-          },
-        },
-      }
-    ).exec(); // await nahi lagaya -> background me chalega
 
     // ================= TOKEN =================
     const token = generateToken(user._id);
@@ -362,6 +333,7 @@ const login = async (req, res) => {
       token,
       user,
     });
+
   } catch (error) {
     console.error("LOGIN ERROR:", error);
 
