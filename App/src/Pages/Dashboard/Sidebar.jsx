@@ -117,12 +117,6 @@ const Sidebar = ({ isOpen, onClose }) => {
                         onClick={handleNavClick}
                     />
 
-                    <NavItem
-                        to="/dashboard/stats"
-                        icon={IoStatsChart}
-                        label="Stats"
-                        onClick={handleNavClick}
-                    />
 
                     <NavItem
                         to="/dashboard/smartlinks"
