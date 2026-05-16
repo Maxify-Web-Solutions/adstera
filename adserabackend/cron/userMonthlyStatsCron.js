@@ -101,27 +101,27 @@ cron.schedule("5,20,35,50 * * * *", async () => {
 // GAP ADDED TO AVOID COLLISION
 // ======================================================
 
-cron.schedule("8,23,38,53 * * * *", async () => {
-  try {
+// cron.schedule("8,23,38,53 * * * *", async () => {
+//   try {
 
-    console.log(
-      "⏰ Running Raw Adsterra Overall Stats Cron"
-    );
+//     console.log(
+//       "⏰ Running Raw Adsterra Overall Stats Cron"
+//     );
 
-    await RawfetchAndStoreAdsterraStats();
+//     await RawfetchAndStoreAdsterraStats();
 
-    console.log(
-      "✅ Raw Adsterra Overall Stats Done"
-    );
+//     console.log(
+//       "✅ Raw Adsterra Overall Stats Done"
+//     );
 
-  } catch (error) {
+//   } catch (error) {
 
-    console.log(
-      "RAW ADSTERRA OVERALL CRON ERROR =>",
-      error.message
-    );
-  }
-});
+//     console.log(
+//       "RAW ADSTERRA OVERALL CRON ERROR =>",
+//       error.message
+//     );
+//   }
+// });
 
 // ======================================================
 // ADSTERRA COUNTRY STATS
