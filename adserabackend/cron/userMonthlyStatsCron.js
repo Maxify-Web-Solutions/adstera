@@ -164,27 +164,27 @@ cron.schedule("12,27,42,57 * * * *", async () => {
 // GAP ADDED TO AVOID COLLISION
 // ======================================================
 
-cron.schedule("0,15,30,45 * * * *", async () => {
-  try {
+// cron.schedule("0,15,30,45 * * * *", async () => {
+//   try {
 
-    console.log(
-      "⏰ Running Raw Country Stats Cron"
-    );
+//     console.log(
+//       "⏰ Running Raw Country Stats Cron"
+//     );
 
-    await RawfetchAndStoreCountryStats();
+//     await RawfetchAndStoreCountryStats();
 
-    console.log(
-      "✅ Raw Country Stats Done"
-    );
+//     console.log(
+//       "✅ Raw Country Stats Done"
+//     );
 
-  } catch (error) {
+//   } catch (error) {
 
-    console.log(
-      "RAW COUNTRY STATS CRON ERROR =>",
-      error.message
-    );
-  }
-});
+//     console.log(
+//       "RAW COUNTRY STATS CRON ERROR =>",
+//       error.message
+//     );
+//   }
+// });
 
 // ======================================================
 // CALCULATE ADSTERRA STATS
