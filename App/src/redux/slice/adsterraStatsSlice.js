@@ -187,10 +187,6 @@ const adsterraSlice = createSlice({
                 (state, action) => {
                     state.loading = false;
 
-                    console.log(
-                        "REDUX PAYLOAD =>",
-                        action.payload
-                    );
 
                     // =====================================
                     // OVERALL

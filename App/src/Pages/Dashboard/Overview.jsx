@@ -21,17 +21,21 @@ const Overview = () => {
     const dispatch = useDispatch();
 
     useEffect(() => {
-            window.scrollTo(0, 0);
-        }, []);
+        window.scrollTo(0, 0);
+    }, []);
 
     const {
         data: stats,
         totals,
+        countryData,
+        countryTotals,
         loading,
     } = useSelector(
         (state) =>
             state.adsterra
     );
+
+    console.log(stats)
 
     const [chartData, setChartData] =
         useState([]);
@@ -125,9 +129,13 @@ const Overview = () => {
         // =====================================
         // COUNTRY DATA
         // =====================================
+
         const countryMap = {};
 
-        stats.forEach((item) => {
+        (countryData?.length
+            ? countryData
+            : stats
+        ).forEach((item) => {
 
             // ✅ IGNORE INVALID
             if (
@@ -156,6 +164,7 @@ const Overview = () => {
                 ] = {
                     impressions: 0,
                     revenue: 0,
+                    clicks: 0,
                 };
             }
 
@@ -169,6 +178,12 @@ const Overview = () => {
                 countryName
             ].revenue += Number(
                 item.revenue || 0
+            );
+
+            countryMap[
+                countryName
+            ].clicks += Number(
+                item.clicks || 0
             );
         });
 
@@ -193,13 +208,28 @@ const Overview = () => {
                                 )
                                 : 0;
 
+                        const ctr =
+                            values.impressions >
+                                0
+                                ? (
+                                    (values.clicks /
+                                        values.impressions) *
+                                    100
+                                )
+                                : 0;
+
                         return {
                             name: country,
 
                             cpm,
 
+                            ctr,
+
                             revenue:
                                 values.revenue,
+
+                            impressions:
+                                values.impressions,
                         };
                     }
                 )
@@ -219,6 +249,13 @@ const Overview = () => {
                     value: `CPM ${item.cpm.toFixed(
                         3
                     )}`,
+
+                    revenue: item.revenue,
+
+                    impressions:
+                        item.impressions,
+
+                    ctr: item.ctr,
                 }));
 
         setCountries(
@@ -467,7 +504,7 @@ const Overview = () => {
                                                 }}
                                             />
                                             <span className="text-[8px] sm:text-[10px] mt-1 sm:mt-2 text-gray-500 dark:text-gray-400 whitespace-nowrap">
-                                                {item.date.split('/').slice(0,2).join('/')}
+                                                {item.date.split('/').slice(0, 2).join('/')}
                                             </span>
                                         </div>
                                     );
@@ -475,7 +512,7 @@ const Overview = () => {
                             )}
                         </div>
                     </div>
-                    
+
                     {/* Chart Legend */}
                     <div className="mt-4 pt-3 border-t border-gray-200 dark:border-slate-700">
                         <div className="flex justify-center gap-4 text-xs text-gray-500 dark:text-gray-400">
@@ -540,7 +577,7 @@ const Overview = () => {
                                 className="relative pl-6 sm:pl-10 p-4 sm:p-6 bg-white dark:bg-slate-800 rounded-2xl border dark:border-slate-700"
                             >
                                 <div className="absolute left-0 top-5 sm:top-6 w-3 h-3 sm:w-4 sm:h-4 bg-indigo-500 rounded-full"></div>
-                                
+
                                 <p className="text-[10px] sm:text-xs text-gray-400 mb-1 sm:mb-2">
                                     {section.date}
                                 </p>
@@ -607,7 +644,7 @@ const Overview = () => {
                             </div>
                         )}
                     </div>
-                    
+
                     {/* Mobile View Tip */}
                     {countries.length > 0 && (
                         <div className="mt-4 pt-3 border-t border-gray-200 dark:border-slate-700">
@@ -618,7 +655,7 @@ const Overview = () => {
                     )}
                 </div>
             </div>
-            
+
             {/* Loading State */}
             {loading && (
                 <div className="fixed bottom-4 right-4 bg-indigo-600 text-white px-4 py-2 rounded-full text-sm shadow-lg animate-pulse">
@@ -639,11 +676,10 @@ const StatCard = ({
     glow,
 }) => (
     <div
-        className={`p-4 sm:p-6 rounded-2xl bg-white dark:bg-slate-800 border dark:border-slate-700 transition-all hover:shadow-md ${
-            glow
-                ? "shadow-lg shadow-indigo-500/20 ring-1 ring-indigo-500/20"
-                : ""
-        }`}
+        className={`p-4 sm:p-6 rounded-2xl bg-white dark:bg-slate-800 border dark:border-slate-700 transition-all hover:shadow-md ${glow
+            ? "shadow-lg shadow-indigo-500/20 ring-1 ring-indigo-500/20"
+            : ""
+            }`}
     >
         <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
             {title}
