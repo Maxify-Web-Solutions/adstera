@@ -7,7 +7,7 @@ const SmartLinkStats = require("../models/SmartLinkStats");
 const User = require("../models/authmodel");
 const Config = require("../models/Config");
 const StatsConfig =
-    require("../models/StatsConfig");
+  require("../models/StatsConfig");
 
 
 
@@ -945,6 +945,21 @@ exports.getAdsterraStatsFromDB =
       }
 
       // =================================================
+      // NO CACHE HEADERS
+      // =================================================
+
+      res.set({
+        "Cache-Control":
+          "no-store, no-cache, must-revalidate, proxy-revalidate",
+
+        Pragma: "no-cache",
+
+        Expires: "0",
+
+        "Surrogate-Control":
+          "no-store",
+      });
+      // =================================================
       // FIXED 6 DECIMAL HELPER
       // =================================================
 
@@ -1045,10 +1060,13 @@ exports.getAdsterraStatsFromDB =
         )
           .sort({
             date: -1,
+            updatedAt: -1,
+            createdAt: -1,
           })
           .skip(skip)
           .limit(perPage)
-          .lean();
+          .lean()
+          .exec();
 
       // =================================================
       // FORMAT OVERALL DATA
@@ -1114,7 +1132,7 @@ exports.getAdsterraStatsFromDB =
               },
             },
           },
-        ]);
+        ]).exec();
 
       const overallTotals =
         overallTotalsAgg[0] || {
@@ -1128,12 +1146,17 @@ exports.getAdsterraStatsFromDB =
       // =================================================
 
       const overallCtr =
-        overallTotals.totalImpressions >
-          0
+        Number(
+          overallTotals.totalImpressions
+        ) > 0
           ? (
-              overallTotals.totalClicks /
+            Number(
+              overallTotals.totalClicks
+            ) /
+            Number(
               overallTotals.totalImpressions
-            ) * 100
+            )
+          ) * 100
           : 0;
 
       // =================================================
@@ -1141,12 +1164,17 @@ exports.getAdsterraStatsFromDB =
       // =================================================
 
       const overallCpm =
-        overallTotals.totalImpressions >
-          0
+        Number(
+          overallTotals.totalImpressions
+        ) > 0
           ? (
-              overallTotals.totalRevenue /
+            Number(
+              overallTotals.totalRevenue
+            ) /
+            Number(
               overallTotals.totalImpressions
-            ) * 1000
+            )
+          ) * 1000
           : 0;
 
       // =================================================
@@ -1156,7 +1184,7 @@ exports.getAdsterraStatsFromDB =
       const totalRecords =
         await AdsterraStats.countDocuments(
           overallFilter
-        );
+        ).exec();
 
       // =================================================
       // COUNTRY FILTER
@@ -1200,8 +1228,11 @@ exports.getAdsterraStatsFromDB =
         )
           .sort({
             date: -1,
+            updatedAt: -1,
+            createdAt: -1,
           })
-          .lean();
+          .lean()
+          .exec();
 
       // =================================================
       // FORMAT COUNTRY DATA
@@ -1212,7 +1243,11 @@ exports.getAdsterraStatsFromDB =
 
       for (const doc of countryDocs) {
         const stats =
-          doc.stats || [];
+          Array.isArray(
+            doc.stats
+          )
+            ? doc.stats
+            : [];
 
         for (const item of stats) {
           // =============================================
@@ -1224,9 +1259,9 @@ exports.getAdsterraStatsFromDB =
             String(
               item.country
             ).toUpperCase() !==
-              String(
-                country
-              ).toUpperCase()
+            String(
+              country
+            ).toUpperCase()
           ) {
             continue;
           }
@@ -1240,9 +1275,9 @@ exports.getAdsterraStatsFromDB =
             String(
               item.placement
             ) !==
-              String(
-                placement
-              )
+            String(
+              placement
+            )
           ) {
             continue;
           }
@@ -1294,6 +1329,21 @@ exports.getAdsterraStatsFromDB =
       }
 
       // =================================================
+      // SORT COUNTRY DATA LATEST FIRST
+      // =================================================
+
+      finalCountryData.sort(
+        (a, b) => {
+          return (
+            new Date(
+              b.date
+            ) -
+            new Date(a.date)
+          );
+        }
+      );
+
+      // =================================================
       // COUNTRY TOTALS
       // =================================================
 
@@ -1306,28 +1356,34 @@ exports.getAdsterraStatsFromDB =
       for (const item of finalCountryData) {
         countryTotals.totalImpressions =
           fixed6(
-            countryTotals.totalImpressions +
-              Number(
-                item.impressions ||
-                  0
-              )
+            Number(
+              countryTotals.totalImpressions
+            ) +
+            Number(
+              item.impressions ||
+              0
+            )
           );
 
         countryTotals.totalClicks =
           fixed6(
-            countryTotals.totalClicks +
-              Number(
-                item.clicks || 0
-              )
+            Number(
+              countryTotals.totalClicks
+            ) +
+            Number(
+              item.clicks || 0
+            )
           );
 
         countryTotals.totalRevenue =
           fixed6(
-            countryTotals.totalRevenue +
-              Number(
-                item.revenue ||
-                  0
-              )
+            Number(
+              countryTotals.totalRevenue
+            ) +
+            Number(
+              item.revenue ||
+              0
+            )
           );
       }
 
@@ -1336,12 +1392,17 @@ exports.getAdsterraStatsFromDB =
       // =================================================
 
       const countryCtr =
-        countryTotals.totalImpressions >
-          0
+        Number(
+          countryTotals.totalImpressions
+        ) > 0
           ? (
-              countryTotals.totalClicks /
+            Number(
+              countryTotals.totalClicks
+            ) /
+            Number(
               countryTotals.totalImpressions
-            ) * 100
+            )
+          ) * 100
           : 0;
 
       // =================================================
@@ -1349,12 +1410,17 @@ exports.getAdsterraStatsFromDB =
       // =================================================
 
       const countryCpm =
-        countryTotals.totalImpressions >
-          0
+        Number(
+          countryTotals.totalImpressions
+        ) > 0
           ? (
-              countryTotals.totalRevenue /
+            Number(
+              countryTotals.totalRevenue
+            ) /
+            Number(
               countryTotals.totalImpressions
-            ) * 1000
+            )
+          ) * 1000
           : 0;
 
       // =================================================
@@ -1363,6 +1429,9 @@ exports.getAdsterraStatsFromDB =
 
       return res.status(200).json({
         success: true,
+
+        serverTime:
+          new Date(),
 
         filters: {
           placement:
@@ -1388,7 +1457,7 @@ exports.getAdsterraStatsFromDB =
           totalPages:
             Math.ceil(
               totalRecords /
-                perPage
+              perPage
             ),
 
           totalRecords,
@@ -1478,5 +1547,3 @@ exports.getAdsterraStatsFromDB =
       });
     }
   };
-
-
