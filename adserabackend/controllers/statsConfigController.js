@@ -29,7 +29,7 @@ exports.saveStatsConfig = async (
         message:
           "impressionPercent and cpmPercent are required",
       });
-    }
+    } 
 
     // ==================================================
     // FIND EXISTING
