@@ -2,10 +2,13 @@ const axios = require("axios");
 const mongoose = require("mongoose");
 const UAParser = require("ua-parser-js");
 const SmartLink = require("../models/SmartLink");
-const AdsterraStats = require("../models/AdsterraStats");
+const AdsterraStats = require("../models/CalculatedAdsterraStats");
 const SmartLinkStats = require("../models/SmartLinkStats");
 const User = require("../models/authmodel");
 const Config = require("../models/Config");
+const StatsConfig =
+    require("../models/StatsConfig");
+
 
 
 

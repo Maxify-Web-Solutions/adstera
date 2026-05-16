@@ -129,10 +129,10 @@ const totalRevenue = Number(user?.revenue || 0);
     method === "crypto"
       ? totalRevenue < 5
         ? "bg-gradient-to-br from-[#2a0f12] via-[#451218] to-[#66161d] border-red-500/30"
-        : totalRevenue < 10
+        : totalRevenue < 25
           ? "bg-gradient-to-br from-[#2d2208] via-[#4a350a] to-[#6a4a0d] border-yellow-500/30"
           : "bg-gradient-to-br from-[#071f17] via-[#0b3528] to-[#11553f] border-emerald-500/30"
-      : totalRevenue < 10
+      : totalRevenue < 25
         ? "bg-gradient-to-br from-[#2a0f12] via-[#451218] to-[#66161d] border-red-500/30"
         : totalRevenue < 25
           ? "bg-gradient-to-br from-[#2d2208] via-[#4a350a] to-[#6a4a0d] border-yellow-500/30"
@@ -160,10 +160,10 @@ const totalRevenue = Number(user?.revenue || 0);
             method === "crypto"
               ? totalRevenue < 5
                 ? "bg-red-400"
-                : totalRevenue < 10
+                : totalRevenue < 25
                   ? "bg-yellow-300"
                   : "bg-emerald-400"
-              : totalRevenue < 10
+              : totalRevenue < 25
                 ? "bg-red-400"
                 : totalRevenue < 25
                   ? "bg-yellow-300"
@@ -187,8 +187,8 @@ const totalRevenue = Number(user?.revenue || 0);
 
           totalRevenue < 5 ? (
             "Your balance is critically low for crypto withdrawals. Add more earnings to continue securely."
-          ) : totalRevenue < 10 ? (
-            "You are close to the minimum crypto withdrawal threshold of $10."
+          ) : totalRevenue < 20 ? (
+            "You are close to the minimum crypto withdrawal threshold of $25."
           ) : (
             "Your account balance is eligible for secure crypto withdrawal processing."
           )
@@ -212,7 +212,7 @@ const totalRevenue = Number(user?.revenue || 0);
 
         <div className="px-4 py-2 rounded-full bg-white/10 border border-white/10 backdrop-blur-xl text-sm text-white/90">
           {method === "crypto"
-            ? "Minimum: $10"
+            ? "Minimum: $25"
             : "Minimum: $25"}
         </div>
 
@@ -232,10 +232,10 @@ const totalRevenue = Number(user?.revenue || 0);
         method === "crypto"
           ? totalRevenue < 5
             ? "bg-red-500/10 border-red-400/20"
-            : totalRevenue < 10
+            : totalRevenue < 25
               ? "bg-yellow-400/10 border-yellow-300/20"
               : "bg-emerald-400/10 border-emerald-300/20"
-          : totalRevenue < 10
+          : totalRevenue < 25
             ? "bg-red-500/10 border-red-400/20"
             : totalRevenue < 25
               ? "bg-yellow-400/10 border-yellow-300/20"
@@ -252,10 +252,10 @@ const totalRevenue = Number(user?.revenue || 0);
         {method === "crypto"
           ? totalRevenue < 5
             ? "Low Balance"
-            : totalRevenue < 10
+            : totalRevenue < 25
               ? "Insufficient"
               : "Eligible"
-          : totalRevenue < 10
+          : totalRevenue < 25
             ? "Low Balance"
             : totalRevenue < 25
               ? "Insufficient"
@@ -272,10 +272,10 @@ const totalRevenue = Number(user?.revenue || 0);
             method === "crypto"
               ? totalRevenue < 5
                 ? "bg-red-400 w-[25%]"
-                : totalRevenue < 10
+                : totalRevenue < 25
                   ? "bg-yellow-300 w-[70%]"
                   : "bg-emerald-400 w-full"
-              : totalRevenue < 10
+              : totalRevenue < 25
                 ? "bg-red-400 w-[25%]"
                 : totalRevenue < 25
                   ? "bg-yellow-300 w-[70%]"
