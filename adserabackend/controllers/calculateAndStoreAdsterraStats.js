@@ -1,21 +1,21 @@
 const RawAdsterraStats =
-    require("../models/RawAdsterraStats");
+  require("../models/RawAdsterraStats");
 
 const RawsmartLinkStats =
-    require("../models/RawSmartLinkStats");
+  require("../models/RawSmartLinkStats");
 
 const CalculatedAdsterraStats =
-    require(
-        "../models/CalculatedAdsterraStats"
-    );
+  require(
+    "../models/CalculatedAdsterraStats"
+  );
 const CalculatedSmartLinkStats =
-    require(
-        "../models/CalculatedSmartLinkStats"
-    );
+  require(
+    "../models/CalculatedSmartLinkStats"
+  );
 const StatsConfig =
-    require("../models/StatsConfig");
-    const User = require("../models/authmodel");
-    const mongoose = require("mongoose");
+  require("../models/StatsConfig");
+const User = require("../models/authmodel");
+const mongoose = require("mongoose");
 
 
 
@@ -98,10 +98,10 @@ const calculateAndStoreAdsterraStats =
 
       const oldDate = new Date();
 
-      oldDate.setDate(
-        oldDate.getDate() - 15
+      oldDate.setMonth(
+        oldDate.getMonth() - 3
       );
-
+      
       const defaultStartDate =
         normalizeDate(oldDate);
 
@@ -220,7 +220,7 @@ const calculateAndStoreAdsterraStats =
                   ) *
                     Number(
                       statsConfig.impressionPercent ||
-                        0
+                      0
                     )) /
                   100
                 );
@@ -233,7 +233,7 @@ const calculateAndStoreAdsterraStats =
                   ) *
                     Number(
                       statsConfig.cpmPercent ||
-                        0
+                      0
                     )) /
                   100
                 );
@@ -256,16 +256,16 @@ const calculateAndStoreAdsterraStats =
                   finalImpressions
                 ) > 0
                   ? Number(
-                      (
-                        (Number(
-                          item.clicks || 0
-                        ) /
-                          Number(
-                            finalImpressions
-                          )) *
-                        100
-                      ).toFixed(2)
-                    )
+                    (
+                      (Number(
+                        item.clicks || 0
+                      ) /
+                        Number(
+                          finalImpressions
+                        )) *
+                      100
+                    ).toFixed(2)
+                  )
                   : 0;
 
               // =========================================
@@ -329,7 +329,7 @@ const calculateAndStoreAdsterraStats =
                     country:
                       String(
                         item.country ||
-                          "ALL"
+                        "ALL"
                       ),
 
                     date: String(
@@ -356,7 +356,7 @@ const calculateAndStoreAdsterraStats =
                       country:
                         String(
                           item.country ||
-                            "ALL"
+                          "ALL"
                         ),
 
                       date: String(
@@ -419,13 +419,13 @@ const calculateAndStoreAdsterraStats =
                       impressionPercent:
                         Number(
                           statsConfig.impressionPercent ||
-                            0
+                          0
                         ),
 
                       cpmPercent:
                         Number(
                           statsConfig.cpmPercent ||
-                            0
+                          0
                         ),
                     },
                   },
@@ -636,172 +636,172 @@ const calculateAndStoreAdsterraStats =
 
 
 const calculateAndStoreSmartLinkStats =
-    async () => {
-        try {
-            // ============================================
-            // GET CONFIG
-            // ============================================
+  async () => {
+    try {
+      // ============================================
+      // GET CONFIG
+      // ============================================
 
-            let config =
-                await StatsConfig.findOne();
+      let config =
+        await StatsConfig.findOne();
 
-            if (!config) {
-                config =
-                    await StatsConfig.create({
-                        impressionPercent: 10,
+      if (!config) {
+        config =
+          await StatsConfig.create({
+            impressionPercent: 10,
 
-                        cpmPercent: 40,
-                    });
-            }
+            cpmPercent: 40,
+          });
+      }
 
-            // ============================================
-            // GET RAW DATA
-            // ============================================
+      // ============================================
+      // GET RAW DATA
+      // ============================================
 
-            const rawStats =
-                await RawsmartLinkStats.find();
+      const rawStats =
+        await RawsmartLinkStats.find();
 
-            // ============================================
-            // LOOP DOCS
-            // ============================================
+      // ============================================
+      // LOOP DOCS
+      // ============================================
 
-            for (const rawDoc of rawStats) {
-                const calculatedStats = [];
+      for (const rawDoc of rawStats) {
+        const calculatedStats = [];
 
-                // ============================================
-                // LOOP STATS ARRAY
-                // ============================================
+        // ============================================
+        // LOOP STATS ARRAY
+        // ============================================
 
-                for (const item of rawDoc.stats) {
-                    // ============================================
-                    // APPLY %
-                    // ============================================
+        for (const item of rawDoc.stats) {
+          // ============================================
+          // APPLY %
+          // ============================================
 
-                    const finalImpressions =
-                        item.impressions -
-                        (item.impressions *
-                            config.impressionPercent) /
-                        100;
+          const finalImpressions =
+            item.impressions -
+            (item.impressions *
+              config.impressionPercent) /
+            100;
 
-                    const finalCpm =
-                        item.cpm -
-                        (item.cpm *
-                            config.cpmPercent) /
-                        100;
+          const finalCpm =
+            item.cpm -
+            (item.cpm *
+              config.cpmPercent) /
+            100;
 
-                    // ============================================
-                    // REVENUE
-                    // ============================================
+          // ============================================
+          // REVENUE
+          // ============================================
 
-                    const finalRevenue =
-                        (finalImpressions / 1000) *
-                        finalCpm;
+          const finalRevenue =
+            (finalImpressions / 1000) *
+            finalCpm;
 
-                    // ============================================
-                    // PUSH FINAL DATA
-                    // ============================================
+          // ============================================
+          // PUSH FINAL DATA
+          // ============================================
 
-                    calculatedStats.push({
-                        placement:
-                            item.placement,
+          calculatedStats.push({
+            placement:
+              item.placement,
 
-                        domain: item.domain,
+            domain: item.domain,
 
-                        country:
-                            item.country,
+            country:
+              item.country,
 
-                        date: item.date,
+            date: item.date,
 
-                        clicks: item.clicks,
+            clicks: item.clicks,
 
-                        ctr: item.ctr,
+            ctr: item.ctr,
 
-                        impressions:
-                            Math.floor(
-                                finalImpressions
-                            ),
+            impressions:
+              Math.floor(
+                finalImpressions
+              ),
 
-                        cpm: Number(
-                            finalCpm.toFixed(3)
-                        ),
+            cpm: Number(
+              finalCpm.toFixed(3)
+            ),
 
-                        revenue: Number(
-                            finalRevenue.toFixed(2)
-                        ),
+            revenue: Number(
+              finalRevenue.toFixed(2)
+            ),
 
-                        impressionPercent:
-                            config.impressionPercent,
+            impressionPercent:
+              config.impressionPercent,
 
-                        cpmPercent:
-                            config.cpmPercent,
-                    });
-                }
-
-                // ============================================
-                // CHECK EXISTING
-                // ============================================
-
-                const existing =
-                    await CalculatedSmartLinkStats.findOne(
-                        {
-                            userId:
-                                rawDoc.userId,
-
-                            device:
-                                rawDoc.device,
-
-                            date: rawDoc.date,
-                        }
-                    );
-
-                // ============================================
-                // FINAL DOC
-                // ============================================
-
-                const finalDoc = {
-                    userId: rawDoc.userId,
-
-                    device: rawDoc.device,
-
-                    osName: rawDoc.osName,
-
-                    browserName:
-                        rawDoc.browserName,
-
-                    date: rawDoc.date,
-
-                    stats: calculatedStats,
-                };
-
-                // ============================================
-                // UPDATE / CREATE
-                // ============================================
-
-                if (existing) {
-                    await CalculatedSmartLinkStats.findByIdAndUpdate(
-                        existing._id,
-                        finalDoc,
-                        {
-                            new: true,
-                        }
-                    );
-                } else {
-                    await CalculatedSmartLinkStats.create(
-                        finalDoc
-                    );
-                }
-            }
-
-            console.log(
-                "Calculated SmartLink stats stored successfully"
-            );
-        } catch (error) {
-            console.log(error);
+            cpmPercent:
+              config.cpmPercent,
+          });
         }
-    };
+
+        // ============================================
+        // CHECK EXISTING
+        // ============================================
+
+        const existing =
+          await CalculatedSmartLinkStats.findOne(
+            {
+              userId:
+                rawDoc.userId,
+
+              device:
+                rawDoc.device,
+
+              date: rawDoc.date,
+            }
+          );
+
+        // ============================================
+        // FINAL DOC
+        // ============================================
+
+        const finalDoc = {
+          userId: rawDoc.userId,
+
+          device: rawDoc.device,
+
+          osName: rawDoc.osName,
+
+          browserName:
+            rawDoc.browserName,
+
+          date: rawDoc.date,
+
+          stats: calculatedStats,
+        };
+
+        // ============================================
+        // UPDATE / CREATE
+        // ============================================
+
+        if (existing) {
+          await CalculatedSmartLinkStats.findByIdAndUpdate(
+            existing._id,
+            finalDoc,
+            {
+              new: true,
+            }
+          );
+        } else {
+          await CalculatedSmartLinkStats.create(
+            finalDoc
+          );
+        }
+      }
+
+      console.log(
+        "Calculated SmartLink stats stored successfully"
+      );
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
 
 module.exports = {
-    calculateAndStoreAdsterraStats,
-    calculateAndStoreSmartLinkStats,
+  calculateAndStoreAdsterraStats,
+  calculateAndStoreSmartLinkStats,
 };

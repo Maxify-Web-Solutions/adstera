@@ -42,7 +42,6 @@ function App() {
   useEffect(() => {
     dispatch(getUser());
     dispatch(fetchPlacements())
-    dispatch(fetchAdsterraStats());
 
   }, [dispatch]);
 
