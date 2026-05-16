@@ -945,6 +945,17 @@ exports.getAdsterraStatsFromDB =
       }
 
       // =================================================
+      // FIXED 6 DECIMAL HELPER
+      // =================================================
+
+      const fixed6 = (value) =>
+        Number(
+          Number(
+            value || 0
+          ).toFixed(6)
+        );
+
+      // =================================================
       // DATE HELPER
       // =================================================
 
@@ -1028,7 +1039,7 @@ exports.getAdsterraStatsFromDB =
       // GET OVERALL DATA
       // =================================================
 
-      const overallStats =
+      const overallStatsRaw =
         await AdsterraStats.find(
           overallFilter
         )
@@ -1038,6 +1049,38 @@ exports.getAdsterraStatsFromDB =
           .skip(skip)
           .limit(perPage)
           .lean();
+
+      // =================================================
+      // FORMAT OVERALL DATA
+      // =================================================
+
+      const overallStats =
+        overallStatsRaw.map(
+          (item) => ({
+            ...item,
+
+            impressions:
+              fixed6(
+                item.impressions
+              ),
+
+            clicks:
+              fixed6(
+                item.clicks
+              ),
+
+            revenue:
+              fixed6(
+                item.revenue
+              ),
+
+            cpm:
+              fixed6(item.cpm),
+
+            ctr:
+              fixed6(item.ctr),
+          })
+        );
 
       // =================================================
       // OVERALL TOTALS
@@ -1087,9 +1130,10 @@ exports.getAdsterraStatsFromDB =
       const overallCtr =
         overallTotals.totalImpressions >
           0
-          ? (overallTotals.totalClicks /
-            overallTotals.totalImpressions) *
-          100
+          ? (
+              overallTotals.totalClicks /
+              overallTotals.totalImpressions
+            ) * 100
           : 0;
 
       // =================================================
@@ -1099,9 +1143,10 @@ exports.getAdsterraStatsFromDB =
       const overallCpm =
         overallTotals.totalImpressions >
           0
-          ? (overallTotals.totalRevenue /
-            overallTotals.totalImpressions) *
-          1000
+          ? (
+              overallTotals.totalRevenue /
+              overallTotals.totalImpressions
+            ) * 1000
           : 0;
 
       // =================================================
@@ -1166,12 +1211,10 @@ exports.getAdsterraStatsFromDB =
         [];
 
       for (const doc of countryDocs) {
-
         const stats =
           doc.stats || [];
 
         for (const item of stats) {
-
           // =============================================
           // COUNTRY SEARCH
           // =============================================
@@ -1181,9 +1224,9 @@ exports.getAdsterraStatsFromDB =
             String(
               item.country
             ).toUpperCase() !==
-            String(
-              country
-            ).toUpperCase()
+              String(
+                country
+              ).toUpperCase()
           ) {
             continue;
           }
@@ -1197,9 +1240,9 @@ exports.getAdsterraStatsFromDB =
             String(
               item.placement
             ) !==
-            String(
-              placement
-            )
+              String(
+                placement
+              )
           ) {
             continue;
           }
@@ -1227,35 +1270,24 @@ exports.getAdsterraStatsFromDB =
               doc.browserName,
 
             impressions:
-              Number(
-                item.impressions ||
-                0
+              fixed6(
+                item.impressions
               ),
 
             clicks:
-              Number(
-                item.clicks ||
-                0
+              fixed6(
+                item.clicks
               ),
 
             ctr:
-              Number(
-                item.ctr || 0
-              ),
+              fixed6(item.ctr),
 
             cpm:
-              Number(
-                (
-                  item.cpm || 0
-                ).toFixed(6)
-              ),
+              fixed6(item.cpm),
 
             revenue:
-              Number(
-                (
-                  item.revenue ||
-                  0
-                ).toFixed(6)
+              fixed6(
+                item.revenue
               ),
           });
         }
@@ -1272,20 +1304,30 @@ exports.getAdsterraStatsFromDB =
       };
 
       for (const item of finalCountryData) {
-
-        countryTotals.totalImpressions +=
-          Number(
-            item.impressions || 0
+        countryTotals.totalImpressions =
+          fixed6(
+            countryTotals.totalImpressions +
+              Number(
+                item.impressions ||
+                  0
+              )
           );
 
-        countryTotals.totalClicks +=
-          Number(
-            item.clicks || 0
+        countryTotals.totalClicks =
+          fixed6(
+            countryTotals.totalClicks +
+              Number(
+                item.clicks || 0
+              )
           );
 
-        countryTotals.totalRevenue +=
-          Number(
-            item.revenue || 0
+        countryTotals.totalRevenue =
+          fixed6(
+            countryTotals.totalRevenue +
+              Number(
+                item.revenue ||
+                  0
+              )
           );
       }
 
@@ -1296,9 +1338,10 @@ exports.getAdsterraStatsFromDB =
       const countryCtr =
         countryTotals.totalImpressions >
           0
-          ? (countryTotals.totalClicks /
-            countryTotals.totalImpressions) *
-          100
+          ? (
+              countryTotals.totalClicks /
+              countryTotals.totalImpressions
+            ) * 100
           : 0;
 
       // =================================================
@@ -1308,9 +1351,10 @@ exports.getAdsterraStatsFromDB =
       const countryCpm =
         countryTotals.totalImpressions >
           0
-          ? (countryTotals.totalRevenue /
-            countryTotals.totalImpressions) *
-          1000
+          ? (
+              countryTotals.totalRevenue /
+              countryTotals.totalImpressions
+            ) * 1000
           : 0;
 
       // =================================================
@@ -1344,7 +1388,7 @@ exports.getAdsterraStatsFromDB =
           totalPages:
             Math.ceil(
               totalRecords /
-              perPage
+                perPage
             ),
 
           totalRecords,
@@ -1353,37 +1397,28 @@ exports.getAdsterraStatsFromDB =
         overall: {
           totals: {
             totalImpressions:
-              Number(
-                overallTotals.totalImpressions ||
-                0
+              fixed6(
+                overallTotals.totalImpressions
               ),
 
             totalClicks:
-              Number(
-                overallTotals.totalClicks ||
-                0
+              fixed6(
+                overallTotals.totalClicks
               ),
 
             totalRevenue:
-              Number(
-                (
-                  overallTotals.totalRevenue ||
-                  0
-                ).toFixed(6)
+              fixed6(
+                overallTotals.totalRevenue
               ),
 
             ctr:
-              Number(
-                overallCtr.toFixed(
-                  2
-                )
+              fixed6(
+                overallCtr
               ),
 
             cpm:
-              Number(
-                overallCpm.toFixed(
-                  6
-                )
+              fixed6(
+                overallCpm
               ),
           },
 
@@ -1394,37 +1429,28 @@ exports.getAdsterraStatsFromDB =
         country: {
           totals: {
             totalImpressions:
-              Number(
-                countryTotals.totalImpressions ||
-                0
+              fixed6(
+                countryTotals.totalImpressions
               ),
 
             totalClicks:
-              Number(
-                countryTotals.totalClicks ||
-                0
+              fixed6(
+                countryTotals.totalClicks
               ),
 
             totalRevenue:
-              Number(
-                (
-                  countryTotals.totalRevenue ||
-                  0
-                ).toFixed(6)
+              fixed6(
+                countryTotals.totalRevenue
               ),
 
             ctr:
-              Number(
-                countryCtr.toFixed(
-                  2
-                )
+              fixed6(
+                countryCtr
               ),
 
             cpm:
-              Number(
-                countryCpm.toFixed(
-                  6
-                )
+              fixed6(
+                countryCpm
               ),
           },
 
