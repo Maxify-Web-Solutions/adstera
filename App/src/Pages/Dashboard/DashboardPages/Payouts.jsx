@@ -32,12 +32,12 @@ const Payouts = () => {
   const dispatch = useDispatch();
 
   const { user } = useSelector(
-  (state) => state.auth
-);
+    (state) => state.auth
+  );
 
 
 
-const totalRevenue = Number(user?.revenue || 0);
+  const totalRevenue = Number(user?.revenue || 0);
 
   const {
     withdrawals = [],
@@ -105,145 +105,160 @@ const totalRevenue = Number(user?.revenue || 0);
 
 
   /* ================= STATUS COLOR ================= */
- const balanceStatus =
-  totalRevenue < 10
-    ? "low"
-    : totalRevenue < 25
-      ? "warning"
-      : "eligible";
+  /* ================= STATUS COLOR ================= */
+  const balanceStatus =
+    totalRevenue < 10
+      ? "low"
+      : totalRevenue < 25
+        ? "warning"
+        : "eligible";
 
+  const getStatusColor = (status) => {
+
+    switch (status?.toLowerCase()) {
+
+      case "pending":
+        return "text-yellow-500";
+
+      case "approved":
+      case "completed":
+      case "success":
+        return "text-green-500";
+
+      case "rejected":
+      case "failed":
+        return "text-red-500";
+
+      default:
+        return "text-gray-500";
+    }
+
+  };
 
   return (
     <div className="max-w-7xl mx-auto space-y-10">
 
-<div
-  className={`relative overflow-hidden rounded-[28px] p-6 md:p-8 border shadow-2xl transition-all duration-500
+      <div
+        className={`relative overflow-hidden rounded-[28px] p-6 md:p-8 border shadow-2xl transition-all duration-500
 
-  ${
-    balanceStatus === "low"
-      ? "bg-gradient-to-br from-[#2a0f12] via-[#451218] to-[#66161d] border-red-500/30"
-      : balanceStatus === "warning"
-        ? "bg-gradient-to-br from-[#2d2208] via-[#4a350a] to-[#6a4a0d] border-yellow-500/30"
-        : "bg-gradient-to-br from-[#071f17] via-[#0b3528] to-[#11553f] border-emerald-500/30"
-  }`}
->
-  {/* Glow Effects */}
-  <div className="absolute -top-20 -right-20 w-72 h-72 bg-white/10 blur-3xl rounded-full"></div>
-
-  <div className="absolute bottom-0 left-0 w-56 h-56 bg-black/10 blur-3xl rounded-full"></div>
-
-  {/* Content */}
-  <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-8">
-
-    {/* LEFT */}
-    <div>
-
-      <div className="flex items-center gap-3 mb-4">
-
-        <div
-          className={`w-3 h-3 rounded-full animate-pulse
-
-          ${
-            balanceStatus === "low"
-              ? "bg-red-400"
-              : balanceStatus === "warning"
-                ? "bg-yellow-300"
-                : "bg-emerald-400"
-          }`}
-        />
-
-        <span className="uppercase tracking-[0.25em] text-xs font-semibold text-white/70">
-          Withdrawal Balance
-        </span>
-
-      </div>
-
-      <h2 className="text-5xl md:text-6xl font-black text-white tracking-tight">
-        ${user.revenue.toFixed(2)}
-      </h2>
-
-      <p className="mt-4 text-sm md:text-base text-white/70 leading-relaxed max-w-xl">
-
-        {
-          balanceStatus === "low"
-            ? `Your balance is critically low for ${
-                method === "crypto" ? "crypto" : "bank"
-              } withdrawals.`
+  ${balanceStatus === "low"
+            ? "bg-gradient-to-br from-[#2a0f12] via-[#451218] to-[#66161d] border-red-500/30"
             : balanceStatus === "warning"
-              ? `You are close to the minimum ${
-                  method === "crypto" ? "crypto" : "bank"
-                } withdrawal threshold of $25.`
-              : `Your account balance is eligible for secure ${
-                  method === "crypto" ? "crypto" : "bank"
-                } withdrawal processing.`
-        }
-
-      </p>
-
-      {/* Bottom Pills */}
-      <div className="flex flex-wrap gap-3 mt-6">
-
-        <div className="px-4 py-2 rounded-full bg-white/10 border border-white/10 backdrop-blur-xl text-sm text-white/90">
-          Minimum: $25
-        </div>
-
-        <div className="px-4 py-2 rounded-full bg-white/10 border border-white/10 backdrop-blur-xl text-sm text-white/90">
-          Secure & Verified
-        </div>
-
-      </div>
-
-    </div>
-
-    {/* RIGHT STATUS CARD */}
-    <div
-      className={`min-w-[180px] rounded-3xl p-5 backdrop-blur-2xl border shadow-xl
-
-      ${
-        balanceStatus === "low"
-          ? "bg-red-500/10 border-red-400/20"
-          : balanceStatus === "warning"
-            ? "bg-yellow-400/10 border-yellow-300/20"
-            : "bg-emerald-400/10 border-emerald-300/20"
-      }`}
-    >
-
-      <p className="text-xs uppercase tracking-[0.2em] text-white/60 mb-3">
-        Status
-      </p>
-
-      <h3 className="text-2xl font-bold text-white">
-
-        {
-          balanceStatus === "low"
-            ? "Low Balance"
-            : balanceStatus === "warning"
-              ? "Insufficient"
-              : "Eligible"
-        }
-
-      </h3>
-
-      <div className="mt-5 h-2 rounded-full bg-white/10 overflow-hidden">
-
-        <div
-          className={`h-full rounded-full transition-all duration-700
-
-          ${
-            balanceStatus === "low"
-              ? "bg-red-400 w-[25%]"
-              : balanceStatus === "warning"
-                ? "bg-yellow-300 w-[70%]"
-                : "bg-emerald-400 w-full"
+              ? "bg-gradient-to-br from-[#2d2208] via-[#4a350a] to-[#6a4a0d] border-yellow-500/30"
+              : "bg-gradient-to-br from-[#071f17] via-[#0b3528] to-[#11553f] border-emerald-500/30"
           }`}
-        />
+      >
+        {/* Glow Effects */}
+        <div className="absolute -top-20 -right-20 w-72 h-72 bg-white/10 blur-3xl rounded-full"></div>
 
+        <div className="absolute bottom-0 left-0 w-56 h-56 bg-black/10 blur-3xl rounded-full"></div>
+
+        {/* Content */}
+        <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-8">
+
+          {/* LEFT */}
+          <div>
+
+            <div className="flex items-center gap-3 mb-4">
+
+              <div
+                className={`w-3 h-3 rounded-full animate-pulse
+
+          ${balanceStatus === "low"
+                    ? "bg-red-400"
+                    : balanceStatus === "warning"
+                      ? "bg-yellow-300"
+                      : "bg-emerald-400"
+                  }`}
+              />
+
+              <span className="uppercase tracking-[0.25em] text-xs font-semibold text-white/70">
+                Withdrawal Balance
+              </span>
+
+            </div>
+
+            <h2 className="text-5xl md:text-6xl font-black text-white tracking-tight">
+              ${user.revenue.toFixed(2)}
+            </h2>
+
+            <p className="mt-4 text-sm md:text-base text-white/70 leading-relaxed max-w-xl">
+
+              {
+                balanceStatus === "low"
+                  ? `Your balance is critically low for ${method === "crypto" ? "crypto" : "bank"
+                  } withdrawals.`
+                  : balanceStatus === "warning"
+                    ? `You are close to the minimum ${method === "crypto" ? "crypto" : "bank"
+                    } withdrawal threshold of $25.`
+                    : `Your account balance is eligible for secure ${method === "crypto" ? "crypto" : "bank"
+                    } withdrawal processing.`
+              }
+
+            </p>
+
+            {/* Bottom Pills */}
+            <div className="flex flex-wrap gap-3 mt-6">
+
+              <div className="px-4 py-2 rounded-full bg-white/10 border border-white/10 backdrop-blur-xl text-sm text-white/90">
+                Minimum: $25
+              </div>
+
+              <div className="px-4 py-2 rounded-full bg-white/10 border border-white/10 backdrop-blur-xl text-sm text-white/90">
+                Secure & Verified
+              </div>
+
+            </div>
+
+          </div>
+
+          {/* RIGHT STATUS CARD */}
+          <div
+            className={`min-w-[180px] rounded-3xl p-5 backdrop-blur-2xl border shadow-xl
+
+      ${balanceStatus === "low"
+                ? "bg-red-500/10 border-red-400/20"
+                : balanceStatus === "warning"
+                  ? "bg-yellow-400/10 border-yellow-300/20"
+                  : "bg-emerald-400/10 border-emerald-300/20"
+              }`}
+          >
+
+            <p className="text-xs uppercase tracking-[0.2em] text-white/60 mb-3">
+              Status
+            </p>
+
+            <h3 className="text-2xl font-bold text-white">
+
+              {
+                balanceStatus === "low"
+                  ? "Low Balance"
+                  : balanceStatus === "warning"
+                    ? "Insufficient"
+                    : "Eligible"
+              }
+
+            </h3>
+
+            <div className="mt-5 h-2 rounded-full bg-white/10 overflow-hidden">
+
+              <div
+                className={`h-full rounded-full transition-all duration-700
+
+          ${balanceStatus === "low"
+                    ? "bg-red-400 w-[25%]"
+                    : balanceStatus === "warning"
+                      ? "bg-yellow-300 w-[70%]"
+                      : "bg-emerald-400 w-full"
+                  }`}
+              />
+
+            </div>
+
+          </div>
+
+        </div>
       </div>
-
-    </div>
-
-  </div>
-</div>
 
       {/* ================= WITHDRAW ================= */}
       <motion.div
