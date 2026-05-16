@@ -30,7 +30,6 @@ import RedirectPage from "./Pages/RedirectPage";
 import ForgetPassword from "./Pages/Forget-password";
 import { fetchPlacements } from "./redux/slice/adsterraPlacementSlice";
 import SmartlinkStatistics from "./Pages/Dashboard/DashboardPages/SmartlinkStatistics";
-import { fetchAdsterraStats } from "./redux/slice/adsterraStatsSlice";
 import VerifyAndReset from "./Pages/VerifyAndReset";
 import AdsterraRawData from "./Pages/Dashboard/DashboardPages/AdsterraRawData";
 

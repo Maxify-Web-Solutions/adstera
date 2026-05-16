@@ -56,7 +56,7 @@ const Login = () => {
                 }
             });
 
-            navigate("/");
+            navigate("/dashboard");
 
         } else {
 

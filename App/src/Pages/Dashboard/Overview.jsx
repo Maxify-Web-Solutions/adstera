@@ -10,7 +10,6 @@ import {
 } from "react-redux";
 
 import {
-    fetchAdsterraStats,
     getAdsterraStats,
 } from "../../redux/slice/adsterraStatsSlice";
 
@@ -53,9 +52,6 @@ const Overview = () => {
     // =====================================
 
     useEffect(() => {
-        dispatch(
-            fetchAdsterraStats()
-        );
 
         dispatch(
             getAdsterraStats()

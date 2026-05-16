@@ -13,7 +13,6 @@ import {
 import { useLocation } from "react-router-dom";
 
 import {
-  fetchAdsterraStats,
   getAdsterraStats,
 } from "../../../redux/slice/adsterraStatsSlice";
 
