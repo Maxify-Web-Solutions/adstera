@@ -534,7 +534,7 @@ const Payouts = () => {
 
                     {/* AMOUNT */}
                     <td className="p-4 text-gray-900 dark:text-white font-semibold">
-                      ₹{item.amount}
+                      ${item.amount}
                     </td>
 
 
