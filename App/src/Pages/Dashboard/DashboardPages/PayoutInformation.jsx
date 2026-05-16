@@ -15,7 +15,7 @@ const methods = [
   },
   {
     name: "Cryptocurrency",
-    min: "$10.00",
+    min: "$25.00",
     time: "1–3 business days",
     fee: "1.5%",
     currency: "BTC/USDT/ETH",

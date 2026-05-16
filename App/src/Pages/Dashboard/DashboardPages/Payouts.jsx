@@ -105,41 +105,28 @@ const totalRevenue = Number(user?.revenue || 0);
 
 
   /* ================= STATUS COLOR ================= */
-  const getStatusColor = (status) => {
-
-    if (status === "approved") {
-      return "text-green-600 dark:text-green-400";
-    }
-
-    if (status === "rejected") {
-      return "text-red-600 dark:text-red-400";
-    }
-
-    return "text-yellow-600 dark:text-yellow-400";
-  };
+ const balanceStatus =
+  totalRevenue < 10
+    ? "low"
+    : totalRevenue < 25
+      ? "warning"
+      : "eligible";
 
 
   return (
     <div className="max-w-7xl mx-auto space-y-10">
 
-        <div
+<div
   className={`relative overflow-hidden rounded-[28px] p-6 md:p-8 border shadow-2xl transition-all duration-500
 
   ${
-    method === "crypto"
-      ? totalRevenue < 5
-        ? "bg-gradient-to-br from-[#2a0f12] via-[#451218] to-[#66161d] border-red-500/30"
-        : totalRevenue < 25
-          ? "bg-gradient-to-br from-[#2d2208] via-[#4a350a] to-[#6a4a0d] border-yellow-500/30"
-          : "bg-gradient-to-br from-[#071f17] via-[#0b3528] to-[#11553f] border-emerald-500/30"
-      : totalRevenue < 25
-        ? "bg-gradient-to-br from-[#2a0f12] via-[#451218] to-[#66161d] border-red-500/30"
-        : totalRevenue < 25
-          ? "bg-gradient-to-br from-[#2d2208] via-[#4a350a] to-[#6a4a0d] border-yellow-500/30"
-          : "bg-gradient-to-br from-[#071f17] via-[#0b3528] to-[#11553f] border-emerald-500/30"
+    balanceStatus === "low"
+      ? "bg-gradient-to-br from-[#2a0f12] via-[#451218] to-[#66161d] border-red-500/30"
+      : balanceStatus === "warning"
+        ? "bg-gradient-to-br from-[#2d2208] via-[#4a350a] to-[#6a4a0d] border-yellow-500/30"
+        : "bg-gradient-to-br from-[#071f17] via-[#0b3528] to-[#11553f] border-emerald-500/30"
   }`}
 >
-
   {/* Glow Effects */}
   <div className="absolute -top-20 -right-20 w-72 h-72 bg-white/10 blur-3xl rounded-full"></div>
 
@@ -157,17 +144,11 @@ const totalRevenue = Number(user?.revenue || 0);
           className={`w-3 h-3 rounded-full animate-pulse
 
           ${
-            method === "crypto"
-              ? totalRevenue < 5
-                ? "bg-red-400"
-                : totalRevenue < 25
-                  ? "bg-yellow-300"
-                  : "bg-emerald-400"
-              : totalRevenue < 25
-                ? "bg-red-400"
-                : totalRevenue < 25
-                  ? "bg-yellow-300"
-                  : "bg-emerald-400"
+            balanceStatus === "low"
+              ? "bg-red-400"
+              : balanceStatus === "warning"
+                ? "bg-yellow-300"
+                : "bg-emerald-400"
           }`}
         />
 
@@ -183,27 +164,19 @@ const totalRevenue = Number(user?.revenue || 0);
 
       <p className="mt-4 text-sm md:text-base text-white/70 leading-relaxed max-w-xl">
 
-        {method === "crypto" ? (
-
-          totalRevenue < 5 ? (
-            "Your balance is critically low for crypto withdrawals. Add more earnings to continue securely."
-          ) : totalRevenue < 20 ? (
-            "You are close to the minimum crypto withdrawal threshold of $25."
-          ) : (
-            "Your account balance is eligible for secure crypto withdrawal processing."
-          )
-
-        ) : (
-
-          totalRevenue < 10 ? (
-            "Your balance is critically low for bank withdrawals."
-          ) : totalRevenue < 25 ? (
-            "You are close to the minimum bank withdrawal threshold of $25."
-          ) : (
-            "Your account balance is eligible for secure bank transfer processing."
-          )
-
-        )}
+        {
+          balanceStatus === "low"
+            ? `Your balance is critically low for ${
+                method === "crypto" ? "crypto" : "bank"
+              } withdrawals.`
+            : balanceStatus === "warning"
+              ? `You are close to the minimum ${
+                  method === "crypto" ? "crypto" : "bank"
+                } withdrawal threshold of $25.`
+              : `Your account balance is eligible for secure ${
+                  method === "crypto" ? "crypto" : "bank"
+                } withdrawal processing.`
+        }
 
       </p>
 
@@ -211,9 +184,7 @@ const totalRevenue = Number(user?.revenue || 0);
       <div className="flex flex-wrap gap-3 mt-6">
 
         <div className="px-4 py-2 rounded-full bg-white/10 border border-white/10 backdrop-blur-xl text-sm text-white/90">
-          {method === "crypto"
-            ? "Minimum: $25"
-            : "Minimum: $25"}
+          Minimum: $25
         </div>
 
         <div className="px-4 py-2 rounded-full bg-white/10 border border-white/10 backdrop-blur-xl text-sm text-white/90">
@@ -229,17 +200,11 @@ const totalRevenue = Number(user?.revenue || 0);
       className={`min-w-[180px] rounded-3xl p-5 backdrop-blur-2xl border shadow-xl
 
       ${
-        method === "crypto"
-          ? totalRevenue < 5
-            ? "bg-red-500/10 border-red-400/20"
-            : totalRevenue < 25
-              ? "bg-yellow-400/10 border-yellow-300/20"
-              : "bg-emerald-400/10 border-emerald-300/20"
-          : totalRevenue < 25
-            ? "bg-red-500/10 border-red-400/20"
-            : totalRevenue < 25
-              ? "bg-yellow-400/10 border-yellow-300/20"
-              : "bg-emerald-400/10 border-emerald-300/20"
+        balanceStatus === "low"
+          ? "bg-red-500/10 border-red-400/20"
+          : balanceStatus === "warning"
+            ? "bg-yellow-400/10 border-yellow-300/20"
+            : "bg-emerald-400/10 border-emerald-300/20"
       }`}
     >
 
@@ -249,17 +214,13 @@ const totalRevenue = Number(user?.revenue || 0);
 
       <h3 className="text-2xl font-bold text-white">
 
-        {method === "crypto"
-          ? totalRevenue < 5
+        {
+          balanceStatus === "low"
             ? "Low Balance"
-            : totalRevenue < 25
+            : balanceStatus === "warning"
               ? "Insufficient"
               : "Eligible"
-          : totalRevenue < 25
-            ? "Low Balance"
-            : totalRevenue < 25
-              ? "Insufficient"
-              : "Eligible"}
+        }
 
       </h3>
 
@@ -269,17 +230,11 @@ const totalRevenue = Number(user?.revenue || 0);
           className={`h-full rounded-full transition-all duration-700
 
           ${
-            method === "crypto"
-              ? totalRevenue < 5
-                ? "bg-red-400 w-[25%]"
-                : totalRevenue < 25
-                  ? "bg-yellow-300 w-[70%]"
-                  : "bg-emerald-400 w-full"
-              : totalRevenue < 25
-                ? "bg-red-400 w-[25%]"
-                : totalRevenue < 25
-                  ? "bg-yellow-300 w-[70%]"
-                  : "bg-emerald-400 w-full"
+            balanceStatus === "low"
+              ? "bg-red-400 w-[25%]"
+              : balanceStatus === "warning"
+                ? "bg-yellow-300 w-[70%]"
+                : "bg-emerald-400 w-full"
           }`}
         />
 
