@@ -99,7 +99,6 @@ const Statistics = () => {
     (state) => state.adsterra
   );
 
-  console.log(data);
 
   // 📦 SMARTLINK STATE)
 

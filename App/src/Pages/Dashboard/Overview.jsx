@@ -35,7 +35,6 @@ const Overview = () => {
             state.adsterra
     );
 
-    console.log(stats)
 
     const [chartData, setChartData] =
         useState([]);

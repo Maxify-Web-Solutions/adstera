@@ -50,7 +50,6 @@ const Profile = () => {
 
     const handleProfileUpdate = (e) => {
         e.preventDefault();
-        console.log("Updating profile:", formData);
     };
 
     const handleChangePassword = (e) => {
@@ -61,7 +60,6 @@ const Profile = () => {
             return;
         }
 
-        console.log("Change password request");
     };
 
     if (!user) {

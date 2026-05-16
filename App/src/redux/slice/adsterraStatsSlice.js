@@ -42,10 +42,6 @@ export const getAdsterraStats = createAsyncThunk(
                 }
             );
 
-            console.log(
-                "ADSTERRA RESPONSE =>",
-                data
-            );
 
             return data;
         } catch (error) {
