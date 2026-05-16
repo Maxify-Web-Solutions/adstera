@@ -543,18 +543,18 @@ const calculateAndStoreAdsterraStats =
           // FINAL USER REVENUE
           // =============================================
 
-        //   if (userNewRevenue > 0) {
-        //     user.revenue = Number(
-        //       (
-        //         Number(
-        //           user.revenue || 0
-        //         ) +
-        //         Number(
-        //           userNewRevenue
-        //         )
-        //       ).toFixed(6)
-        //     );
-        //   }
+          if (userNewRevenue > 0) {
+            user.revenue = Number(
+              (
+                Number(
+                  user.revenue || 0
+                ) +
+                Number(
+                  userNewRevenue
+                )
+              ).toFixed(6)
+            );
+          }
 
           // =============================================
           // SAVE USER
