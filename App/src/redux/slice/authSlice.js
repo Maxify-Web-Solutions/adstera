@@ -152,10 +152,11 @@ export const logoutUser = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       await api.post("/auth/logout");
-      return true;
+
+      return null;
     } catch (error) {
       return rejectWithValue(
-        error.response?.data?.message || "Logout failed"
+        error?.response?.data?.message || "Logout failed"
       );
     }
   }
@@ -274,12 +275,22 @@ const authSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
+      .addCase(logoutUser.pending, (state) => {
+        state.loading = true;
+      })
 
-      /* ===== LOGOUT ===== */
-      .addCase(logoutUser.fulfilled, (state) => {
-        state.user = null;
-        state.error = null;
-        localStorage.removeItem("user"); // ✅ clear
+    addCase(logoutUser.fulfilled, (state) => {
+      state.loading = false;
+      state.user = null;
+      state.error = null;
+      state.isAuthChecked = false;
+
+      localStorage.removeItem("user");
+    })
+
+      .addCase(logoutUser.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
       });
   },
 });
