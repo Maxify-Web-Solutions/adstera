@@ -22,13 +22,15 @@ const NavItem = ({ to, icon: Icon, label, onClick }) => {
     return (
         <NavLink
             to={to}
+            end
             onClick={onClick}
             className={({ isActive }) =>
                 `flex items-center gap-3 px-4 py-2 rounded-lg transition-all duration-200 relative
-        ${isActive
-                    ? "bg-indigo-100 text-indigo-600 dark:bg-indigo-600/20 dark:text-indigo-400 font-semibold"
-                    : "text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-700"
-                }`
+        ${
+            isActive
+                ? "bg-indigo-100 text-indigo-600 dark:bg-indigo-600/20 dark:text-indigo-400 font-semibold"
+                : "text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-700"
+        }`
             }
         >
             {({ isActive }) => (
@@ -38,7 +40,6 @@ const NavItem = ({ to, icon: Icon, label, onClick }) => {
                     )}
 
                     <Icon size={18} />
-
                     {label}
                 </>
             )}

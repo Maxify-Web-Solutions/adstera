@@ -60,15 +60,13 @@ const DashboardHeader = ({ onMenuClick }) => {
 
                 {/* Logo */}
                 <Link to={"/"} className="flex items-center gap-3">
-                    <img
-                        src="https://i.ibb.co/1fQdkh8S/Adstorx-logo-1-removebg-preview.png"
-                        alt="logo"
-                        className="h-8 w-auto object-contain"
-                    />
+                   <img
+                                src="https://i.ibb.co/gbrn443W/Adstorx-logo.png"
+                                alt="Adstorx Logo"
+                                className="h-11 sm:h-14 md:h-16 w-auto object-contain"
+                            />
 
-                    <h1 className="text-lg md:text-xl font-semibold text-gray-800 dark:text-white">
-                        Statistics
-                    </h1>
+                    
                 </Link>
             </div>
 
