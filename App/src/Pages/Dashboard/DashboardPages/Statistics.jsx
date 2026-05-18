@@ -366,6 +366,9 @@ const Statistics = () => {
   // ====================================
   // GROUP DATA
   // ====================================
+  // ====================================
+  // GROUP DATA
+  // ====================================
   const groupedData = useMemo(() => {
 
     // ====================================
@@ -412,9 +415,6 @@ const Statistics = () => {
       // ====================================
       // CREATE API DATA MAP
       // ====================================
-      // ====================================
-      // CREATE API DATA MAP
-      // ====================================
 
       const statsMap = {};
 
@@ -424,18 +424,19 @@ const Statistics = () => {
 
         const key = normalizeDate(item.date);
 
-        // 👇 agar date pehle se nahi h
+        // 👇 create first time
         if (!statsMap[key]) {
 
           statsMap[key] = {
             impressions: 0,
             clicks: 0,
             revenue: 0,
+            cpm: 0,
             placements: [],
           };
         }
 
-        // 👇 same date ke sare placement data add honge
+        // 👇 add values
         statsMap[key].impressions += Number(
           item.impressions || 0
         );
@@ -448,8 +449,19 @@ const Statistics = () => {
           item.revenue || 0
         );
 
-        // 👇 placement ids collect
+        // 👇 weighted CPM
+        statsMap[key].cpm =
+          statsMap[key].impressions > 0
+            ? (
+              (statsMap[key].revenue /
+                statsMap[key].impressions) *
+              1000
+            )
+            : 0;
+
+        // 👇 placement ids
         if (item.placement) {
+
           statsMap[key].placements.push(
             item.placement
           );
@@ -488,12 +500,18 @@ const Statistics = () => {
           revenue:
             existing?.revenue || 0,
 
-          // 👇 sare placement ids
+          cpm:
+            existing?.cpm || 0,
+
           placement:
             existing?.placements?.join(", ") || "",
         };
       });
     }
+
+    // ====================================
+    // DEVICE GROUPING
+    // ====================================
 
     if (groupBy === "device") {
 
@@ -508,23 +526,39 @@ const Statistics = () => {
         const key = item.device || "Unknown";
 
         if (!deviceMap[key]) {
+
           deviceMap[key] = {
             label: key,
             impressions: 0,
             clicks: 0,
             revenue: 0,
+            cpm: 0,
           };
         }
 
         deviceMap[key].impressions += Number(item.impressions || 0);
+
         deviceMap[key].clicks += Number(item.clicks || 0);
+
         deviceMap[key].revenue += Number(item.revenue || 0);
 
+        // 👇 weighted CPM
+        deviceMap[key].cpm =
+          deviceMap[key].impressions > 0
+            ? (
+              (deviceMap[key].revenue /
+                deviceMap[key].impressions) *
+              1000
+            )
+            : 0;
       });
 
       return Object.values(deviceMap);
     }
 
+    // ====================================
+    // OS GROUPING
+    // ====================================
 
     if (groupBy === "os") {
 
@@ -536,25 +570,42 @@ const Statistics = () => {
 
       sourceData.forEach((item) => {
 
-        const key = item.osName?.trim() || "No Data";
+        const key =
+          item.osName?.trim() || "No Data";
 
         if (!osMap[key]) {
+
           osMap[key] = {
             label: key,
             impressions: 0,
             clicks: 0,
             revenue: 0,
+            cpm: 0,
           };
         }
 
         osMap[key].impressions += Number(item.impressions || 0);
+
         osMap[key].clicks += Number(item.clicks || 0);
+
         osMap[key].revenue += Number(item.revenue || 0);
 
+        osMap[key].cpm =
+          osMap[key].impressions > 0
+            ? (
+              (osMap[key].revenue /
+                osMap[key].impressions) *
+              1000
+            )
+            : 0;
       });
 
       return Object.values(osMap);
     }
+
+    // ====================================
+    // BROWSER GROUPING
+    // ====================================
 
     if (groupBy === "browser") {
 
@@ -566,29 +617,37 @@ const Statistics = () => {
 
       sourceData.forEach((item) => {
 
-        const key = item.browserName?.trim() || "No Data";
+        const key =
+          item.browserName?.trim() || "No Data";
 
         if (!browserMap[key]) {
+
           browserMap[key] = {
             label: key,
             impressions: 0,
             clicks: 0,
             revenue: 0,
+            cpm: 0,
           };
         }
 
         browserMap[key].impressions += Number(item.impressions || 0);
+
         browserMap[key].clicks += Number(item.clicks || 0);
+
         browserMap[key].revenue += Number(item.revenue || 0);
 
+        browserMap[key].cpm =
+          browserMap[key].impressions > 0
+            ? (
+              (browserMap[key].revenue /
+                browserMap[key].impressions) *
+              1000
+            )
+            : 0;
       });
 
       return Object.values(browserMap);
-    }
-    if (
-      !Array.isArray(groupedReducerData)
-    ) {
-      return [];
     }
 
     // ====================================
@@ -614,6 +673,7 @@ const Statistics = () => {
             impressions: 0,
             clicks: 0,
             revenue: 0,
+            cpm: 0,
             placements: [],
           };
         }
@@ -631,7 +691,17 @@ const Statistics = () => {
           item.revenue || 0
         );
 
-        // 👇 store placement ids
+        // 👇 weighted CPM
+        countryMap[key].cpm =
+          countryMap[key].impressions > 0
+            ? (
+              (countryMap[key].revenue /
+                countryMap[key].impressions) *
+              1000
+            )
+            : 0;
+
+        // 👇 placement ids
         if (
           item.placement &&
           !countryMap[key].placements.includes(
@@ -653,30 +723,47 @@ const Statistics = () => {
     // ====================================
 
     return groupedReducerData.map(
-      (item) => ({
-        label:
-          item.label ||
-          item.device ||
-          item.osName ||
-          item.browserName ||
-          "Unknown",
+      (item) => {
 
-        impressions: Number(
+        const impressions = Number(
           item.impressions || 0
-        ),
+        );
 
-        clicks: Number(
-          item.clicks || 0
-        ),
-
-        revenue: Number(
+        const revenue = Number(
           item.revenue || 0
-        ),
-      })
+        );
+
+        return {
+          label:
+            item.label ||
+            item.device ||
+            item.osName ||
+            item.browserName ||
+            "Unknown",
+
+          impressions,
+
+          clicks: Number(
+            item.clicks || 0
+          ),
+
+          revenue,
+
+          cpm:
+            impressions > 0
+              ? (
+                (revenue / impressions) *
+                1000
+              )
+              : 0,
+        };
+      }
     );
+
   }, [
     data,
     groupedReducerData,
+    countryData,
     groupBy,
     startDate,
     endDate,
@@ -738,7 +825,7 @@ const Statistics = () => {
       const clicks = Number(item.clicks || 0);
       const revenue = Number(item.revenue || 0);
       const ctr = impressions > 0 ? (clicks / impressions) * 100 : 0;
-      const cpm = impressions > 0 ? (revenue / impressions) * 1000 : 0;
+      const cpm = Number(item.cpm);
 
       return [
         item.label,
@@ -988,8 +1075,8 @@ const Statistics = () => {
                 key={tab.value}
                 onClick={() => setGroupBy(tab.value)}
                 className={`shrink-0 px-5 py-2.5 rounded-xl text-sm font-medium transition-all duration-300 flex items-center gap-2 whitespace-nowrap ${groupBy === tab.value
-                    ? "bg-gradient-to-r from-green-500 to-green-600 text-white shadow-lg shadow-green-500/25"
-                    : "bg-white dark:bg-slate-800 border-2 border-gray-200 dark:border-slate-700 text-gray-600 dark:text-gray-400 hover:border-green-500"
+                  ? "bg-gradient-to-r from-green-500 to-green-600 text-white shadow-lg shadow-green-500/25"
+                  : "bg-white dark:bg-slate-800 border-2 border-gray-200 dark:border-slate-700 text-gray-600 dark:text-gray-400 hover:border-green-500"
                   }`}
               >
                 <tab.icon className="w-4 h-4" />
@@ -1067,7 +1154,7 @@ const Statistics = () => {
                     const clicks = Number(item.clicks || 0);
                     const revenue = Number(item.revenue || 0);
                     const ctr = impressions > 0 ? (clicks / impressions) * 100 : 0;
-                    const cpm = impressions > 0 ? (revenue / impressions) * 1000 : 0;
+                    const cpm = Number(item.cpm);
 
                     return (
                       <tr

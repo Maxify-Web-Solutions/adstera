@@ -1642,7 +1642,7 @@ exports.getAdsterraStatsFromDB =
         Number(page) || 1;
 
       const perPage =
-        Number(limit) || 20;
+        Number(limit) || 40;
 
       const skip =
         (currentPage - 1) *
@@ -1662,25 +1662,32 @@ exports.getAdsterraStatsFromDB =
       };
 
       // =================================================
-      // DATE FILTER
+      // DATE FILTER FIXED
       // =================================================
 
       if (
-        start_date &&
+        start_date ||
         end_date
       ) {
 
-        overallFilter.date = {
-          $gte:
+        overallFilter.date =
+          {};
+
+        if (start_date) {
+
+          overallFilter.date.$gte =
             normalizeDate(
               start_date
-            ),
+            );
+        }
 
-          $lte:
+        if (end_date) {
+
+          overallFilter.date.$lte =
             normalizeDate(
               end_date
-            ),
-        };
+            );
+        }
       }
 
       // =================================================
@@ -1903,10 +1910,6 @@ exports.getAdsterraStatsFromDB =
 
       } else {
 
-        // ===============================================
-        // OLD VALUES
-        // ===============================================
-
         const oldRevenue =
           fixed6(
             savedSummary.totalRevenue
@@ -1922,20 +1925,6 @@ exports.getAdsterraStatsFromDB =
             savedSummary.totalClicks
           );
 
-        const oldCtr =
-          fixed6(
-            savedSummary.ctr
-          );
-
-        const oldCpm =
-          fixed6(
-            savedSummary.cpm
-          );
-
-        // ===============================================
-        // NEW VALUES
-        // ===============================================
-
         const newRevenue =
           fixed6(
             finalSummaryData.totalRevenue
@@ -1950,20 +1939,6 @@ exports.getAdsterraStatsFromDB =
           fixed6(
             finalSummaryData.totalClicks
           );
-
-        const newCtr =
-          fixed6(
-            finalSummaryData.ctr
-          );
-
-        const newCpm =
-          fixed6(
-            finalSummaryData.cpm
-          );
-
-        // ===============================================
-        // NEVER DOWNGRADE
-        // ===============================================
 
         const finalRevenue =
           fixed6(
@@ -1989,19 +1964,15 @@ exports.getAdsterraStatsFromDB =
             )
           );
 
-        // ===============================================
-        // ALWAYS USE LATEST
-        // ===============================================
-
         const finalCtr =
-          fixed6(newCtr);
+          fixed6(
+            finalSummaryData.ctr
+          );
 
         const finalCpm =
-          fixed6(newCpm);
-
-        // ===============================================
-        // CHECK CHANGES
-        // ===============================================
+          fixed6(
+            finalSummaryData.cpm
+          );
 
         const isChanged =
           fixed6(oldRevenue) !==
@@ -2017,21 +1988,7 @@ exports.getAdsterraStatsFromDB =
           fixed6(oldClicks) !==
             fixed6(
               finalClicks
-            ) ||
-
-          fixed6(oldCtr) !==
-            fixed6(
-              finalCtr
-            ) ||
-
-          fixed6(oldCpm) !==
-            fixed6(
-              finalCpm
             );
-
-        // ===============================================
-        // UPDATE SUMMARY
-        // ===============================================
 
         if (isChanged) {
 
@@ -2101,25 +2058,32 @@ exports.getAdsterraStatsFromDB =
       };
 
       // =================================================
-      // COUNTRY DATE FILTER
+      // COUNTRY DATE FILTER FIXED
       // =================================================
 
       if (
-        start_date &&
+        start_date ||
         end_date
       ) {
 
-        countryFilter.date = {
-          $gte:
+        countryFilter.date =
+          {};
+
+        if (start_date) {
+
+          countryFilter.date.$gte =
             normalizeDate(
               start_date
-            ),
+            );
+        }
 
-          $lte:
+        if (end_date) {
+
+          countryFilter.date.$lte =
             normalizeDate(
               end_date
-            ),
-        };
+            );
+        }
       }
 
       // =================================================
@@ -2278,10 +2242,6 @@ exports.getAdsterraStatsFromDB =
           ),
       };
 
-      // =================================================
-      // COUNTRY CTR
-      // =================================================
-
       const countryCtr =
         totalImpressions > 0
           ? (
@@ -2289,10 +2249,6 @@ exports.getAdsterraStatsFromDB =
               totalImpressions
             ) * 100
           : 0;
-
-      // =================================================
-      // COUNTRY CPM
-      // =================================================
 
       const countryCpm =
         totalImpressions > 0

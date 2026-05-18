@@ -101,7 +101,7 @@ const calculateAndStoreAdsterraStats =
       oldDate.setMonth(
         oldDate.getMonth() - 3
       );
-      
+
       const defaultStartDate =
         normalizeDate(oldDate);
 
@@ -207,6 +207,53 @@ const calculateAndStoreAdsterraStats =
           for (const item of rawStats) {
             try {
               // =========================================
+              // CHECK OLD CALCULATED RECORD
+              // =========================================
+
+              const oldCalculated =
+                await CalculatedAdsterraStats.findOne({
+                  userId:
+                    new mongoose.Types.ObjectId(
+                      userId
+                    ),
+
+                  placement:
+                    String(
+                      item.placement
+                    ),
+
+                  country:
+                    String(
+                      item.country ||
+                        "ALL"
+                    ),
+
+                  date: String(
+                    normalizeDate(
+                      item.date
+                    )
+                  ),
+                });
+
+              // =========================================
+              // USE OLD SAVED %
+              // =========================================
+
+              const impressionPercent =
+                oldCalculated
+                  ?.impressionPercent ??
+                item.impressionPercent ??
+                statsConfig.impressionPercent ??
+                0;
+
+              const cpmPercent =
+                oldCalculated
+                  ?.cpmPercent ??
+                item.cpmPercent ??
+                statsConfig.cpmPercent ??
+                0;
+
+              // =========================================
               // APPLY CONFIG %
               // =========================================
 
@@ -219,8 +266,7 @@ const calculateAndStoreAdsterraStats =
                     item.impressions || 0
                   ) *
                     Number(
-                      statsConfig.impressionPercent ||
-                      0
+                      impressionPercent
                     )) /
                   100
                 );
@@ -232,8 +278,7 @@ const calculateAndStoreAdsterraStats =
                     item.cpm || 0
                   ) *
                     Number(
-                      statsConfig.cpmPercent ||
-                      0
+                      cpmPercent
                     )) /
                   100
                 );
@@ -256,16 +301,16 @@ const calculateAndStoreAdsterraStats =
                   finalImpressions
                 ) > 0
                   ? Number(
-                    (
-                      (Number(
-                        item.clicks || 0
-                      ) /
-                        Number(
-                          finalImpressions
-                        )) *
-                      100
-                    ).toFixed(2)
-                  )
+                      (
+                        (Number(
+                          item.clicks || 0
+                        ) /
+                          Number(
+                            finalImpressions
+                          )) *
+                        100
+                      ).toFixed(2)
+                    )
                   : 0;
 
               // =========================================
@@ -329,7 +374,7 @@ const calculateAndStoreAdsterraStats =
                     country:
                       String(
                         item.country ||
-                        "ALL"
+                          "ALL"
                       ),
 
                     date: String(
@@ -356,7 +401,7 @@ const calculateAndStoreAdsterraStats =
                       country:
                         String(
                           item.country ||
-                          "ALL"
+                            "ALL"
                         ),
 
                       date: String(
@@ -416,16 +461,18 @@ const calculateAndStoreAdsterraStats =
                           )
                         ),
 
+                      // =================================
+                      // SAVE FIXED %
+                      // =================================
+
                       impressionPercent:
                         Number(
-                          statsConfig.impressionPercent ||
-                          0
+                          impressionPercent
                         ),
 
                       cpmPercent:
                         Number(
-                          statsConfig.cpmPercent ||
-                          0
+                          cpmPercent
                         ),
                     },
                   },

@@ -351,8 +351,10 @@ const login = async (req, res) => {
 
 const getProfile = async (req, res) => {
   try {
-    const user = await User.findById(req.user.id).select("-password");
-
+const user = await User.findById(req.user.id)
+  .select(
+    "-password -lastRevenueMap -lastLogin -reset_otp -reset_otp_expiry -createdAt -updatedAt -status -role"
+  );;
     return res.status(200).json({
       success: true,
       user,
