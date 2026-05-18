@@ -412,268 +412,268 @@ const Statistics = () => {
       // ====================================
       // CREATE API DATA MAP
       // ====================================
-// ====================================
-// CREATE API DATA MAP
-// ====================================
+      // ====================================
+      // CREATE API DATA MAP
+      // ====================================
 
-const statsMap = {};
+      const statsMap = {};
 
-(data || []).forEach((item) => {
+      (data || []).forEach((item) => {
 
-  if (!item?.date) return;
+        if (!item?.date) return;
 
-  const key = normalizeDate(item.date);
+        const key = normalizeDate(item.date);
 
-  // 👇 agar date pehle se nahi h
-  if (!statsMap[key]) {
+        // 👇 agar date pehle se nahi h
+        if (!statsMap[key]) {
 
-    statsMap[key] = {
-      impressions: 0,
-      clicks: 0,
-      revenue: 0,
-      placements: [],
-    };
-  }
+          statsMap[key] = {
+            impressions: 0,
+            clicks: 0,
+            revenue: 0,
+            placements: [],
+          };
+        }
 
-  // 👇 same date ke sare placement data add honge
-  statsMap[key].impressions += Number(
-    item.impressions || 0
-  );
+        // 👇 same date ke sare placement data add honge
+        statsMap[key].impressions += Number(
+          item.impressions || 0
+        );
 
-  statsMap[key].clicks += Number(
-    item.clicks || 0
-  );
+        statsMap[key].clicks += Number(
+          item.clicks || 0
+        );
 
-  statsMap[key].revenue += Number(
-    item.revenue || 0
-  );
+        statsMap[key].revenue += Number(
+          item.revenue || 0
+        );
 
-  // 👇 placement ids collect
-  if (item.placement) {
-    statsMap[key].placements.push(
-      item.placement
-    );
-  }
-});
+        // 👇 placement ids collect
+        if (item.placement) {
+          statsMap[key].placements.push(
+            item.placement
+          );
+        }
+      });
 
       // ====================================
       // RETURN FINAL DATA
       // ====================================
 
       allDates.sort(
-  (a, b) => new Date(b) - new Date(a)
-);
+        (a, b) => new Date(b) - new Date(a)
+      );
 
-return allDates.map((date, index) => {
+      return allDates.map((date, index) => {
 
-  const normalized =
-    normalizeDate(date);
+        const normalized =
+          normalizeDate(date);
 
-  const existing =
-    statsMap[normalized];
+        const existing =
+          statsMap[normalized];
 
-  return {
+        return {
 
-    id: index,
+          id: index,
 
-    label: new Date(date)
-      .toLocaleDateString("en-GB"),
+          label: new Date(date)
+            .toLocaleDateString("en-GB"),
 
-    impressions:
-      existing?.impressions || 0,
+          impressions:
+            existing?.impressions || 0,
 
-    clicks:
-      existing?.clicks || 0,
+          clicks:
+            existing?.clicks || 0,
 
-    revenue:
-      existing?.revenue || 0,
+          revenue:
+            existing?.revenue || 0,
 
-    // 👇 sare placement ids
-    placement:
-      existing?.placements?.join(", ") || "",
-  };
-});
+          // 👇 sare placement ids
+          placement:
+            existing?.placements?.join(", ") || "",
+        };
+      });
     }
 
     if (groupBy === "device") {
 
-  const sourceData = Array.isArray(groupedReducerData)
-    ? groupedReducerData
-    : [];
+      const sourceData = Array.isArray(groupedReducerData)
+        ? groupedReducerData
+        : [];
 
-  const deviceMap = {};
+      const deviceMap = {};
 
-  sourceData.forEach((item) => {
+      sourceData.forEach((item) => {
 
-    const key = item.device || "Unknown";
+        const key = item.device || "Unknown";
 
-    if (!deviceMap[key]) {
-      deviceMap[key] = {
-        label: key,
-        impressions: 0,
-        clicks: 0,
-        revenue: 0,
-      };
+        if (!deviceMap[key]) {
+          deviceMap[key] = {
+            label: key,
+            impressions: 0,
+            clicks: 0,
+            revenue: 0,
+          };
+        }
+
+        deviceMap[key].impressions += Number(item.impressions || 0);
+        deviceMap[key].clicks += Number(item.clicks || 0);
+        deviceMap[key].revenue += Number(item.revenue || 0);
+
+      });
+
+      return Object.values(deviceMap);
     }
-
-    deviceMap[key].impressions += Number(item.impressions || 0);
-    deviceMap[key].clicks += Number(item.clicks || 0);
-    deviceMap[key].revenue += Number(item.revenue || 0);
-
-  });
-
-  return Object.values(deviceMap);
-}
 
 
     if (groupBy === "os") {
 
-  const sourceData = Array.isArray(groupedReducerData)
-    ? groupedReducerData
-    : [];
+      const sourceData = Array.isArray(groupedReducerData)
+        ? groupedReducerData
+        : [];
 
-  const osMap = {};
+      const osMap = {};
 
-  sourceData.forEach((item) => {
+      sourceData.forEach((item) => {
 
-    const key = item.osName?.trim() || "No Data";
+        const key = item.osName?.trim() || "No Data";
 
-    if (!osMap[key]) {
-      osMap[key] = {
-        label: key,
-        impressions: 0,
-        clicks: 0,
-        revenue: 0,
-      };
+        if (!osMap[key]) {
+          osMap[key] = {
+            label: key,
+            impressions: 0,
+            clicks: 0,
+            revenue: 0,
+          };
+        }
+
+        osMap[key].impressions += Number(item.impressions || 0);
+        osMap[key].clicks += Number(item.clicks || 0);
+        osMap[key].revenue += Number(item.revenue || 0);
+
+      });
+
+      return Object.values(osMap);
     }
-
-    osMap[key].impressions += Number(item.impressions || 0);
-    osMap[key].clicks += Number(item.clicks || 0);
-    osMap[key].revenue += Number(item.revenue || 0);
-
-  });
-
-  return Object.values(osMap);
-}
 
     if (groupBy === "browser") {
 
-  const sourceData = Array.isArray(groupedReducerData)
-    ? groupedReducerData
-    : [];
+      const sourceData = Array.isArray(groupedReducerData)
+        ? groupedReducerData
+        : [];
 
-  const browserMap = {};
+      const browserMap = {};
 
-  sourceData.forEach((item) => {
+      sourceData.forEach((item) => {
 
-    const key = item.browserName?.trim() || "No Data";
+        const key = item.browserName?.trim() || "No Data";
 
-    if (!browserMap[key]) {
-      browserMap[key] = {
-        label: key,
-        impressions: 0,
-        clicks: 0,
-        revenue: 0,
-      };
+        if (!browserMap[key]) {
+          browserMap[key] = {
+            label: key,
+            impressions: 0,
+            clicks: 0,
+            revenue: 0,
+          };
+        }
+
+        browserMap[key].impressions += Number(item.impressions || 0);
+        browserMap[key].clicks += Number(item.clicks || 0);
+        browserMap[key].revenue += Number(item.revenue || 0);
+
+      });
+
+      return Object.values(browserMap);
     }
-
-    browserMap[key].impressions += Number(item.impressions || 0);
-    browserMap[key].clicks += Number(item.clicks || 0);
-    browserMap[key].revenue += Number(item.revenue || 0);
-
-  });
-
-  return Object.values(browserMap);
-}
-if (
-  !Array.isArray(groupedReducerData)
-) {
-  return [];
-}
-
-// ====================================
-// COUNTRY GROUPING
-// ====================================
-
-if (groupBy === "country") {
-
-  const countryMap = {};
-
-  (countryData || []).forEach((item) => {
-
-    const key =
-      lookup.byIso(item.country)?.country ||
-      item.country ||
-      "Unknown";
-
-    // 👇 create first time
-    if (!countryMap[key]) {
-
-      countryMap[key] = {
-        label: key,
-        impressions: 0,
-        clicks: 0,
-        revenue: 0,
-        placements: [],
-      };
-    }
-
-    // 👇 add same country values
-    countryMap[key].impressions += Number(
-      item.impressions || 0
-    );
-
-    countryMap[key].clicks += Number(
-      item.clicks || 0
-    );
-
-    countryMap[key].revenue += Number(
-      item.revenue || 0
-    );
-
-    // 👇 store placement ids
     if (
-      item.placement &&
-      !countryMap[key].placements.includes(
-        item.placement
-      )
+      !Array.isArray(groupedReducerData)
     ) {
-
-      countryMap[key].placements.push(
-        item.placement
-      );
+      return [];
     }
-  });
 
-  return Object.values(countryMap);
-}
+    // ====================================
+    // COUNTRY GROUPING
+    // ====================================
 
-// ====================================
-// DEFAULT GROUPING
-// ====================================
+    if (groupBy === "country") {
 
-return groupedReducerData.map(
-  (item) => ({
-    label:
-      item.label ||
-      item.device ||
-      item.osName ||
-      item.browserName ||
-      "Unknown",
+      const countryMap = {};
 
-    impressions: Number(
-      item.impressions || 0
-    ),
+      (countryData || []).forEach((item) => {
 
-    clicks: Number(
-      item.clicks || 0
-    ),
+        const key =
+          lookup.byIso(item.country)?.country ||
+          item.country ||
+          "Unknown";
 
-    revenue: Number(
-      item.revenue || 0
-    ),
-  })
-);
+        // 👇 create first time
+        if (!countryMap[key]) {
+
+          countryMap[key] = {
+            label: key,
+            impressions: 0,
+            clicks: 0,
+            revenue: 0,
+            placements: [],
+          };
+        }
+
+        // 👇 add same country values
+        countryMap[key].impressions += Number(
+          item.impressions || 0
+        );
+
+        countryMap[key].clicks += Number(
+          item.clicks || 0
+        );
+
+        countryMap[key].revenue += Number(
+          item.revenue || 0
+        );
+
+        // 👇 store placement ids
+        if (
+          item.placement &&
+          !countryMap[key].placements.includes(
+            item.placement
+          )
+        ) {
+
+          countryMap[key].placements.push(
+            item.placement
+          );
+        }
+      });
+
+      return Object.values(countryMap);
+    }
+
+    // ====================================
+    // DEFAULT GROUPING
+    // ====================================
+
+    return groupedReducerData.map(
+      (item) => ({
+        label:
+          item.label ||
+          item.device ||
+          item.osName ||
+          item.browserName ||
+          "Unknown",
+
+        impressions: Number(
+          item.impressions || 0
+        ),
+
+        clicks: Number(
+          item.clicks || 0
+        ),
+
+        revenue: Number(
+          item.revenue || 0
+        ),
+      })
+    );
   }, [
     data,
     groupedReducerData,
@@ -763,39 +763,39 @@ return groupedReducerData.map(
   // Stats Cards Data
   // const overallTotals = statsData?.overall?.totals || {};
 
-const statsCards = [
-  {
-    title: "Total Impressions",
-    value: (totals?.totalImpressions || 0).toLocaleString(),
-    icon: Eye,
-    color: "from-blue-500 to-blue-600",
-    bgGradient: "bg-gradient-to-br",
-  },
+  const statsCards = [
+    {
+      title: "Total Impressions",
+      value: (totals?.totalImpressions || 0).toLocaleString(),
+      icon: Eye,
+      color: "from-blue-500 to-blue-600",
+      bgGradient: "bg-gradient-to-br",
+    },
 
-  {
-    title: "CTR",
-    value: `${(totals?.ctr || 0).toFixed(2)}%`,
-    icon: TrendingUp,
-    color: "from-purple-500 to-purple-600",
-    bgGradient: "bg-gradient-to-br",
-  },
+    {
+      title: "CTR",
+      value: `${(totals?.ctr || 0).toFixed(2)}%`,
+      icon: TrendingUp,
+      color: "from-purple-500 to-purple-600",
+      bgGradient: "bg-gradient-to-br",
+    },
 
-  {
-    title: "CPM",
-    value: `$${(totals?.cpm || 0).toFixed(3)}`,
-    icon: DollarSign,
-    color: "from-orange-500 to-orange-600",
-    bgGradient: "bg-gradient-to-br",
-  },
+    {
+      title: "CPM",
+      value: `$${(totals?.cpm || 0).toFixed(3)}`,
+      icon: DollarSign,
+      color: "from-orange-500 to-orange-600",
+      bgGradient: "bg-gradient-to-br",
+    },
 
-  {
-    title: "Total Revenue",
-    value: `$${(totals?.totalRevenue || 0).toFixed(2)}`,
-    icon: Zap,
-    color: "from-yellow-500 to-yellow-600",
-    bgGradient: "bg-gradient-to-br",
-  },
-];
+    {
+      title: "Total Revenue",
+      value: `$${(totals?.totalRevenue || 0).toFixed(2)}`,
+      icon: Zap,
+      color: "from-yellow-500 to-yellow-600",
+      bgGradient: "bg-gradient-to-br",
+    },
+  ];
   return (
     <div className="min-h-screen md:p-8">
       <div className="max-w-[1600px] mx-auto space-y-6">
@@ -934,7 +934,6 @@ const statsCards = [
                   </label>
                   <input
                     type="hidden"
-
                     value={placement}
                     onChange={(e) => setPlacement(e.target.value)}
                     placeholder="Enter placement ID"
@@ -975,32 +974,31 @@ const statsCards = [
 
         {/* GROUP TABS */}
         {/* GROUP TABS */}
-<div className="w-full overflow-x-auto scrollbar-thin pb-2">
-  
-  <div className="flex gap-2 min-w-max">
-    {[
-      { label: "Country", value: "country", icon: Globe },
-      { label: "Date", value: "date", icon: Calendar },
-      // { label: "Device", value: "device", icon: Smartphone },
-      // { label: "OS", value: "os", icon: Monitor },
-      // { label: "Browser", value: "browser", icon: Globe2 },
-    ].map((tab) => (
-      <button
-        key={tab.value}
-        onClick={() => setGroupBy(tab.value)}
-        className={`shrink-0 px-5 py-2.5 rounded-xl text-sm font-medium transition-all duration-300 flex items-center gap-2 whitespace-nowrap ${
-          groupBy === tab.value
-            ? "bg-gradient-to-r from-green-500 to-green-600 text-white shadow-lg shadow-green-500/25"
-            : "bg-white dark:bg-slate-800 border-2 border-gray-200 dark:border-slate-700 text-gray-600 dark:text-gray-400 hover:border-green-500"
-        }`}
-      >
-        <tab.icon className="w-4 h-4" />
-        {tab.label}
-      </button>
-    ))}
-  </div>
+        <div className="w-full overflow-x-auto scrollbar-thin pb-2">
 
-</div>
+          <div className="flex gap-2 min-w-max">
+            {[
+              { label: "Country", value: "country", icon: Globe },
+              { label: "Date", value: "date", icon: Calendar },
+              // { label: "Device", value: "device", icon: Smartphone },
+              // { label: "OS", value: "os", icon: Monitor },
+              // { label: "Browser", value: "browser", icon: Globe2 },
+            ].map((tab) => (
+              <button
+                key={tab.value}
+                onClick={() => setGroupBy(tab.value)}
+                className={`shrink-0 px-5 py-2.5 rounded-xl text-sm font-medium transition-all duration-300 flex items-center gap-2 whitespace-nowrap ${groupBy === tab.value
+                    ? "bg-gradient-to-r from-green-500 to-green-600 text-white shadow-lg shadow-green-500/25"
+                    : "bg-white dark:bg-slate-800 border-2 border-gray-200 dark:border-slate-700 text-gray-600 dark:text-gray-400 hover:border-green-500"
+                  }`}
+              >
+                <tab.icon className="w-4 h-4" />
+                {tab.label}
+              </button>
+            ))}
+          </div>
+
+        </div>
 
         {/* TABLE CARD */}
         <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-gray-200 dark:border-slate-700 overflow-hidden">
@@ -1124,87 +1122,87 @@ const statsCards = [
               </tbody>
 
               {groupedData.length > 0 && (
-  <tfoot>
-    <tr className="border-t-2 border-gray-200 dark:border-slate-600 bg-gray-50 dark:bg-slate-900/50">
+                <tfoot>
+                  <tr className="border-t-2 border-gray-200 dark:border-slate-600 bg-gray-50 dark:bg-slate-900/50">
 
-      <td className="p-4 font-bold text-gray-900 dark:text-white">
-        Total
-      </td>
+                    <td className="p-4 font-bold text-gray-900 dark:text-white">
+                      Total
+                    </td>
 
-      {/* 👇 Filtered Impressions Total */}
-      <td className="p-4 text-right font-bold font-mono text-gray-900 dark:text-white">
-        {groupedData
-          .reduce(
-            (acc, item) => acc + Number(item.impressions || 0),
-            0
-          )
-          .toLocaleString()}
-      </td>
+                    {/* 👇 Filtered Impressions Total */}
+                    <td className="p-4 text-right font-bold font-mono text-gray-900 dark:text-white">
+                      {groupedData
+                        .reduce(
+                          (acc, item) => acc + Number(item.impressions || 0),
+                          0
+                        )
+                        .toLocaleString()}
+                    </td>
 
-      {/* 👇 Filtered Clicks Total */}
-      <td className="p-4 text-right font-bold font-mono text-gray-900 dark:text-white">
-        {groupedData
-          .reduce(
-            (acc, item) => acc + Number(item.clicks || 0),
-            0
-          )
-          .toLocaleString()}
-      </td>
+                    {/* 👇 Filtered Clicks Total */}
+                    <td className="p-4 text-right font-bold font-mono text-gray-900 dark:text-white">
+                      {groupedData
+                        .reduce(
+                          (acc, item) => acc + Number(item.clicks || 0),
+                          0
+                        )
+                        .toLocaleString()}
+                    </td>
 
-      {/* 👇 Filtered CTR */}
-      <td className="p-4 text-right font-bold text-gray-900 dark:text-white">
-        {(() => {
-          const impressions = groupedData.reduce(
-            (acc, item) => acc + Number(item.impressions || 0),
-            0
-          );
+                    {/* 👇 Filtered CTR */}
+                    <td className="p-4 text-right font-bold text-gray-900 dark:text-white">
+                      {(() => {
+                        const impressions = groupedData.reduce(
+                          (acc, item) => acc + Number(item.impressions || 0),
+                          0
+                        );
 
-          const clicks = groupedData.reduce(
-            (acc, item) => acc + Number(item.clicks || 0),
-            0
-          );
+                        const clicks = groupedData.reduce(
+                          (acc, item) => acc + Number(item.clicks || 0),
+                          0
+                        );
 
-          return impressions > 0
-            ? ((clicks / impressions) * 100).toFixed(2)
-            : "0.00";
-        })()}
-        %
-      </td>
+                        return impressions > 0
+                          ? ((clicks / impressions) * 100).toFixed(2)
+                          : "0.00";
+                      })()}
+                      %
+                    </td>
 
-      {/* 👇 Filtered CPM */}
-      <td className="p-4 text-right font-bold font-mono text-gray-900 dark:text-white">
-        $
-        {(() => {
-          const impressions = groupedData.reduce(
-            (acc, item) => acc + Number(item.impressions || 0),
-            0
-          );
+                    {/* 👇 Filtered CPM */}
+                    <td className="p-4 text-right font-bold font-mono text-gray-900 dark:text-white">
+                      $
+                      {(() => {
+                        const impressions = groupedData.reduce(
+                          (acc, item) => acc + Number(item.impressions || 0),
+                          0
+                        );
 
-          const revenue = groupedData.reduce(
-            (acc, item) => acc + Number(item.revenue || 0),
-            0
-          );
+                        const revenue = groupedData.reduce(
+                          (acc, item) => acc + Number(item.revenue || 0),
+                          0
+                        );
 
-          return impressions > 0
-            ? ((revenue / impressions) * 1000).toFixed(3)
-            : "0.000";
-        })()}
-      </td>
+                        return impressions > 0
+                          ? ((revenue / impressions) * 1000).toFixed(3)
+                          : "0.000";
+                      })()}
+                    </td>
 
-      {/* 👇 Filtered Revenue */}
-      <td className="p-4 text-right font-bold font-mono text-green-600 dark:text-green-400">
-        $
-        {groupedData
-          .reduce(
-            (acc, item) => acc + Number(item.revenue || 0),
-            0
-          )
-          .toFixed(2)}
-      </td>
+                    {/* 👇 Filtered Revenue */}
+                    <td className="p-4 text-right font-bold font-mono text-green-600 dark:text-green-400">
+                      $
+                      {groupedData
+                        .reduce(
+                          (acc, item) => acc + Number(item.revenue || 0),
+                          0
+                        )
+                        .toFixed(2)}
+                    </td>
 
-    </tr>
-  </tfoot>
-)}
+                  </tr>
+                </tfoot>
+              )}
             </table>
           </div>
         </div>

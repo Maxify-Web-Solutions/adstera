@@ -279,14 +279,14 @@ const authSlice = createSlice({
         state.loading = true;
       })
 
-    addCase(logoutUser.fulfilled, (state) => {
-      state.loading = false;
-      state.user = null;
-      state.error = null;
-      state.isAuthChecked = false;
+      .addCase(logoutUser.fulfilled, (state) => {
+        state.loading = false;
+        state.user = null;
+        state.error = null;
+        state.isAuthChecked = false;
 
-      localStorage.removeItem("user");
-    })
+        localStorage.removeItem("user");
+      })
 
       .addCase(logoutUser.rejected, (state, action) => {
         state.loading = false;
