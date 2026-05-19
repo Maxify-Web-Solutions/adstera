@@ -118,10 +118,10 @@ const getReferralLink = useCallback(() => {
       
       // Mock data with more realistic values
       const mockReferrals = [
-        { id: 1, name: "John Doe", email: "john@example.com", earnings: 150, joinedDate: "2024-01-15", status: "active", lastActive: "2024-01-28" },
-        { id: 2, name: "Jane Smith", email: "jane@example.com", earnings: 250, joinedDate: "2024-01-20", status: "active", lastActive: "2024-01-29" },
-        { id: 3, name: "Mike Johnson", email: "mike@example.com", earnings: 50, joinedDate: "2024-01-25", status: "pending", lastActive: "2024-01-25" },
-        { id: 4, name: "Sarah Williams", email: "sarah@example.com", earnings: 380, joinedDate: "2024-01-10", status: "active", lastActive: "2024-01-28" },
+        { id: 1, name: "Rahul Tiwari", email: "rahu*******@gmail.com", earnings: 150, joinedDate: "2024-01-15", status: "active", lastActive: "2024-01-28" },
+        { id: 2, name: "Sachin Sharma", email: "sach******@gmail.com", earnings: 250, joinedDate: "2024-01-20", status: "active", lastActive: "2024-01-29" },
+        { id: 3, name: "Vivek Kumar", email: "dxsc*****@gmail.com", earnings: 50, joinedDate: "2024-01-25", status: "pending", lastActive: "2024-01-25" },
+        { id: 4, name: "Ritik Sah", email: "riti*****@gmail.com", earnings: 380, joinedDate: "2024-01-10", status: "active", lastActive: "2024-01-28" },
       ];
 
       // Calculate earnings
