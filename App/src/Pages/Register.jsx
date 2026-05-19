@@ -7,6 +7,7 @@ import { MdPerson, MdEmail, MdLock, MdPhone } from "react-icons/md"
 import { BiSolidHide, BiSolidShow } from "react-icons/bi"
 import Header from "../Components/Header"
 import Swal from "sweetalert2";
+import { FaUsers } from "react-icons/fa"
 
 const Register = () => {
 
@@ -18,6 +19,7 @@ const Register = () => {
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
     const [showPassword, setShowPassword] = useState(false)
+    const [referral, setReferral] = useState("");
     const [otp, setOtp] = useState("")
     const [otpSent, setOtpSent] = useState(false)
     const [loading, setLoading] = useState(false)
@@ -193,6 +195,18 @@ const Register = () => {
                             className="w-full pl-10 pr-4 py-3 rounded-lg bg-slate-800 border border-slate-600 text-white focus:ring-2 focus:ring-indigo-500 outline-none"
                         />
                     </div>
+
+                    {/* Referral Code (Optional) */}
+<div className="relative">
+  <FaUsers className="absolute left-3 top-3 text-xl text-gray-400" />
+  <input
+    type="text"
+    value={referral}
+    onChange={(e) => setReferral(e.target.value)}
+    placeholder="Referral Code (Optional)"
+    className="w-full pl-10 pr-4 py-3 rounded-lg bg-slate-800 border border-slate-600 text-white focus:ring-2 focus:ring-indigo-500 outline-none"
+  />
+</div>
 
                     {/* Password */}
                     <div className="relative">
