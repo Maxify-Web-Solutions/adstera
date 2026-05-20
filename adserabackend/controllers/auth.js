@@ -27,7 +27,13 @@ const generateToken = (id) => {
 
 const register = async (req, res) => {
   try {
-    let { name, email, mobile, password } = req.body;
+    let {
+      name,
+      email,
+      mobile,
+      password,
+      referralCode, // ✅ INPUT REFERRAL CODE
+    } = req.body;
 
     // VALIDATION
     if (!name || !email || !mobile || !password) {
@@ -41,6 +47,10 @@ const register = async (req, res) => {
     name = name.trim();
     email = email.toLowerCase().trim();
     mobile = mobile.trim();
+
+    if (referralCode) {
+      referralCode = referralCode.trim().toUpperCase();
+    }
 
     // NAME SPACE CHECK
     if (/\s/.test(name)) {
@@ -70,8 +80,33 @@ const register = async (req, res) => {
       });
     }
 
+    // =====================================
+    // ✅ CHECK REFERRAL CODE
+    // =====================================
+
+    let referredBy = null;
+
+    if (referralCode) {
+      const refUser = await User.findOne({
+        referralCode,
+      });
+
+      if (!refUser) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid referral code",
+        });
+      }
+
+      referredBy = refUser.referralCode;
+    }
+
+    // =====================================
+
     // GENERATE OTP
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const otp = Math.floor(
+      100000 + Math.random() * 900000
+    ).toString();
 
     // SAVE TEMP USER
     await TempUser.findOneAndUpdate(
@@ -81,6 +116,10 @@ const register = async (req, res) => {
         email,
         mobile,
         password,
+
+        // ✅ SAVE REFERRAL DATA
+        referredBy,
+
         otp,
         otpExpires: Date.now() + 5 * 60 * 1000,
         isVerified: false,
@@ -92,7 +131,10 @@ const register = async (req, res) => {
     );
 
     // SEND OTP
-    const isSent = await sendAccountVerificationOTP(email, otp);
+    const isSent = await sendAccountVerificationOTP(
+      email,
+      otp
+    );
 
     if (!isSent) {
       return res.status(500).json({
@@ -165,7 +207,7 @@ const verifyOTP = async (req, res) => {
       $or: [
         { email: tempUser.email.toLowerCase().trim() },
         { mobile: tempUser.mobile },
-        { name: tempUser.name.trim() }, // NAME CHECK
+        { name: tempUser.name.trim() },
       ],
     });
 
@@ -173,7 +215,8 @@ const verifyOTP = async (req, res) => {
       let errorMessage = "User already exists";
 
       if (
-        existingUser.email === tempUser.email.toLowerCase().trim()
+        existingUser.email ===
+        tempUser.email.toLowerCase().trim()
       ) {
         errorMessage = "Email already registered";
       } else if (
@@ -199,14 +242,46 @@ const verifyOTP = async (req, res) => {
       10
     );
 
-    // CREATE USER
+    // =====================================
+    // ✅ GENERATE UNIQUE REFERRAL CODE
+    // =====================================
+
+    let referralCode;
+    let isCodeExists = true;
+
+    while (isCodeExists) {
+      referralCode =
+        tempUser.name
+          .replace(/\s+/g, "")
+          .toUpperCase()
+          .slice(0, 4) +
+        Math.floor(1000 + Math.random() * 9000);
+
+      const codeExists = await User.findOne({
+        referralCode,
+      });
+
+      if (!codeExists) {
+        isCodeExists = false;
+      }
+    }
+
+    // =====================================
+    // ✅ CREATE USER
+    // =====================================
+
     const user = await User.create({
       name: tempUser.name.trim(),
       email: tempUser.email.toLowerCase().trim(),
       mobile: tempUser.mobile,
       password: hashedPassword,
       role: "user",
+
+      // ✅ REFERRAL SYSTEM
+      referralCode,
+      referredBy: tempUser.referredBy || null,
     });
+
 
     // DELETE TEMP USER
     await TempUser.deleteOne({ email });
@@ -247,6 +322,9 @@ const verifyOTP = async (req, res) => {
         message = "Mobile number already registered";
       } else if (field === "name") {
         message = "Username already taken";
+      } else if (field === "referralCode") {
+        message =
+          "Referral code conflict, try again";
       }
 
       return res.status(400).json({
@@ -351,15 +429,55 @@ const login = async (req, res) => {
 
 const getProfile = async (req, res) => {
   try {
-const user = await User.findById(req.user.id)
-  .select(
-    "-password -lastRevenueMap -lastLogin -reset_otp -reset_otp_expiry -createdAt -updatedAt -status -role"
-  );;
-    return res.status(200).json({
-      success: true,
-      user,
+    const user = await User.findById(req.user.id)
+      .select(
+        "-password -lastRevenueMap -lastLogin -reset_otp -reset_otp_expiry -createdAt -updatedAt -status -role"
+      )
+      .lean();
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    // =========================
+    // ✅ TOTAL JOIN COUNT
+    // =========================
+
+    const totalJoinedUsers = await User.countDocuments({
+      referredBy: user.referralCode,
     });
 
+    // =========================
+    // ✅ REFERRAL PERCENT
+    // =========================
+
+    let referralPercent = 0;
+
+    if (user.referralAmount >= 100 && user.referralAmount < 200) {
+      referralPercent = 10;
+    } else if (
+      user.referralAmount >= 200 &&
+      user.referralAmount <= 350
+    ) {
+      referralPercent = 12;
+    } else if (user.referralAmount > 350) {
+      referralPercent = 15;
+    }
+
+    return res.status(200).json({
+      success: true,
+
+      user: {
+        ...user,
+
+        totalJoinedUsers,
+
+        referralPercent,
+      },
+    });
   } catch (error) {
     return res.status(500).json({
       success: false,
