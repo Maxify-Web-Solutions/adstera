@@ -225,7 +225,7 @@ const calculateAndStoreAdsterraStats =
                   country:
                     String(
                       item.country ||
-                        "ALL"
+                      "ALL"
                     ),
 
                   date: String(
@@ -301,16 +301,16 @@ const calculateAndStoreAdsterraStats =
                   finalImpressions
                 ) > 0
                   ? Number(
-                      (
-                        (Number(
-                          item.clicks || 0
-                        ) /
-                          Number(
-                            finalImpressions
-                          )) *
-                        100
-                      ).toFixed(2)
-                    )
+                    (
+                      (Number(
+                        item.clicks || 0
+                      ) /
+                        Number(
+                          finalImpressions
+                        )) *
+                      100
+                    ).toFixed(2)
+                  )
                   : 0;
 
               // =========================================
@@ -374,7 +374,7 @@ const calculateAndStoreAdsterraStats =
                     country:
                       String(
                         item.country ||
-                          "ALL"
+                        "ALL"
                       ),
 
                     date: String(
@@ -401,7 +401,7 @@ const calculateAndStoreAdsterraStats =
                       country:
                         String(
                           item.country ||
-                            "ALL"
+                          "ALL"
                         ),
 
                       date: String(
@@ -590,7 +590,16 @@ const calculateAndStoreAdsterraStats =
           // FINAL USER REVENUE
           // =============================================
 
+          // =============================================
+          // FINAL USER REVENUE
+          // =============================================
+
           if (userNewRevenue > 0) {
+
+            // ===========================================
+            // UPDATE USER REVENUE
+            // ===========================================
+
             user.revenue = Number(
               (
                 Number(
@@ -601,8 +610,153 @@ const calculateAndStoreAdsterraStats =
                 )
               ).toFixed(6)
             );
-          }
 
+            // SAVE USER
+            await user.save();
+
+            // ===========================================
+            // REFERRAL COMMISSION SYSTEM
+            // ===========================================
+
+            if (
+              user.referredBy &&
+              user.referredBy !== null &&
+              user.referredBy !== ""
+            ) {
+
+              // FIND REFERRAL USER
+              const referralUser =
+                await User.findOne({
+                  referralCode:
+                    String(
+                      user.referredBy
+                    ).trim(),
+                });
+
+              // =========================================
+              // REFERRAL USER FOUND
+              // =========================================
+
+              if (referralUser) {
+
+                // INIT MAP
+                if (!referralUser.lastReferralMap) {
+                  referralUser.lastReferralMap =
+                    new Map();
+                }
+
+                // =======================================
+                // TOTAL REFERRAL EARNING
+                // =======================================
+
+                const totalReferralAmount =
+                  Number(
+                    referralUser.referralAmount || 0
+                  );
+
+                // =======================================
+                // DYNAMIC COMMISSION %
+                // =======================================
+
+                let commissionPercent = 10;
+
+                if (totalReferralAmount >= 100) {
+                  commissionPercent = 10;
+                }
+
+                if (totalReferralAmount >= 200) {
+                  commissionPercent = 12;
+                }
+
+                if (totalReferralAmount >= 350) {
+                  commissionPercent = 15;
+                }
+
+                // =======================================
+                // COMMISSION AMOUNT
+                // =======================================
+
+                const commissionAmount =
+                  Number(
+                    (
+                      (Number(
+                        userNewRevenue
+                      ) *
+                        Number(
+                          commissionPercent
+                        )) /
+                      100
+                    ).toFixed(6)
+                  );
+
+                // =======================================
+                // UPDATE TOTAL REFERRAL
+                // =======================================
+
+                referralUser.referralAmount =
+                  Number(
+                    (
+                      Number(
+                        referralUser.referralAmount || 0
+                      ) +
+                      Number(
+                        commissionAmount
+                      )
+                    ).toFixed(6)
+                  );
+
+                // =======================================
+                // TODAY DATE
+                // =======================================
+
+                const today =
+                  new Date()
+                    .toISOString()
+                    .split("T")[0];
+
+                // =======================================
+                // OLD DAILY REFERRAL
+                // =======================================
+
+                const oldDailyReferral =
+                  Number(
+                    referralUser.lastReferralMap.get(
+                      today
+                    ) || 0
+                  );
+
+                // =======================================
+                // UPDATE DAILY REFERRAL
+                // =======================================
+
+                referralUser.lastReferralMap.set(
+                  today,
+                  Number(
+                    (
+                      oldDailyReferral +
+                      commissionAmount
+                    ).toFixed(6)
+                  )
+                );
+
+                // SAVE REFERRAL USER
+                await referralUser.save();
+
+                console.log(
+                  "REFERRAL COMMISSION ADDED =>",
+                  referralUser.name,
+                  commissionAmount
+                );
+              }
+            }
+
+            console.log(
+              "USER UPDATED =>",
+              userId,
+              "NEW REVENUE =>",
+              userNewRevenue
+            );
+          }
           // =============================================
           // SAVE USER
           // =============================================

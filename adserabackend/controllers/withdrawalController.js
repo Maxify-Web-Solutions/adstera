@@ -75,12 +75,14 @@ exports.createWithdrawal = async (req, res) => {
     }
 
     // =================================================
-    // BALANCE CHECK
+    // TOTAL BALANCE CHECK
     // =================================================
 
-    if (
-      Number(user.revenue) < Number(amount)
-    ) {
+    const totalBalance =
+      Number(user.revenue || 0) +
+      Number(user.referralAmount || 0);
+
+    if (totalBalance < Number(amount)) {
       return res.status(400).json({
         success: false,
         message: "Insufficient balance",
@@ -203,14 +205,45 @@ exports.createWithdrawal = async (req, res) => {
 
     // =================================================
     // DEDUCT USER BALANCE
+    // referralAmount + revenue
     // =================================================
 
-    user.revenue = Number(
-      (
-        Number(user.revenue) -
-        originalAmount
-      ).toFixed(6)
-    );
+    let remainingAmount =
+      Number(originalAmount);
+
+    // ✅ referralAmount se deduct
+    if (
+      Number(user.referralAmount || 0) >=
+      remainingAmount
+    ) {
+      user.referralAmount = Number(
+        (
+          Number(user.referralAmount) -
+          remainingAmount
+        ).toFixed(6)
+      );
+
+      remainingAmount = 0;
+    } else {
+      remainingAmount = Number(
+        (
+          remainingAmount -
+          Number(user.referralAmount || 0)
+        ).toFixed(6)
+      );
+
+      user.referralAmount = 0;
+    }
+
+    // ✅ revenue se deduct
+    if (remainingAmount > 0) {
+      user.revenue = Number(
+        (
+          Number(user.revenue || 0) -
+          remainingAmount
+        ).toFixed(6)
+      );
+    }
 
     // =================================================
     // SAVE LAST WITHDRAWAL DATE
@@ -322,10 +355,22 @@ exports.createWithdrawal = async (req, res) => {
       userWillReceive:
         finalAmount,
 
-      remainingBalance:
+      remainingBalance: Number(
+        (
+          Number(user.revenue || 0) +
+          Number(user.referralAmount || 0)
+        ).toFixed(6)
+      ),
+
+      revenueBalance: Number(
+        Number(user.revenue || 0).toFixed(6)
+      ),
+
+      referralBalance: Number(
         Number(
-          user.revenue.toFixed(6)
-        ),
+          user.referralAmount || 0
+        ).toFixed(6)
+      ),
 
       lastWithdrawalDate:
         user.lastWithdrawalDate,
@@ -344,7 +389,9 @@ exports.createWithdrawal = async (req, res) => {
   }
 };
 
-// dummy email function (baad me nodemailer laga dena)
+// =================================================
+// SEND WITHDRAW OTP
+// =================================================
 
 exports.sendWithdrawalOtp = async (req, res) => {
   try {
@@ -362,20 +409,33 @@ exports.sendWithdrawalOtp = async (req, res) => {
       });
     }
 
-    // ✅ BALANCE CHECK
-    if (Number(user.revenue) < Number(amount)) {
+    // =================================================
+    // TOTAL BALANCE CHECK
+    // =================================================
+
+    const totalBalance =
+      Number(user.revenue || 0) +
+      Number(user.referralAmount || 0);
+
+    if (totalBalance < Number(amount)) {
       return res.status(400).json({
         success: false,
         message: "Insufficient balance",
       });
     }
 
-    // ✅ OTP generate
+    // =================================================
+    // OTP GENERATE
+    // =================================================
+
     const otp = Math.floor(
       100000 + Math.random() * 900000
     ).toString();
 
-    // ✅ DB me save
+    // =================================================
+    // SAVE OTP
+    // =================================================
+
     await WithdrawalOtp.create({
       userId,
       otp,
@@ -383,12 +443,19 @@ exports.sendWithdrawalOtp = async (req, res) => {
         Date.now() + 5 * 60 * 1000,
     });
 
-    // ✅ email send
+    // =================================================
+    // SEND EMAIL
+    // =================================================
+
     await sendWithdrawalOTP(
       user.email,
       otp,
       amount
     );
+
+    // =================================================
+    // RESPONSE
+    // =================================================
 
     res.status(200).json({
       success: true,

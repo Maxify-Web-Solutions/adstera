@@ -20,6 +20,7 @@ const connectDB = require("./config/connectdb");
 const dns = require("dns");
 const path = require("path");
 const { calculateAndStoreAdsterraStats } = require("./controllers/calculateAndStoreAdsterraStats");
+const { RawfetchAndStoreAdsterraStats } = require("./controllers/Rawcontroller");
 // Change DNS
 dns.setServers(["1.1.1.1", "8.8.8.8"]);
 
@@ -58,8 +59,7 @@ app.get(/.*/, (req, res) => {
 });
 
 
-
-
+calculateAndStoreAdsterraStats()
 
 connectDB();
 
