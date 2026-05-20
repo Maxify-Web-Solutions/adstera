@@ -44,7 +44,7 @@ const Profile = () => {
       try {
         const res = await fetch("https://api.ipify.org?format=json");
         const data = await res.json();
-        
+
         const newSession = {
           id: Date.now(),
           date: new Date().toLocaleString(),
@@ -53,7 +53,7 @@ const Profile = () => {
           location: "Current Session",
           isCurrent: true,
         };
-        
+
         setSessions([newSession]);
       } catch (error) {
         console.error("Failed to fetch IP", error);
@@ -95,7 +95,7 @@ const Profile = () => {
 
   return (
     <>
-    
+
 
       <div className="min-h-screen bg-gray-100 dark:bg-slate-900 text-gray-900 dark:text-white pt-8 md:pt-10 pb-16 md:px-6">
 
@@ -111,6 +111,60 @@ const Profile = () => {
             <div>
               <h2 className="text-xl md:text-2xl font-semibold">{user.name}</h2>
               <p className="text-gray-500 dark:text-gray-400">{user.email}</p>
+            </div>
+
+          </div>
+
+          {/* WALLET BALANCES */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+
+            {/* Revenue Balance */}
+            <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-2xl p-6">
+
+              <p className="text-xs uppercase tracking-widest text-gray-500 dark:text-gray-400 font-semibold mb-2">
+                Revenue Balance
+              </p>
+
+              <h2 className="text-3xl font-bold text-indigo-600 dark:text-indigo-400">
+                $
+                {Number(
+                  user.revenue || 0
+                ).toFixed(2)}
+              </h2>
+
+            </div>
+
+            {/* Referral Balance */}
+            <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-2xl p-6">
+
+              <p className="text-xs uppercase tracking-widest text-gray-500 dark:text-gray-400 font-semibold mb-2">
+                Referral Balance
+              </p>
+
+              <h2 className="text-3xl font-bold text-cyan-600 dark:text-cyan-400">
+                $
+                {Number(
+                  user.referralAmount || 0
+                ).toFixed(2)}
+              </h2>
+
+            </div>
+
+            {/* Total Balance */}
+            <div className="bg-gradient-to-r from-indigo-600 to-cyan-600 rounded-2xl p-6 text-white shadow-lg">
+
+              <p className="text-xs uppercase tracking-widest font-semibold mb-2 opacity-80">
+                Total Balance
+              </p>
+
+              <h2 className="text-3xl font-bold">
+                $
+                {(
+                  Number(user.revenue || 0) +
+                  Number(user.referralAmount || 0)
+                ).toFixed(2)}
+              </h2>
+
             </div>
 
           </div>
@@ -283,9 +337,9 @@ const Profile = () => {
 
                       <td className="font-mono text-sm">
                         {s.ip}
-                        </td>
+                      </td>
 
-                        <td >
+                      <td >
                         <FiCopy
                           className="cursor-pointer opacity-60 hover:opacity-100"
                           onClick={() => copyIP(s.ip)}
@@ -324,61 +378,61 @@ const Profile = () => {
           </div>
 
           {/* Mobile View */}
-<div className="md:hidden space-y-4">
-  {sessions.map((s) => (
-    <div
-      key={s.id}
-      className="border border-gray-200 dark:border-slate-700 rounded-xl p-4 bg-white dark:bg-slate-800"
-    >
-      {/* Date */}
-      <div className="flex justify-between items-center mb-2">
-        <span className="text-sm text-gray-500">Date</span>
-        <div className="text-sm">
-          {s.date}
-          {s.isCurrent && (
-            <span className="ml-2 px-2 py-0.5 text-xs rounded bg-green-100 text-green-800">
-              Current
-            </span>
-          )}
-        </div>
-      </div>
+          <div className="md:hidden space-y-4">
+            {sessions.map((s) => (
+              <div
+                key={s.id}
+                className="border border-gray-200 dark:border-slate-700 rounded-xl p-4 bg-white dark:bg-slate-800"
+              >
+                {/* Date */}
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-sm text-gray-500">Date</span>
+                  <div className="text-sm">
+                    {s.date}
+                    {s.isCurrent && (
+                      <span className="ml-2 px-2 py-0.5 text-xs rounded bg-green-100 text-green-800">
+                        Current
+                      </span>
+                    )}
+                  </div>
+                </div>
 
-      {/* Browser */}
-      <div className="flex justify-between text-sm mb-1">
-        <span className="text-gray-500">Browser</span>
-        <span>{s.browser}</span>
-      </div>
+                {/* Browser */}
+                <div className="flex justify-between text-sm mb-1">
+                  <span className="text-gray-500">Browser</span>
+                  <span>{s.browser}</span>
+                </div>
 
-      {/* IP */}
-      <div className="flex justify-between items-center text-sm mb-1">
-        <span className="text-gray-500">IP</span>
-        <div className="flex items-center gap-2">
-          <span className="font-mono">{s.ip}</span>
-          <FiCopy
-            className="cursor-pointer opacity-60"
-            onClick={() => copyIP(s.ip)}
-          />
-        </div>
-      </div>
+                {/* IP */}
+                <div className="flex justify-between items-center text-sm mb-1">
+                  <span className="text-gray-500">IP</span>
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono">{s.ip}</span>
+                    <FiCopy
+                      className="cursor-pointer opacity-60"
+                      onClick={() => copyIP(s.ip)}
+                    />
+                  </div>
+                </div>
 
-      {/* Location */}
-      <div className="flex justify-between text-sm mb-2">
-        <span className="text-gray-500">Location</span>
-        <span>{s.location}</span>
-      </div>
+                {/* Location */}
+                <div className="flex justify-between text-sm mb-2">
+                  <span className="text-gray-500">Location</span>
+                  <span>{s.location}</span>
+                </div>
 
-      {/* Action */}
-      <div className="flex justify-end">
-        <button
-          onClick={() => removeSession(s.id)}
-          className="text-red-500"
-        >
-          <FiX />
-        </button>
-      </div>
-    </div>
-  ))}
-</div>
+                {/* Action */}
+                <div className="flex justify-end">
+                  <button
+                    onClick={() => removeSession(s.id)}
+                    className="text-red-500"
+                  >
+                    <FiX />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
 
         </div>
 

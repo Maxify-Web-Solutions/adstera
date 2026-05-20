@@ -32,7 +32,7 @@ const DashboardHeader = ({ onMenuClick }) => {
 
     useEffect(() => {
         dispatch(getUser())
-    },[dispatch])
+    }, [dispatch])
 
     const handleLogout = async () => {
         try {
@@ -43,6 +43,18 @@ const DashboardHeader = ({ onMenuClick }) => {
             console.error("Logout failed:", error);
         }
     };
+
+    const revenueBalance = Number(
+        user?.revenue || 0
+    );
+
+    const referralBalance = Number(
+        user?.referralAmount || 0
+    );
+
+    const totalBalance =
+        revenueBalance +
+        referralBalance;
 
     return (
         <header className="sticky top-0 z-50 w-full h-16 bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-700 px-4 md:px-8 flex items-center justify-between">
@@ -60,13 +72,13 @@ const DashboardHeader = ({ onMenuClick }) => {
 
                 {/* Logo */}
                 <Link to={"/"} className="flex items-center gap-3">
-                   <img
-                                src="https://i.ibb.co/gbrn443W/Adstorx-logo.png"
-                                alt="Adstorx Logo"
-                                className="h-11 sm:h-14 md:h-16 w-auto object-contain"
-                            />
+                    <img
+                        src="https://i.ibb.co/gbrn443W/Adstorx-logo.png"
+                        alt="Adstorx Logo"
+                        className="h-11 sm:h-14 md:h-16 w-auto object-contain"
+                    />
 
-                    
+
                 </Link>
             </div>
 
@@ -92,14 +104,14 @@ const DashboardHeader = ({ onMenuClick }) => {
 
                     <span>
                         $
-                        {user.revenue.toFixed(2)}
+                        {totalBalance.toFixed(2)}
                     </span>
                 </div>
 
                 {/* Mobile Balance */}
                 <div className="flex md:hidden items-center gap-1 px-3 py-1.5 rounded-lg bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-sm font-semibold">
                     $
-                    {user.revenue.toFixed(2)}
+                    {totalBalance.toFixed(2)}
                 </div>
 
                 {/* User */}

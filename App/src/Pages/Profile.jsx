@@ -100,8 +100,8 @@ const Profile = () => {
                                 <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">{user.name}</h2>
                                 <p className="text-gray-500 dark:text-gray-400">{user.email}</p>
                                 <p className="text-sm text-gray-400 dark:text-gray-500 mt-1 break-all">
-    User ID: {user._id}
-</p>
+                                    User ID: {user._id}
+                                </p>
                             </div>
 
                         </div>
@@ -135,6 +135,55 @@ const Profile = () => {
                         </div>
                     </div>
 
+                    {/* Wallet Balances */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-10">
+
+                        {/* Revenue Balance */}
+                        <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-2xl p-6 shadow-sm transition-colors duration-300">
+                            <p className="text-xs uppercase tracking-widest text-gray-500 dark:text-gray-400 font-bold mb-2">
+                                Revenue Balance
+                            </p>
+
+                            <h3 className="text-3xl font-bold text-indigo-600 dark:text-indigo-400">
+                                $
+                                {Number(
+                                    user.revenue || 0
+                                ).toFixed(2)}
+                            </h3>
+                        </div>
+
+                        {/* Referral Balance */}
+                        <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-2xl p-6 shadow-sm transition-colors duration-300">
+                            <p className="text-xs uppercase tracking-widest text-gray-500 dark:text-gray-400 font-bold mb-2">
+                                Referral Balance
+                            </p>
+
+                            <h3 className="text-3xl font-bold text-cyan-600 dark:text-cyan-400">
+                                $
+                                {Number(
+                                    user.referralAmount || 0
+                                ).toFixed(2)}
+                            </h3>
+                        </div>
+
+                        {/* Total Balance */}
+                        <div className="bg-gradient-to-r from-indigo-600 to-cyan-600 rounded-2xl p-6 shadow-lg text-white">
+                            <p className="text-xs uppercase tracking-widest font-bold mb-2 opacity-80">
+                                Total Balance
+                            </p>
+
+                            <h3 className="text-3xl font-bold">
+                                $
+                                {(
+                                    Number(user.revenue || 0) +
+                                    Number(
+                                        user.referralAmount || 0
+                                    )
+                                ).toFixed(2)}
+                            </h3>
+                        </div>
+
+                    </div>
                     {/* Profile Information */}
                     <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-2xl p-6 md:p-8 mb-10 shadow-sm transition-colors duration-300">
 

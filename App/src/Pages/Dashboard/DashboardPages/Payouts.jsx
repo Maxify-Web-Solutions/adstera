@@ -37,7 +37,17 @@ const Payouts = () => {
 
 
 
-  const totalRevenue = Number(user?.revenue || 0);
+  const revenueBalance = Number(
+    user?.revenue || 0
+  );
+
+  const referralBalance = Number(
+    user?.referralAmount || 0
+  );
+
+  const totalRevenue =
+    revenueBalance +
+    referralBalance;
 
   const {
     withdrawals = [],
@@ -178,9 +188,45 @@ const Payouts = () => {
 
             </div>
 
-            <h2 className="text-5xl md:text-6xl font-black text-white tracking-tight">
-              ${user.revenue.toFixed(2)}
-            </h2>
+            <div className="space-y-4">
+
+              {/* TOTAL */}
+              <div>
+                <p className="text-sm uppercase tracking-[0.2em] text-white/60 mb-2">
+                  Total Balance
+                </p>
+
+                <h2 className="text-5xl md:text-6xl font-black text-white tracking-tight">
+                  ${totalRevenue.toFixed(2)}
+                </h2>
+              </div>
+
+              {/* WALLET BREAKDOWN */}
+              <div className="flex flex-wrap gap-4">
+
+                <div className="px-5 py-3 rounded-2xl bg-white/10 border border-white/10 backdrop-blur-xl">
+                  <p className="text-xs uppercase tracking-widest text-white/60 mb-1">
+                    Revenue
+                  </p>
+
+                  <h4 className="text-xl font-bold text-indigo-200">
+                    ${revenueBalance.toFixed(2)}
+                  </h4>
+                </div>
+
+                <div className="px-5 py-3 rounded-2xl bg-white/10 border border-white/10 backdrop-blur-xl">
+                  <p className="text-xs uppercase tracking-widest text-white/60 mb-1">
+                    Referral
+                  </p>
+
+                  <h4 className="text-xl font-bold text-cyan-200">
+                    ${referralBalance.toFixed(2)}
+                  </h4>
+                </div>
+
+              </div>
+
+            </div>
 
             <p className="mt-4 text-sm md:text-base text-white/70 leading-relaxed max-w-xl">
 
