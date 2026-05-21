@@ -2,7 +2,7 @@ const axios = require("axios");
 const mongoose = require("mongoose");
 const UAParser = require("ua-parser-js");
 const SmartLink = require("../models/SmartLink");
-const RawAdsterraStats = require("../models/RawAdsterraStats");
+const AdsterraStats = require("../models/RawAdsterraStats");
 const SmartLinkStats = require("../models/RawSmartLinkStats");
 const User = require("../models/authmodel");
 const Config = require("../models/Config");
@@ -11,9 +11,7 @@ const Config = require("../models/Config");
 
 exports.RawfetchAndStoreAdsterraStats =
   async (req = null, res = null) => {
-
     try {
-
       // =================================================
       // QUERY
       // =================================================
@@ -28,19 +26,15 @@ exports.RawfetchAndStoreAdsterraStats =
       // GET ALL USERS
       // =================================================
 
-      const users =
-        await User.find({});
+      const users = await User.find({});
 
       if (!users.length) {
-
         const responseData = {
           success: false,
-          message:
-            "No users found",
+          message: "No users found",
         };
 
         if (res) {
-
           return res
             .status(404)
             .json(responseData);
@@ -53,22 +47,16 @@ exports.RawfetchAndStoreAdsterraStats =
       // CONFIG
       // =================================================
 
-      const config =
-        await Config.findOne();
+      const config = await Config.findOne();
 
-      if (
-        !config?.adsterraApiKey
-      ) {
-
+      if (!config?.adsterraApiKey) {
         const responseData = {
           success: false,
-
           message:
             "Adsterra API key not found",
         };
 
         if (res) {
-
           return res
             .status(400)
             .json(responseData);
@@ -77,123 +65,84 @@ exports.RawfetchAndStoreAdsterraStats =
         return responseData;
       }
 
-
       // =================================================
       // DATE HELPERS
       // =================================================
 
-      const today =
-        new Date();
+      const today = new Date();
 
-      const normalizeDate =
-        (d) => {
-
-          if (!d) {
-
-            return today
-              .toISOString()
-              .split("T")[0];
-          }
-
-          if (
-            typeof d ===
-            "string"
-          ) {
-
-            return d.includes("T")
-              ? d.split("T")[0]
-              : d;
-          }
-
-          if (
-            d instanceof Date
-          ) {
-
-            return d
-              .toISOString()
-              .split("T")[0];
-          }
-
+      const normalizeDate = (d) => {
+        if (!d) {
           return today
             .toISOString()
             .split("T")[0];
-        };
+        }
+
+        if (typeof d === "string") {
+          return d.includes("T")
+            ? d.split("T")[0]
+            : d;
+        }
+
+        if (d instanceof Date) {
+          return d
+            .toISOString()
+            .split("T")[0];
+        }
+
+        return today
+          .toISOString()
+          .split("T")[0];
+      };
 
       // =================================================
       // DEFAULT DATES
       // =================================================
 
       const currentDate =
-        normalizeDate(
-          new Date()
-        );
+        normalizeDate(new Date());
 
-      const oldDate =
-        new Date();
+      const oldDate = new Date();
 
       oldDate.setDate(
         oldDate.getDate() - 15
       );
 
       const defaultStartDate =
-        normalizeDate(
-          oldDate
-        );
+        normalizeDate(oldDate);
 
       const defaultEndDate =
         currentDate;
 
       const finalStartDate =
-        start_date ||
-        defaultStartDate;
+        start_date || defaultStartDate;
 
       const finalEndDate =
-        end_date ||
-        defaultEndDate;
+        end_date || defaultEndDate;
 
       // =================================================
       // DEVICE INFO
       // =================================================
 
       const ua =
-        req?.headers?.[
-        "user-agent"
-        ] ||
+        req?.headers?.["user-agent"] ||
         "Mozilla/5.0";
 
-      const parser =
-        new UAParser(ua);
+      const parser = new UAParser(ua);
 
-      const device =
-        parser.getDevice();
+      const device = parser.getDevice();
 
-      const os =
-        parser.getOS();
+      const os = parser.getOS();
 
-      const browser =
-        parser.getBrowser();
+      const browser = parser.getBrowser();
 
       const deviceType =
-        device.type ||
-        "desktop";
+        device.type || "desktop";
 
-      const deviceModel =
-        device.model || "";
-
-      const deviceVendor =
-        device.vendor || "";
-
-      const osName =
-        os.name || "";
-
-      const osVersion =
-        os.version || "";
+      const osName = os.name || "";
 
       const browserName =
         browser.name || "";
-
-      const browserVersion =
-        browser.version || "";
 
       // =================================================
       // TOTAL STORAGE
@@ -206,31 +155,16 @@ exports.RawfetchAndStoreAdsterraStats =
       let totalRevenue = 0;
 
       // =================================================
-      // LOOP USERS
+      // LOOP ALL USERS
       // =================================================
 
       for (const user of users) {
-
         try {
+          const userId = user._id;
 
-          const userId =
-            user._id;
-
-
-          // =============================================
-          // USER PERCENT HISTORY
-          // =============================================
-
-          const percentHistory =
-            Array.isArray(
-              user.percentHistory
-            )
-              ? user.percentHistory
-              : [];
-
-          // =============================================
+          // =================================================
           // GET LINKS
-          // =============================================
+          // =================================================
 
           const links =
             await SmartLink.find({
@@ -243,38 +177,34 @@ exports.RawfetchAndStoreAdsterraStats =
 
           totalUsers += 1;
 
-          totalLinks +=
-            links.length;
+          totalLinks += links.length;
 
-          // =============================================
+          // =================================================
           // STORAGE
-          // =============================================
+          // =================================================
 
           const overallOps = [];
 
           const revenueTracker =
             new Set();
 
-          // =============================================
+          // =================================================
           // LOOP LINKS
-          // =============================================
+          // =================================================
 
           for (const link of links) {
-
             try {
-
-              const placementId =
-                String(
-                  link.placementId || ""
-                ).trim();
+              const placementId = String(
+                link.placementId || ""
+              ).trim();
 
               if (!placementId) {
                 continue;
               }
 
-              // =========================================
+              // =============================================
               // APPROVED DATE
-              // =========================================
+              // =============================================
 
               const approvedDate =
                 link.approvedAt
@@ -283,9 +213,9 @@ exports.RawfetchAndStoreAdsterraStats =
                   )
                   : null;
 
-              // =========================================
+              // =============================================
               // FINAL START DATE
-              // =========================================
+              // =============================================
 
               let apiStartDate =
                 finalStartDate;
@@ -301,16 +231,15 @@ exports.RawfetchAndStoreAdsterraStats =
                 link.targetUrl ||
                 "unknown";
 
-              // =========================================
+              // =============================================
               // API CALL
-              // =========================================
+              // =============================================
 
               const overallResponse =
                 await axios.get(
                   "https://api3.adsterratools.com/publisher/stats.json",
                   {
                     params: {
-
                       placement:
                         placementId,
 
@@ -325,7 +254,6 @@ exports.RawfetchAndStoreAdsterraStats =
                     },
 
                     headers: {
-
                       Accept:
                         "application/json",
 
@@ -339,17 +267,16 @@ exports.RawfetchAndStoreAdsterraStats =
                 );
 
               let overallData =
-                overallResponse
-                  .data?.items || [];
+                overallResponse.data
+                  ?.items || [];
 
-              // =========================================
+              // =============================================
               // FILTER APPROVED DATE
-              // =========================================
+              // =============================================
 
               overallData =
                 overallData.filter(
                   (item) => {
-
                     if (
                       !approvedDate
                     ) {
@@ -368,12 +295,11 @@ exports.RawfetchAndStoreAdsterraStats =
                   }
                 );
 
-              // =========================================
+              // =============================================
               // SAVE STATS
-              // =========================================
+              // =============================================
 
               for (const item of overallData) {
-
                 const impressions =
                   Number(
                     item.impression
@@ -393,18 +319,16 @@ exports.RawfetchAndStoreAdsterraStats =
                   impressions > 0
                     ? Number(
                       (
-                        (
-                          clicks /
-                          impressions
-                        ) * 100
+                        (clicks /
+                          impressions) *
+                        100
                       ).toFixed(2)
                     )
                     : 0;
 
                 const cpm =
-                  Number(
-                    item.cpm
-                  ) || 0;
+                  Number(item.cpm) ||
+                  0;
 
                 const adsterraDate =
                   String(
@@ -413,80 +337,16 @@ exports.RawfetchAndStoreAdsterraStats =
                     )
                   ).trim();
 
-                // =======================================
-                // DEFAULT PERCENT
-                // =======================================
-
-                let impressionPercent = 0;
-
-                let cpmPercent = 0;
-
-                // =======================================
-                // APPLY HISTORY
-                // =======================================
-
-                const matchedHistory =
-                  percentHistory
-                    .filter((h) => {
-
-                      const hDate =
-                        normalizeDate(
-                          h.date
-                        );
-
-                      return (
-                        hDate <=
-                        adsterraDate
-                      );
-                    })
-                    .sort(
-                      (a, b) =>
-                        new Date(
-                          b.date
-                        ) -
-                        new Date(
-                          a.date
-                        )
-                    )[0];
-
-                // =======================================
-                // APPLY %
-                // =======================================
-
-                if (
-                  matchedHistory
-                ) {
-
-                  impressionPercent =
-                    Number(
-                      matchedHistory.impressionPercent
-                    ) || 0;
-
-                  cpmPercent =
-                    Number(
-                      matchedHistory.cpmPercent
-                    ) || 0;
-                }
-
-                // =======================================
-                // REVENUE KEY
-                // =======================================
-
                 const revenueKey = [
                   placementId,
                   adsterraDate,
                 ].join("|");
-
-                // =======================================
-                // TOTAL REVENUE
-                // =======================================
 
                 if (
                   !revenueTracker.has(
                     revenueKey
                   )
                 ) {
-
                   totalRevenue +=
                     revenue;
 
@@ -495,15 +355,9 @@ exports.RawfetchAndStoreAdsterraStats =
                   );
                 }
 
-                // =======================================
-                // SAVE RAW STATS
-                // =======================================
-
                 overallOps.push({
                   updateOne: {
-
                     filter: {
-
                       userId:
                         new mongoose.Types.ObjectId(
                           userId
@@ -514,18 +368,15 @@ exports.RawfetchAndStoreAdsterraStats =
                           placementId
                         ),
 
-                      country:
-                        "ALL",
+                      country: "ALL",
 
-                      date:
-                        String(
-                          adsterraDate
-                        ),
+                      date: String(
+                        adsterraDate
+                      ),
                     },
 
                     update: {
                       $set: {
-
                         userId:
                           new mongoose.Types.ObjectId(
                             userId
@@ -541,30 +392,17 @@ exports.RawfetchAndStoreAdsterraStats =
                         country:
                           "ALL",
 
-                        date:
-                          String(
-                            adsterraDate
-                          ),
+                        date: String(
+                          adsterraDate
+                        ),
 
-                        // DEVICE
                         device:
                           deviceType,
 
-                        deviceModel,
-
-                        deviceVendor,
-
-                        // OS
                         osName,
 
-                        osVersion,
-
-                        // BROWSER
                         browserName,
 
-                        browserVersion,
-
-                        // STATS
                         impressions,
 
                         clicks,
@@ -574,11 +412,6 @@ exports.RawfetchAndStoreAdsterraStats =
                         ctr,
 
                         cpm,
-
-                        // SAVE %
-                        impressionPercent,
-
-                        cpmPercent,
                       },
                     },
 
@@ -586,27 +419,17 @@ exports.RawfetchAndStoreAdsterraStats =
                   },
                 });
               }
-
             } catch (err) {
-
-              console.log(
-                "LINK ERROR =>",
-                err.message
-              );
-
               continue;
             }
           }
 
-          // =============================================
+          // =================================================
           // BULK SAVE
-          // =============================================
+          // =================================================
 
-          if (
-            overallOps.length
-          ) {
-
-            await RawAdsterraStats.bulkWrite(
+          if (overallOps.length) {
+            await AdsterraStats.bulkWrite(
               overallOps,
               {
                 ordered: false,
@@ -615,12 +438,6 @@ exports.RawfetchAndStoreAdsterraStats =
           }
 
         } catch (err) {
-
-          console.log(
-            "USER ERROR =>",
-            err.message
-          );
-
           continue;
         }
       }
@@ -630,7 +447,6 @@ exports.RawfetchAndStoreAdsterraStats =
       // =================================================
 
       const finalResponse = {
-
         success: true,
 
         message:
@@ -640,33 +456,25 @@ exports.RawfetchAndStoreAdsterraStats =
 
         totalLinks,
 
-        totalRevenue:
-          Number(
-            totalRevenue.toFixed(6)
-          ),
+        totalRevenue: Number(
+          totalRevenue.toFixed(6)
+        ),
 
         start_date:
           finalStartDate,
 
-        end_date:
-          finalEndDate,
+        end_date: finalEndDate,
       };
 
       if (res) {
-
         return res
           .status(200)
-          .json(
-            finalResponse
-          );
+          .json(finalResponse);
       }
 
       return finalResponse;
-
     } catch (error) {
-
       const errorResponse = {
-
         success: false,
 
         message:
@@ -678,12 +486,9 @@ exports.RawfetchAndStoreAdsterraStats =
       };
 
       if (res) {
-
         return res
           .status(500)
-          .json(
-            errorResponse
-          );
+          .json(errorResponse);
       }
 
       return errorResponse;
@@ -722,8 +527,6 @@ exports.RawfetchAndStoreCountryStats =
           {},
           "_id"
         );
-
-      console.log(users, "qwerty")
 
       let totalUpdated = 0;
 
