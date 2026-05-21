@@ -58,6 +58,7 @@ app.get(/.*/, (req, res) => {
   res.sendFile(path.join(__dirname, "../App/dist/index.html"));
 });
 
+// RawfetchAndStoreAdsterraStats()
 
 calculateAndStoreAdsterraStats()
 

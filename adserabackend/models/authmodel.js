@@ -44,24 +44,24 @@ const userschema = new mongoose.Schema(
     // TODAY CHANGE = TOMORROW APPLY
     // =========================
 
-    percentHistory: [
-      {
-        date: {
-          type: String,
-          required: true,
-        },
+    // percentHistory: [
+    //   {
+    //     date: {
+    //       type: String,
+    //       required: true,
+    //     },
 
-        impressionPercent: {
-          type: Number,
-          default: 20,
-        },
+    //     impressionPercent: {
+    //       type: Number,
+    //       default: 10,
+    //     },
 
-        cpmPercent: {
-          type: Number,
-          default: 50,
-        },
-      },
-    ],
+    //     cpmPercent: {
+    //       type: Number,
+    //       default: 40,
+    //     },
+    //   },
+    // ],
 
     // =========================
     // ✅ REFERRAL SYSTEM
