@@ -1015,10 +1015,10 @@ const Statistics = () => {
 
                 {/* PLACEMENT */}
                 <div>
-                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
+                  {/* <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
                     <Code2 className="w-4 h-4" />
                     Placement ID
-                  </label>
+                  </label> */}
                   <input
                     type="hidden"
                     value={placement}

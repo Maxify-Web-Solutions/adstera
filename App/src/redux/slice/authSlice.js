@@ -7,13 +7,14 @@ import { toast } from "react-toastify";
 ========================= */
 export const registerUser = createAsyncThunk(
   "auth/register",
-  async ({ name, email, mobile, password }, { rejectWithValue }) => {
+  async ({ name, email, mobile, password, referral }, { rejectWithValue }) => {
     try {
       const response = await api.post("/auth/register", {
         name,
         email,
         mobile,
         password,
+        referralCode:referral
       });
 
       toast.success("OTP sent to your email");

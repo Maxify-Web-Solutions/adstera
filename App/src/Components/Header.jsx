@@ -17,6 +17,18 @@ const Header = () => {
 
     const { user } = useSelector((state) => state.auth);
 
+    const revenueBalance = Number(
+        user?.revenue || 0
+    );
+
+    const referralBalance = Number(
+        user?.referralAmount || 0
+    );
+
+    const totalBalance =
+        revenueBalance +
+        referralBalance;
+
     /* Scroll progress */
     useEffect(() => {
         const handleScroll = () => {
@@ -80,11 +92,10 @@ const Header = () => {
             {/* HEADER */}
             <header
                 className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 border-b border-transparent dark:border-slate-800
-                ${
-                    isScrolled
+                ${isScrolled
                         ? "bg-white/80 dark:bg-slate-900/80 backdrop-blur-md shadow-lg dark:border-white/10"
                         : "bg-transparent"
-                }`}
+                    }`}
             >
                 <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
                     <div className="flex h-14 sm:h-16 items-center justify-between">
@@ -103,10 +114,9 @@ const Header = () => {
                                 to="/"
                                 className={({ isActive }) =>
                                     `relative px-4 py-2 rounded-lg transition font-medium text-gray-600 dark:text-gray-300
-                                    ${
-                                        isActive
-                                            ? "text-gray-900 dark:text-white"
-                                            : "hover:text-gray-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10"
+                                    ${isActive
+                                        ? "text-gray-900 dark:text-white"
+                                        : "hover:text-gray-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10"
                                     }`
                                 }
                             >
@@ -126,10 +136,9 @@ const Header = () => {
                                     to="/dashboard"
                                     className={({ isActive }) =>
                                         `relative px-4 py-2 rounded-lg transition font-medium text-gray-600 dark:text-gray-300
-                                        ${
-                                            isActive
-                                                ? "text-gray-900 dark:text-white"
-                                                : "hover:text-gray-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10"
+                                        ${isActive
+                                            ? "text-gray-900 dark:text-white"
+                                            : "hover:text-gray-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10"
                                         }`
                                     }
                                 >
@@ -150,10 +159,9 @@ const Header = () => {
                                     to="/profile"
                                     className={({ isActive }) =>
                                         `relative px-4 py-2 rounded-lg transition font-medium text-gray-600 dark:text-gray-300
-                                        ${
-                                            isActive
-                                                ? "text-gray-900 dark:text-white"
-                                                : "hover:text-gray-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10"
+                                        ${isActive
+                                            ? "text-gray-900 dark:text-white"
+                                            : "hover:text-gray-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10"
                                         }`
                                     }
                                 >
@@ -172,9 +180,10 @@ const Header = () => {
                             {user && (
                                 <div className="px-4 py-2 rounded-lg bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 font-semibold">
                                     <span>
-                        $
-                        {user.revenue.toFixed(2)}
-                    </span>
+                                        $
+                                                                    {totalBalance.toFixed(2)}
+
+                                    </span>
                                 </div>
                             )}
 
@@ -257,10 +266,9 @@ const Header = () => {
                         onClick={toggleMenu}
                         className={({ isActive }) =>
                             `px-4 py-3 text-base rounded-xl transition font-medium
-                            ${
-                                isActive
-                                    ? "bg-indigo-600 text-white"
-                                    : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800 hover:text-gray-900 dark:hover:text-white"
+                            ${isActive
+                                ? "bg-indigo-600 text-white"
+                                : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800 hover:text-gray-900 dark:hover:text-white"
                             }`
                         }
                     >
@@ -273,10 +281,9 @@ const Header = () => {
                             onClick={toggleMenu}
                             className={({ isActive }) =>
                                 `px-4 py-3 text-base rounded-xl transition font-medium
-                                ${
-                                    isActive
-                                        ? "bg-indigo-600 text-white"
-                                        : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800 hover:text-gray-900 dark:hover:text-white"
+                                ${isActive
+                                    ? "bg-indigo-600 text-white"
+                                    : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800 hover:text-gray-900 dark:hover:text-white"
                                 }`
                             }
                         >
@@ -290,10 +297,9 @@ const Header = () => {
                             onClick={toggleMenu}
                             className={({ isActive }) =>
                                 `px-4 py-3 text-base rounded-xl transition font-medium
-                                ${
-                                    isActive
-                                        ? "bg-indigo-600 text-white"
-                                        : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800 hover:text-gray-900 dark:hover:text-white"
+                                ${isActive
+                                    ? "bg-indigo-600 text-white"
+                                    : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800 hover:text-gray-900 dark:hover:text-white"
                                 }`
                             }
                         >
@@ -304,9 +310,10 @@ const Header = () => {
                     {user && (
                         <div className="px-4 py-3 rounded-xl bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 font-bold text-center">
                             Balance : <span>
-                        $
-                        {user.revenue.toFixed(2)}
-                    </span>
+                                $
+                                                            {totalBalance.toFixed(2)}
+
+                            </span>
                         </div>
                     )}
 
@@ -324,10 +331,9 @@ const Header = () => {
                                 onClick={toggleMenu}
                                 className={({ isActive }) =>
                                     `px-4 py-3 text-base rounded-xl transition font-medium
-                                    ${
-                                        isActive
-                                            ? "bg-indigo-600 text-white"
-                                            : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800 hover:text-gray-900 dark:hover:text-white"
+                                    ${isActive
+                                        ? "bg-indigo-600 text-white"
+                                        : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800 hover:text-gray-900 dark:hover:text-white"
                                     }`
                                 }
                             >
@@ -339,10 +345,9 @@ const Header = () => {
                                 onClick={toggleMenu}
                                 className={({ isActive }) =>
                                     `px-4 py-3 text-base rounded-xl transition font-medium
-                                    ${
-                                        isActive
-                                            ? "bg-indigo-600 text-white"
-                                            : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800 hover:text-gray-900 dark:hover:text-white"
+                                    ${isActive
+                                        ? "bg-indigo-600 text-white"
+                                        : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800 hover:text-gray-900 dark:hover:text-white"
                                     }`
                                 }
                             >
@@ -353,48 +358,48 @@ const Header = () => {
 
                     {/* THEME TOGGLE */}
                     {/* THEME TOGGLE */}
-<div className="pt-2">
+                    <div className="pt-2">
 
-    <div className="flex items-center justify-between px-4 py-3 rounded-xl bg-gray-100 dark:bg-slate-800 border border-gray-200 dark:border-slate-700">
+                        <div className="flex items-center justify-between px-4 py-3 rounded-xl bg-gray-100 dark:bg-slate-800 border border-gray-200 dark:border-slate-700">
 
-        <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-3">
 
-            <div className="w-10 h-10 rounded-xl bg-indigo-100 dark:bg-indigo-500/10 flex items-center justify-center">
-                <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="w-5 h-5 text-indigo-600 dark:text-indigo-400"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth={2}
-                >
-                    <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M12 3v1m0 16v1m8-9h1M3 12H2m15.364 6.364l.707.707M5.636 5.636l-.707-.707m12.728 0l-.707.707M5.636 18.364l-.707.707"
-                    />
-                </svg>
-            </div>
+                                <div className="w-10 h-10 rounded-xl bg-indigo-100 dark:bg-indigo-500/10 flex items-center justify-center">
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        className="w-5 h-5 text-indigo-600 dark:text-indigo-400"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke="currentColor"
+                                        strokeWidth={2}
+                                    >
+                                        <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            d="M12 3v1m0 16v1m8-9h1M3 12H2m15.364 6.364l.707.707M5.636 5.636l-.707-.707m12.728 0l-.707.707M5.636 18.364l-.707.707"
+                                        />
+                                    </svg>
+                                </div>
 
-            <div>
-                <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
-                    Theme Mode
-                </h3>
+                                <div>
+                                    <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
+                                        Theme Mode
+                                    </h3>
 
-                <p className="text-xs text-gray-500 dark:text-gray-400">
-                    Light / Dark appearance
-                </p>
-            </div>
+                                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                                        Light / Dark appearance
+                                    </p>
+                                </div>
 
-        </div>
+                            </div>
 
-        <div className="shrink-0">
-            <ThemeToggle />
-        </div>
+                            <div className="shrink-0">
+                                <ThemeToggle />
+                            </div>
 
-    </div>
+                        </div>
 
-</div>
+                    </div>
                 </div>
             </div>
         </>
