@@ -14,19 +14,49 @@ const tempUserSchema = new mongoose.Schema(
         validator: function (v) {
           return !/\s/.test(v);
         },
-        message: "Username should not contain spaces",
+        message:
+          "Username should not contain spaces",
       },
     },
 
-    email: String,
+    email: {
+      type: String,
+      required: true,
+      trim: true,
+      lowercase: true,
+    },
 
-    mobile: String,
+    mobile: {
+      type: String,
+      required: true,
+      trim: true,
+    },
 
-    password: String,
+    password: {
+      type: String,
+      required: true,
+    },
 
-    otp: String,
+    // =====================================
+    // ✅ REFERRAL SYSTEM
+    // =====================================
 
-    otpExpires: Date,
+    referredBy: {
+      type: String,
+      default: null,
+    },
+
+    // =====================================
+
+    otp: {
+      type: String,
+      required: true,
+    },
+
+    otpExpires: {
+      type: Date,
+      required: true,
+    },
 
     isVerified: {
       type: Boolean,
@@ -38,6 +68,9 @@ const tempUserSchema = new mongoose.Schema(
   }
 );
 
-const TempUser = mongoose.model("tempUsers", tempUserSchema);
+const TempUser = mongoose.model(
+  "tempUsers",
+  tempUserSchema
+);
 
 module.exports = TempUser;
