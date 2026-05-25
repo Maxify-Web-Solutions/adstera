@@ -101,8 +101,6 @@ const Refrels = () => {
         user.referralCode ||
         user.email
       )
-        ?.toLowerCase()
-        .replace(/\s+/g, "");
 
       return `${baseUrl}?ref=${refCode}`;
     }, [user]);
