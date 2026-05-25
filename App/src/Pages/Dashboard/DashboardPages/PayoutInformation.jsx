@@ -9,7 +9,7 @@ const methods = [
     name: "Local Bank Transfer",
     min: "$25.00",
     time: "Up to 5 business days",
-    fee: "$7 + exchange rate",
+    fee: "3%",
     currency: "INR",
     verification: "Individuals – required",
   },
@@ -17,7 +17,7 @@ const methods = [
     name: "Cryptocurrency",
     min: "$25.00",
     time: "1–3 business days",
-    fee: "1.5%",
+    fee: "3%",
     currency: "BTC/USDT/ETH",
     verification: "Individuals – by request",
   },
@@ -168,7 +168,7 @@ const PayoutInformation = () => {
 
             <div>
               <p className="text-gray-500 dark:text-gray-400">Fee</p>
-              <p className="font-semibold text-gray-900 dark:text-white">1%</p>
+              <p className="font-semibold text-gray-900 dark:text-white">3%</p>
             </div>
 
             <div>
