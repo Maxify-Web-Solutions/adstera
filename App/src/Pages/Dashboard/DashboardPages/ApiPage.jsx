@@ -46,7 +46,7 @@ const ApiPage = () => {
             onClick={generateToken}
             className="px-6 py-3 rounded-xl bg-green-600 hover:bg-green-700 text-white font-medium shadow-lg shadow-green-600/20 transition-all hover:scale-[1.02]"
           >
-            Generate API Token
+            Generate API Token Here
           </button>
         ) : (
 
