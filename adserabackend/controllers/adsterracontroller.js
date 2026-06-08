@@ -948,7 +948,7 @@ exports.fetchAndStoreCountryStats =
         start_date,
         end_date,
         page = 1,
-        limit = 40,
+        limit = 120,
         placement,
         country,
       } = req.query;
@@ -1014,7 +1014,7 @@ exports.fetchAndStoreCountryStats =
         Number(page) || 1;
 
       const perPage =
-        Number(limit) || 40;
+        Number(limit) || 120;
 
       const skip =
         (currentPage - 1) *
