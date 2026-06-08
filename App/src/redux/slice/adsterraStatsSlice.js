@@ -183,50 +183,31 @@ const adsterraSlice = createSlice({
                 (state, action) => {
                     state.loading = false;
 
-
-                    // =====================================
                     // OVERALL
-                    // =====================================
-
                     state.data =
-                        action.payload?.overall
-                            ?.data || [];
+                        action.payload?.overall?.data || [];
 
                     state.totals =
-                        action.payload?.overall
-                            ?.totals || {};
+                        action.payload?.overall?.totals || {};
 
-                    // =====================================
-                    // COUNTRY
-                    // =====================================
-
+                    // COUNTRY DATA
                     state.countryData =
-                        action.payload?.country
-                            ?.data || [];
+                        action.payload?.calculatedStats || [];
 
-                    state.countryTotals =
-                        action.payload?.country
-                            ?.totals || {};
+                    state.countryTotals = {
+                        totalRecords:
+                            action.payload?.calculatedStats?.length || 0,
+                    };
 
-                    // =====================================
                     // PAGINATION
-                    // =====================================
-
                     state.page =
-                        action.payload?.pagination
-                            ?.page || 1;
+                        action.payload?.pagination?.page || 1;
 
                     state.totalPages =
-                        action.payload?.pagination
-                            ?.totalPages || 1;
+                        action.payload?.pagination?.totalPages || 1;
 
                     state.totalRecords =
-                        action.payload?.pagination
-                            ?.totalRecords || 0;
-
-                    // =====================================
-                    // SUCCESS
-                    // =====================================
+                        action.payload?.pagination?.totalRecords || 0;
 
                     state.success = true;
                 }

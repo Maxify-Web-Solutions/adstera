@@ -7,7 +7,9 @@ import adsterraReducer from "../redux/slice/adsterraStatsSlice";
 import withdrawalReducer from "../redux/slice/withdrawalSlice";
 import adsterraPlacementReducer from "../redux/slice/adsterraPlacementSlice";
 import smartlinkFilterReducer from "../redux/slice/smartlinkFilterSlice";
-
+import websiteReducer from "../redux/slice/websiteSlice";
+import calculatedWebsiteReducer from "../redux/slice/calculatedWebsiteSlice";
+import contactReducer from "../redux/slice/contactSlice";
 export const store = configureStore({
   reducer: {
     auth: authReducer,
@@ -17,6 +19,10 @@ export const store = configureStore({
     withdrawal: withdrawalReducer,
     adsterraPlacements: adsterraPlacementReducer,
     smartlinkFilter: smartlinkFilterReducer, // 🔥 rename for clarity
+    website: websiteReducer,
+    calculatedWebsite: calculatedWebsiteReducer,
+    contact: contactReducer,
+
 
   },
 

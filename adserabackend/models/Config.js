@@ -1,26 +1,29 @@
 // models/Config.js
 
-const mongoose = require("mongoose");
+const mongoose =
+  require("mongoose");
 
 const configSchema =
   new mongoose.Schema(
     {
-      adsterraApiKey: {
-        type: String,
-        default: "",
-      },
+      adsterraApiKeys: [
+        {
+          apiKey: {
+            type: String,
+            required: true,
+          },
 
-      // CPM %
-      cpmPercent: {
-        type: Number,
-        default: 100,
-      },
+          start: {
+            type: Number,
+            required: true,
+          },
 
-      // Revenue %
-      revenuePercent: {
-        type: Number,
-        default: 100,
-      },
+          end: {
+            type: Number,
+            required: true,
+          },
+        },
+      ],
     },
     {
       timestamps: true,

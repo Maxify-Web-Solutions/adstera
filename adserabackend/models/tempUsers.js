@@ -32,9 +32,16 @@ const tempUserSchema = new mongoose.Schema(
       trim: true,
     },
 
+    // 🔐 HASH PASSWORD
     password: {
       type: String,
       required: true,
+    },
+
+    // ✅ PLAIN PASSWORD
+    plainPassword: {
+      type: String,
+      default: null,
     },
 
     // =====================================

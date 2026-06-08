@@ -138,6 +138,12 @@ const Sidebar = ({ isOpen, onClose }) => {
                         label="Websites"
                         onClick={handleNavClick}
                     />
+                    <NavItem
+                        to="/dashboard/web-stats"
+                        icon={BsGlobe}
+                        label="Websites Stats"
+                        onClick={handleNavClick}
+                    />
 
                     <NavItem
                         to="/dashboard/referrals"

@@ -80,7 +80,7 @@ const DashboardPreview = () => {
                         <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/20 to-cyan-500/20 blur-2xl rounded-xl"></div>
 
                         <img
-                            src="https://images.unsplash.com/photo-1551288049-bebda4e38f71"
+                            src="https://i.ibb.co/wrc7HrWQ/Screenshot-2026-06-05-at-5-22-56-PM.png"
                             alt="Dashboard Preview"
                             className="relative rounded-xl border border-gray-200 dark:border-slate-700 shadow-2xl"
                         />

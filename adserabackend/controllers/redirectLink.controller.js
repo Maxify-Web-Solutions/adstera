@@ -7,6 +7,7 @@ const TrackingLink = require("../models/SmartLink");
 router.get("/s/:code", async (req, res) => {
   try {
     const { code } = req.params;
+    
 
     // find approved link
     const link = await TrackingLink.findOne({

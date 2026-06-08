@@ -1,58 +1,17 @@
-import React, {
-  useEffect,
-  useMemo,
-  useState,
-  useCallback,
-} from "react";
-
-import {
-  useDispatch,
-  useSelector,
-} from "react-redux";
-
+import React, { useEffect, useMemo, useState, useCallback } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { useLocation } from "react-router-dom";
-
-import {
-  getAdsterraStats,
-} from "../../../redux/slice/adsterraStatsSlice";
-
-import {
-  setFilters,
-  getSmartLinkStats,
-} from "../../../redux/slice/smartlinkFilterSlice";
-
+import { getAdsterraStats } from "../../../redux/slice/adsterraStatsSlice";
+import { setFilters, getSmartLinkStats } from "../../../redux/slice/smartlinkFilterSlice";
 import { getNames } from "country-list";
 import lookup from "country-code-lookup";
-
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-
-// Icons (using lucide-react - install: npm install lucide-react)
-import {
-  Calendar,
-  Globe,
-  Globe2,
-  MousePointerClick,
-  TrendingUp,
-  DollarSign,
-  BarChart3,
-  Download,
-  RefreshCw,
-  Filter,
-  ChevronDown,
-  Smartphone,
-  Monitor,
-  Clock,
-  MapPin,
-  Link2,
-  Code2,
-  Eye,
-  Zap,
-} from "lucide-react";
-
+import { Calendar, Globe, Globe2, MousePointerClick, TrendingUp, DollarSign, BarChart3, Download, RefreshCw, Filter, ChevronDown, Smartphone, Monitor, Clock, MapPin, Link2, Code2, Eye, Zap } from "lucide-react";
 const Statistics = () => {
   const dispatch = useDispatch();
   const location = useLocation();
+  const websiteId = location.state?.websiteId || "";
 
   // 🌍 COUNTRIES
   const countries = useMemo(
@@ -363,9 +322,14 @@ const Statistics = () => {
     );
   };
 
-  // ====================================
-  // GROUP DATA
-  // ====================================
+const filteredWebsiteData =
+    websiteId
+        ? data?.filter(
+            (item) =>
+                item.userId === websiteId
+        )
+        : data || [];
+
   // ====================================
   // GROUP DATA
   // ====================================
@@ -418,7 +382,7 @@ const Statistics = () => {
 
       const statsMap = {};
 
-      (data || []).forEach((item) => {
+      (filteredWebsiteData || []).forEach((item) => {
 
         if (!item?.date) return;
 

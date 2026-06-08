@@ -1,7 +1,60 @@
-import React from 'react';
-import { FiMail, FiMapPin, FiPhone } from 'react-icons/fi';
-
+import React, { useState, useEffect } from "react";
+import { FiMail, FiMapPin, FiPhone } from "react-icons/fi";
+import { useDispatch, useSelector } from "react-redux";
+import {
+    createContact,
+    resetContactState,
+} from "../redux/slice/contactSlice";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 const Contact = () => {
+    const dispatch = useDispatch();
+
+    const { loading, success, error } = useSelector(
+        (state) => state.contact
+    );
+
+    const [formData, setFormData] = useState({
+        firstName: "",
+        lastName: "",
+        email: "",
+        message: "",
+    });
+
+    const handleChange = (e) => {
+        setFormData({
+            ...formData,
+            [e.target.name]: e.target.value,
+        });
+    };
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+
+        dispatch(createContact(formData));
+    };
+
+    useEffect(() => {
+        if (success) {
+            toast.success("Message sent successfully");
+
+            setFormData({
+                firstName: "",
+                lastName: "",
+                email: "",
+                message: "",
+            });
+
+            dispatch(resetContactState());
+        }
+
+        if (error) {
+            toast.error(error);
+
+            dispatch(resetContactState());
+        }
+    }, [success, error, dispatch]);
+
     return (
         <section className="bg-gray-50 dark:bg-slate-900 text-gray-800 dark:text-white py-16 md:py-20 relative transition-colors duration-300">
             {/* Background decoration */}
@@ -33,7 +86,7 @@ const Contact = () => {
                                         <p className="text-gray-500 dark:text-slate-400">sales@adstorx.com</p>
                                     </div>
                                 </div>
-                                
+
                                 <div className="flex items-start gap-4">
                                     <div className="p-3 bg-indigo-500/10 rounded-lg text-indigo-400">
                                         <FiPhone size={24} />
@@ -60,30 +113,78 @@ const Contact = () => {
                     </div>
 
                     {/* Contact Form */}
-                    <form className="bg-white dark:bg-slate-800/50 p-8 rounded-2xl border border-gray-200 dark:border-slate-700 space-y-6 shadow-sm">
+                    <form
+                        onSubmit={handleSubmit}
+                        className="bg-white dark:bg-slate-800/50 p-8 rounded-2xl border border-gray-200 dark:border-slate-700 space-y-6 shadow-sm"
+                    >
                         <div className="grid md:grid-cols-2 gap-6">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">First Name</label>
-                                <input type="text" className="w-full rounded-lg border border-gray-300 dark:border-slate-600 bg-gray-50 dark:bg-slate-700 px-4 py-3 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all" placeholder="John" />
+                                <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
+                                    First Name
+                                </label>
+
+                                <input
+                                    type="text"
+                                    name="firstName"
+                                    value={formData.firstName}
+                                    onChange={handleChange}
+                                    placeholder="John"
+                                    className="w-full rounded-lg border border-gray-300 dark:border-slate-600 bg-gray-50 dark:bg-slate-700 px-4 py-3 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
+                                />
                             </div>
+
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">Last Name</label>
-                                <input type="text" className="w-full rounded-lg border border-gray-300 dark:border-slate-600 bg-gray-50 dark:bg-slate-700 px-4 py-3 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all" placeholder="Doe" />
+                                <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
+                                    Last Name
+                                </label>
+
+                                <input
+                                    type="text"
+                                    name="lastName"
+                                    value={formData.lastName}
+                                    onChange={handleChange}
+                                    placeholder="Doe"
+                                    className="w-full rounded-lg border border-gray-300 dark:border-slate-600 bg-gray-50 dark:bg-slate-700 px-4 py-3 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
+                                />
                             </div>
                         </div>
-                        
+
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">Email Address</label>
-                            <input type="email" className="w-full rounded-lg border border-gray-300 dark:border-slate-600 bg-gray-50 dark:bg-slate-700 px-4 py-3 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all" placeholder="john@example.com" />
+                            <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
+                                Email Address
+                            </label>
+
+                            <input
+                                type="email"
+                                name="email"
+                                value={formData.email}
+                                onChange={handleChange}
+                                placeholder="john@example.com"
+                                className="w-full rounded-lg border border-gray-300 dark:border-slate-600 bg-gray-50 dark:bg-slate-700 px-4 py-3 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
+                            />
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">Message</label>
-                            <textarea rows="4" className="w-full rounded-lg border border-gray-300 dark:border-slate-600 bg-gray-50 dark:bg-slate-700 px-4 py-3 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all" placeholder="How can we help you?"></textarea>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
+                                Message
+                            </label>
+
+                            <textarea
+                                rows="4"
+                                name="message"
+                                value={formData.message}
+                                onChange={handleChange}
+                                placeholder="How can we help you?"
+                                className="w-full rounded-lg border border-gray-300 dark:border-slate-600 bg-gray-50 dark:bg-slate-700 px-4 py-3 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
+                            />
                         </div>
 
-                        <button type="submit" className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-lg transition-colors shadow-lg shadow-indigo-600/20">
-                            Send Message
+                        <button
+                            type="submit"
+                            disabled={loading}
+                            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-lg transition-colors shadow-lg shadow-indigo-600/20 disabled:opacity-50"
+                        >
+                            {loading ? "Sending..." : "Send Message"}
                         </button>
                     </form>
                 </div>

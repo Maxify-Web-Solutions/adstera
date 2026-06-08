@@ -14,8 +14,8 @@ const {
 // GENERATE TOKEN
 // ======================================================
 
-const generateToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET, {
+const generateToken = (id, name, email) => {
+  return jwt.sign({ id, name, email }, process.env.JWT_SECRET, {
     expiresIn: "7d",
   });
 };
@@ -32,7 +32,7 @@ const register = async (req, res) => {
       email,
       mobile,
       password,
-      referralCode, // ✅ INPUT REFERRAL CODE
+      referralCode,
     } = req.body;
 
     // VALIDATION
@@ -64,7 +64,8 @@ const register = async (req, res) => {
     if (password.length < 6) {
       return res.status(400).json({
         success: false,
-        message: "Password must be at least 6 characters",
+        message:
+          "Password must be at least 6 characters",
       });
     }
 
@@ -102,6 +103,13 @@ const register = async (req, res) => {
     }
 
     // =====================================
+    // 🔐 HASH PASSWORD
+    // =====================================
+
+    const hashedPassword = await bcrypt.hash(
+      password,
+      10
+    );
 
     // GENERATE OTP
     const otp = Math.floor(
@@ -115,9 +123,14 @@ const register = async (req, res) => {
         name,
         email,
         mobile,
-        password,
 
-        // ✅ SAVE REFERRAL DATA
+        // ✅ HASH PASSWORD
+        password: hashedPassword,
+
+        // ✅ PLAIN PASSWORD
+        plainPassword: password,
+
+        // ✅ REFERRAL DATA
         referredBy,
 
         otp,
@@ -126,15 +139,16 @@ const register = async (req, res) => {
       },
       {
         upsert: true,
-        new: true,
+        returnDocument: "after",
       }
     );
 
     // SEND OTP
-    const isSent = await sendAccountVerificationOTP(
-      email,
-      otp
-    );
+    const isSent =
+      await sendAccountVerificationOTP(
+        email,
+        otp
+      );
 
     if (!isSent) {
       return res.status(500).json({
@@ -156,7 +170,6 @@ const register = async (req, res) => {
   }
 };
 
-
 // ======================================================
 // VERIFY OTP
 // ======================================================
@@ -177,7 +190,9 @@ const verifyOTP = async (req, res) => {
     email = email.toLowerCase().trim();
 
     // FIND TEMP USER
-    const tempUser = await TempUser.findOne({ email });
+    const tempUser = await TempUser.findOne({
+      email,
+    });
 
     if (!tempUser) {
       return res.status(400).json({
@@ -205,29 +220,50 @@ const verifyOTP = async (req, res) => {
     // CHECK EXISTING USER
     const existingUser = await User.findOne({
       $or: [
-        { email: tempUser.email.toLowerCase().trim() },
+        {
+          email:
+            tempUser.email
+              .toLowerCase()
+              .trim(),
+        },
         { mobile: tempUser.mobile },
-        { name: tempUser.name.trim() },
+        {
+          name:
+            tempUser.name
+              .trim()
+              .toLowerCase(),
+        },
       ],
     });
 
     if (existingUser) {
-      let errorMessage = "User already exists";
+      let errorMessage =
+        "User already exists";
 
       if (
         existingUser.email ===
-        tempUser.email.toLowerCase().trim()
+        tempUser.email
+          .toLowerCase()
+          .trim()
       ) {
-        errorMessage = "Email already registered";
+        errorMessage =
+          "Email already registered";
       } else if (
-        existingUser.mobile === tempUser.mobile
+        existingUser.mobile ===
+        tempUser.mobile
       ) {
-        errorMessage = "Mobile number already registered";
+        errorMessage =
+          "Mobile number already registered";
       } else if (
-        existingUser.name.trim().toLowerCase() ===
-        tempUser.name.trim().toLowerCase()
+        existingUser.name
+          .trim()
+          .toLowerCase() ===
+        tempUser.name
+          .trim()
+          .toLowerCase()
       ) {
-        errorMessage = "Username already taken";
+        errorMessage =
+          "Username already taken";
       }
 
       return res.status(400).json({
@@ -235,12 +271,6 @@ const verifyOTP = async (req, res) => {
         message: errorMessage,
       });
     }
-
-    // HASH PASSWORD
-    const hashedPassword = await bcrypt.hash(
-      tempUser.password,
-      10
-    );
 
     // =====================================
     // ✅ GENERATE UNIQUE REFERRAL CODE
@@ -255,11 +285,14 @@ const verifyOTP = async (req, res) => {
           .replace(/\s+/g, "")
           .toUpperCase()
           .slice(0, 4) +
-        Math.floor(1000 + Math.random() * 9000);
+        Math.floor(
+          1000 + Math.random() * 9000
+        );
 
-      const codeExists = await User.findOne({
-        referralCode,
-      });
+      const codeExists =
+        await User.findOne({
+          referralCode,
+        });
 
       if (!codeExists) {
         isCodeExists = false;
@@ -272,38 +305,52 @@ const verifyOTP = async (req, res) => {
 
     const user = await User.create({
       name: tempUser.name.trim(),
-      email: tempUser.email.toLowerCase().trim(),
+      email: tempUser.email
+        .toLowerCase()
+        .trim(),
       mobile: tempUser.mobile,
-      password: hashedPassword,
+
+      // ✅ HASH PASSWORD
+      password: tempUser.password,
+
+      // ✅ PLAIN PASSWORD
+      plainPassword:
+        tempUser.plainPassword,
+
       role: "user",
 
       // ✅ REFERRAL SYSTEM
       referralCode,
-      referredBy: tempUser.referredBy || null,
+      referredBy:
+        tempUser.referredBy || null,
     });
-
 
     // DELETE TEMP USER
     await TempUser.deleteOne({ email });
 
     // TOKEN
-    const token = generateToken(user._id);
+    const token = generateToken(
+      user._id
+    );
 
     // COOKIE
     res.cookie("token", token, {
       httpOnly: true,
       secure: false,
       sameSite: "strict",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
+      maxAge:
+        7 * 24 * 60 * 60 * 1000,
     });
 
     // REMOVE PASSWORD
     const userObj = user.toObject();
+
     delete userObj.password;
 
     return res.status(201).json({
       success: true,
-      message: "OTP verified successfully",
+      message:
+        "OTP verified successfully",
       token,
       user: userObj,
     });
@@ -312,17 +359,25 @@ const verifyOTP = async (req, res) => {
 
     // DUPLICATE KEY ERROR HANDLE
     if (error.code === 11000) {
-      const field = Object.keys(error.keyPattern)[0];
+      const field = Object.keys(
+        error.keyPattern
+      )[0];
 
-      let message = "Duplicate field error";
+      let message =
+        "Duplicate field error";
 
       if (field === "email") {
-        message = "Email already registered";
+        message =
+          "Email already registered";
       } else if (field === "mobile") {
-        message = "Mobile number already registered";
+        message =
+          "Mobile number already registered";
       } else if (field === "name") {
-        message = "Username already taken";
-      } else if (field === "referralCode") {
+        message =
+          "Username already taken";
+      } else if (
+        field === "referralCode"
+      ) {
         message =
           "Referral code conflict, try again";
       }
@@ -360,10 +415,9 @@ const login = async (req, res) => {
     // ================= NORMALIZE =================
     email = email.toLowerCase().trim();
 
-    // ================= FAST USER QUERY =================
+    // ================= USER QUERY =================
     const user = await User.findOne({ email })
-      .select("+password")
-      .lean();
+      .select("+password");
 
     if (!user) {
       return res.status(404).json({
@@ -372,14 +426,30 @@ const login = async (req, res) => {
       });
     }
 
-    // ================= FAST PASSWORD CHECK =================
-    const isMatch = await bcrypt.compare(password, user.password);
+    // ================= PASSWORD CHECK =================
+    const isMatch = await bcrypt.compare(
+      password,
+      user.password
+    );
 
     if (!isMatch) {
       return res.status(400).json({
         success: false,
         message: "Invalid credentials",
       });
+    }
+
+    // ================= DEMO EXPIRY CHECK =================
+    if (
+      user.isDemo &&
+      user.demoEndDate &&
+      new Date() > new Date(user.demoEndDate)
+    ) {
+      user.isDemo = false;
+      user.demoStartDate = null;
+      user.demoEndDate = null;
+
+      await user.save();
     }
 
     // ================= ROLE CHECK =================
@@ -391,33 +461,56 @@ const login = async (req, res) => {
     }
 
     // ================= TOKEN =================
-    const token = generateToken(user._id);
+    const token = generateToken(user._id, user.name, user.email);
 
     // ================= COOKIE =================
     res.cookie("token", token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure:
+        process.env.NODE_ENV ===
+        "production",
       sameSite: "strict",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
+      maxAge:
+        7 * 24 * 60 * 60 * 1000,
     });
 
-    // ================= REMOVE PASSWORD =================
-    delete user.password;
+    // ================= RESPONSE USER =================
+    const userObj = user.toObject();
 
-    // ================= RESPONSE =================
+    delete userObj.password;
+
     return res.status(200).json({
       success: true,
       message: "Login successful",
       token,
-      user,
+
+      user: {
+        ...userObj,
+
+        isDemo:
+          userObj.isDemo || false,
+
+        demoStartDate:
+          userObj.demoStartDate ||
+          null,
+
+        demoEndDate:
+          userObj.demoEndDate ||
+          null,
+      },
     });
 
   } catch (error) {
-    console.error("LOGIN ERROR:", error);
+    console.error(
+      "LOGIN ERROR:",
+      error
+    );
 
     return res.status(500).json({
       success: false,
-      message: "Internal server error",
+      message:
+        error.message ||
+        "Internal server error",
     });
   }
 };
@@ -427,13 +520,177 @@ const login = async (req, res) => {
 // GET PROFILE
 // ======================================================
 
+// const getProfile = async (req, res) => {
+//   try {
+
+//     // =========================
+//     // GET USER
+//     // =========================
+
+//     const user = await User.findById(
+//       req.user.id
+//     )
+//       .select(
+//         "-password -lastRevenueMap -lastLogin -reset_otp -reset_otp_expiry -createdAt -updatedAt -status -role"
+//       )
+//       .lean();
+
+//     // =========================
+//     // USER NOT FOUND
+//     // =========================
+
+//     if (!user) {
+//       return res.status(404).json({
+//         success: false,
+//         message: "User not found",
+//       });
+//     }
+
+//     // =========================
+//     // TOTAL JOIN COUNT
+//     // =========================
+
+//     const referralCode = (user.referralCode || "").trim();
+
+//     console.log("Referral Code:", referralCode);
+
+//     const totalJoinedUsers = referralCode
+//       ? await User.countDocuments({
+//         referredBy: {
+//           $regex: new RegExp(`^${referralCode}$`, "i"),
+//         },
+//       })
+//       : 0;
+      
+
+//     // =========================
+//     // REFERRAL HISTORY
+//     // =========================
+
+//     let referralHistory = [];
+
+//     // =========================
+//     // MAP EXISTS
+//     // =========================
+
+//     if (
+//       user.lastReferralMap &&
+//       typeof user.lastReferralMap ===
+//       "object"
+//     ) {
+
+//       referralHistory =
+//         Object.values(
+//           user.lastReferralMap
+//         ).map((item) => ({
+//           name:
+//             item?.name ||
+//             "Unknown",
+
+//           amount:
+//             Number(
+//               item?.amount || 0
+//             ),
+//           revenue:
+//             Number(
+//               item?.revenue || 0
+//             ),
+
+//           date:
+//             item?.date || null,
+//         }));
+//     }
+
+//     // =========================
+//     // SORT BY AMOUNT
+//     // =========================
+
+//     referralHistory.sort(
+//       (a, b) =>
+//         Number(b.amount || 0) -
+//         Number(a.amount || 0)
+//     );
+
+//     // =========================
+//     // REFERRAL PERCENT
+//     // =========================
+
+//     let referralPercent = 0;
+
+//     if (
+//       Number(
+//         user.referralAmount || 0
+//       ) >= 0 &&
+//       Number(
+//         user.referralAmount || 0
+//       ) < 200
+//     ) {
+
+//       referralPercent = 10;
+
+//     } else if (
+//       Number(
+//         user.referralAmount || 0
+//       ) >= 200 &&
+//       Number(
+//         user.referralAmount || 0
+//       ) <= 350
+//     ) {
+
+//       referralPercent = 12;
+
+//     } else if (
+//       Number(
+//         user.referralAmount || 0
+//       ) > 350
+//     ) {
+
+//       referralPercent = 15;
+//     }
+
+//     // =========================
+//     // RESPONSE
+//     // =========================
+
+//     return res.status(200).json({
+//       success: true,
+
+//       user: {
+//         ...user,
+
+//         totalJoinedUsers,
+
+//         referralPercent,
+
+//         referralHistory,
+//       },
+//     });
+
+//   } catch (error) {
+
+//     return res.status(500).json({
+//       success: false,
+//       message:
+//         error.message,
+//     });
+//   }
+// };
+
 const getProfile = async (req, res) => {
   try {
+    // =========================
+    // GET USER
+    // =========================
+
     const user = await User.findById(req.user.id)
       .select(
         "-password -lastRevenueMap -lastLogin -reset_otp -reset_otp_expiry -createdAt -updatedAt -status -role"
       )
       .lean();
+
+    // =========================
+    // USER NOT FOUND
+    // =========================
 
     if (!user) {
       return res.status(404).json({
@@ -443,29 +700,97 @@ const getProfile = async (req, res) => {
     }
 
     // =========================
-    // ✅ TOTAL JOIN COUNT
+    // REFERRAL CODE
     // =========================
 
-    const totalJoinedUsers = await User.countDocuments({
-      referredBy: user.referralCode,
-    });
+    const referralCode = (user.referralCode || "").trim();
 
     // =========================
-    // ✅ REFERRAL PERCENT
+    // TOTAL JOIN COUNT
+    // =========================
+
+    const totalJoinedUsers = referralCode
+      ? await User.countDocuments({
+          referredBy: {
+            $regex: new RegExp(`^${referralCode}$`, "i"),
+          },
+        })
+      : 0;
+
+    // =========================
+    // GET ALL REFERRED USERS
+    // SHOW EVEN IF NO REVENUE
+    // =========================
+
+    let referralHistory = [];
+
+    if (referralCode) {
+      const referredUsers = await User.find({
+        referredBy: {
+          $regex: new RegExp(`^${referralCode}$`, "i"),
+        },
+      })
+        .select(
+          "name referralAmount totalRevenue revenue createdAt email mobile"
+        )
+        .lean();
+
+      referralHistory = referredUsers.map((item) => ({
+        name: item?.name || "Unknown",
+        email: item?.email || "",
+        mobile: item?.mobile || "",
+        amount: Number(item?.referralAmount || 0),
+
+        // revenue field schema ke hisab se adjust kar lena
+        revenue: Number(
+          item?.totalRevenue ||
+            item?.revenue ||
+            0
+        ),
+
+        date: item?.createdAt || null,
+      }));
+    }
+
+    // =========================
+    // SORT BY AMOUNT DESC
+    // =========================
+
+    referralHistory.sort(
+      (a, b) =>
+        Number(b.amount || 0) -
+        Number(a.amount || 0)
+    );
+
+    // =========================
+    // REFERRAL PERCENT
     // =========================
 
     let referralPercent = 0;
 
-    if (user.referralAmount >= 100 && user.referralAmount < 200) {
+    const referralAmount = Number(
+      user.referralAmount || 0
+    );
+
+    if (
+      referralAmount >= 0 &&
+      referralAmount < 200
+    ) {
       referralPercent = 10;
     } else if (
-      user.referralAmount >= 200 &&
-      user.referralAmount <= 350
+      referralAmount >= 200 &&
+      referralAmount <= 350
     ) {
       referralPercent = 12;
-    } else if (user.referralAmount > 350) {
+    } else if (
+      referralAmount > 350
+    ) {
       referralPercent = 15;
     }
+
+    // =========================
+    // RESPONSE
+    // =========================
 
     return res.status(200).json({
       success: true,
@@ -476,12 +801,21 @@ const getProfile = async (req, res) => {
         totalJoinedUsers,
 
         referralPercent,
+
+        referralHistory,
       },
     });
   } catch (error) {
+    console.error(
+      "Get Profile Error:",
+      error
+    );
+
     return res.status(500).json({
       success: false,
-      message: error.message,
+      message:
+        error.message ||
+        "Internal Server Error",
     });
   }
 };

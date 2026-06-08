@@ -177,8 +177,6 @@ const Header = () => {
                                 </NavLink>
                             )}
 
-                            
-
                             {user ? (
                                 <button
                                     onClick={handleLogout}

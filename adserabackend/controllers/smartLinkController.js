@@ -99,7 +99,7 @@ exports.approveSmartLink = async (req, res) => {
     const smartLink = await SmartLink.findByIdAndUpdate(
       id,
       updateData,
-      { new: true }
+      { returnDocument: "after" }
     );
 
     if (!smartLink) {
@@ -133,7 +133,7 @@ exports.updateSmartLinkData = async (req, res) => {
         redirectUrl,
         status: status || "approved",
       },
-      { new: true }
+      { returnDocument: "after" }
     );
 
     if (!link) {
@@ -172,7 +172,7 @@ exports.getSmartLinkStats = async (
       placement,
       country,
       page = 1,
-      limit = 20,
+      limit = 40,
     } = req.query;
 
     // =====================================================

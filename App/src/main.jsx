@@ -13,7 +13,7 @@ import { ThemeProvider } from './Pages/Dashboard/DashboardPages/ThemeContext.jsx
 import { ToastContainer } from 'react-toastify' 
 
 createRoot(document.getElementById('root')).render(
-  <StrictMode>
+  // <StrictMode>
     <BrowserRouter>
       {/* <MagicCursor /> */}
       <ThemeProvider>
@@ -29,6 +29,6 @@ createRoot(document.getElementById('root')).render(
 
         </Provider>
       </ThemeProvider>
-    </BrowserRouter>
-  </StrictMode>,
+    </BrowserRouter>,
+  {/* </StrictMode>, */}
 )

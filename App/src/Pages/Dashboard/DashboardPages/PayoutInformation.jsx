@@ -8,18 +8,20 @@ const methods = [
   {
     name: "Local Bank Transfer",
     min: "$25.00",
-    time: "Up to 5 business days",
+    time: "Within 24 Hours",
     fee: "3%",
     currency: "INR",
     verification: "Individuals – required",
+    image: "https://i.ibb.co/nMbwkgGW/bank-trs1.png"
   },
   {
     name: "Cryptocurrency",
     min: "$25.00",
-    time: "1–3 business days",
+    time: "1-3 Hrs",
     fee: "3%",
     currency: "BTC/USDT/ETH",
     verification: "Individuals – by request",
+    image: "https://i.ibb.co/f6wZNNn/crt-trs1.png"
   },
 ];
 
@@ -162,7 +164,7 @@ const PayoutInformation = () => {
             <div>
               <p className="text-gray-500 dark:text-gray-400">Processing time</p>
               <p className="font-semibold text-gray-900 dark:text-white">
-                1–2 business days
+                1–3 Hours
               </p>
             </div>
 
@@ -254,7 +256,7 @@ const PayoutInformation = () => {
           {/* Edit */}
           <div className="flex justify-end border-t border-gray-200 dark:border-slate-700 p-4">
 
-            <button 
+            <button
               onClick={handleEditClick}
               className="flex items-center gap-2 text-sm text-indigo-600 dark:text-indigo-400 hover:underline"
             >
@@ -285,9 +287,17 @@ const PayoutInformation = () => {
               <div className="grid md:grid-cols-5 gap-6 text-sm">
 
                 <div>
-                  <p className="font-semibold text-gray-900 dark:text-white">
+                  <div className=" bg-gray-100 dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 flex items-center justify-center mb-3">
+                    <img
+                      src={method.image}
+                      alt={method.name}
+                      className="max-w-40 max-h-40 object-contain"
+                    />
+                  </div>
+
+                  {/* <p className="font-semibold text-gray-900 dark:text-white">
                     {method.name}
-                  </p>
+                  </p> */}
                 </div>
 
                 <div>
@@ -355,18 +365,16 @@ const PayoutInformation = () => {
                 <div className="grid grid-cols-2 gap-3">
                   <div
                     onClick={() => setPaymentMethod("bank")}
-                    className={`flex items-center gap-3 cursor-pointer p-3 rounded-xl border ${
-                      paymentMethod === "bank"
+                    className={`flex items-center gap-3 cursor-pointer p-3 rounded-xl border ${paymentMethod === "bank"
                         ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
                         : "border-gray-300 dark:border-slate-600"
-                    }`}
+                      }`}
                   >
                     <div
-                      className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                        paymentMethod === "bank"
+                      className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${paymentMethod === "bank"
                           ? "border-blue-500"
                           : "border-gray-400"
-                      }`}
+                        }`}
                     >
                       {paymentMethod === "bank" && (
                         <div className="w-2.5 h-2.5 bg-blue-500 rounded-full" />
@@ -377,18 +385,16 @@ const PayoutInformation = () => {
 
                   <div
                     onClick={() => setPaymentMethod("crypto")}
-                    className={`flex items-center gap-3 cursor-pointer p-3 rounded-xl border ${
-                      paymentMethod === "crypto"
+                    className={`flex items-center gap-3 cursor-pointer p-3 rounded-xl border ${paymentMethod === "crypto"
                         ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
                         : "border-gray-300 dark:border-slate-600"
-                    }`}
+                      }`}
                   >
                     <div
-                      className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                        paymentMethod === "crypto"
+                      className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${paymentMethod === "crypto"
                           ? "border-blue-500"
                           : "border-gray-400"
-                      }`}
+                        }`}
                     >
                       {paymentMethod === "crypto" && (
                         <div className="w-2.5 h-2.5 bg-blue-500 rounded-full" />
@@ -541,29 +547,29 @@ const PayoutInformation = () => {
               {/* OTP Section */}
               <div className="border-t border-gray-200 dark:border-slate-700 pt-6">
                 <div className="space-y-4">
-  
-  <button
-    type="button"
-    onClick={handleSendOtp}
-    disabled={otpSent}
-    className="w-full px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-medium transition-colors"
-  >
-    {otpSent ? "OTP Sent Successfully" : "Send OTP"}
-  </button>
 
-  {otpSent && (
-    <input
-      type="text"
-      name="otp"
-      value={formData.otp}
-      onChange={handleInputChange}
-      placeholder="Enter OTP"
-      className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none"
-      required
-    />
-  )}
+                  <button
+                    type="button"
+                    onClick={handleSendOtp}
+                    disabled={otpSent}
+                    className="w-full px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-medium transition-colors"
+                  >
+                    {otpSent ? "OTP Sent Successfully" : "Send OTP"}
+                  </button>
 
-</div>
+                  {otpSent && (
+                    <input
+                      type="text"
+                      name="otp"
+                      value={formData.otp}
+                      onChange={handleInputChange}
+                      placeholder="Enter OTP"
+                      className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none"
+                      required
+                    />
+                  )}
+
+                </div>
                 <p className="text-sm text-gray-600 dark:text-gray-400">
                   {otpSent ? "OTP sent to your email. Please check your inbox." : "Click 'Send OTP' to receive verification code via email."}
                 </p>

@@ -45,14 +45,17 @@ const guides = [
     {
         title: "Popunder Ads",
         desc: "How popunder ads work and best practices.",
+        img: "https://i.ibb.co/fVFXynNb/Popunder-dashboard.jpg"
     },
     {
         title: "Social Bar Ads",
         desc: "Use social bar ads to boost engagement.",
+        img: "https://i.ibb.co/Kxq2Zwn5/Social-bar.jpg"
     },
     {
         title: "Native Banners",
         desc: "Blend ads seamlessly with your content.",
+        img: "https://i.ibb.co/M5DSJFJj/Direct-link.jpg"
     },
 ];
 
@@ -60,14 +63,17 @@ const stories = [
     {
         title: "How a Blogger Earned $5000",
         desc: "Case study of a niche blog monetization strategy.",
+        img: "https://i.ibb.co/DXP2NNF/Indonation-News-Site-Monetisation.jpg"
     },
     {
         title: "YouTube Traffic Monetization",
         desc: "Using smartlinks to monetize video audiences.",
+        img: "https://i.ibb.co/tMKjnsNX/You-Tube-monetisation.jpg"
     },
     {
         title: "Scaling Mobile Traffic",
         desc: "Maximizing ad revenue from mobile users.",
+        img: "https://i.ibb.co/v4tPkZ7n/Scaling-mobile-traffic.jpg"
     },
 ];
 
@@ -141,26 +147,31 @@ const FAQCaseStudies = () => {
                     </button>
 
                 </div>
-
                 <div className="grid md:grid-cols-3 gap-6">
-
                     {guides.map((guide, i) => (
                         <div
                             key={i}
-                            className="h-48 flex flex-col justify-end p-6 rounded-2xl border bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 hover:shadow-lg hover:scale-[1.02] transition-all shadow-sm cursor-pointer"
+                            className="overflow-hidden rounded-2xl border bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 hover:shadow-lg hover:scale-[1.02] transition-all shadow-sm cursor-pointer"
                         >
+                            <div className="h-50 w-full">
+                                <img
+                                    src={guide.img}
+                                    alt={guide.title}
+                                    className="w-full h-full object-cover"
+                                />
+                            </div>
 
-                            <h3 className="font-semibold text-gray-900 dark:text-white mb-2">
-                                {guide.title}
-                            </h3>
+                            <div className="p-6">
+                                <h3 className="font-semibold text-gray-900 dark:text-white mb-2">
+                                    {guide.title}
+                                </h3>
 
-                            <p className="text-sm text-gray-500 dark:text-gray-400">
-                                {guide.desc}
-                            </p>
-
+                                <p className="text-sm text-gray-500 dark:text-gray-400">
+                                    {guide.desc}
+                                </p>
+                            </div>
                         </div>
                     ))}
-
                 </div>
 
             </div>
@@ -181,24 +192,30 @@ const FAQCaseStudies = () => {
                 </div>
 
                 <div className="grid md:grid-cols-3 gap-6">
-
                     {stories.map((story, i) => (
                         <div
                             key={i}
-                            className="p-6 rounded-2xl border bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 hover:shadow-lg hover:scale-[1.02] transition-all shadow-sm cursor-pointer"
+                            className="overflow-hidden rounded-2xl border bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 hover:shadow-lg hover:scale-[1.02] transition-all shadow-sm cursor-pointer"
                         >
+                            <div className="h-52 w-full">
+                                <img
+                                    src={story.img}
+                                    alt={story.title}
+                                    className="w-full h-full object-cover"
+                                />
+                            </div>
 
-                            <h3 className="font-semibold text-gray-900 dark:text-white mb-2">
-                                {story.title}
-                            </h3>
+                            <div className="p-6">
+                                <h3 className="font-semibold text-gray-900 dark:text-white mb-2">
+                                    {story.title}
+                                </h3>
 
-                            <p className="text-sm text-gray-500 dark:text-gray-400">
-                                {story.desc}
-                            </p>
-
+                                <p className="text-sm text-gray-500 dark:text-gray-400">
+                                    {story.desc}
+                                </p>
+                            </div>
                         </div>
                     ))}
-
                 </div>
 
             </div>

@@ -10,7 +10,6 @@ const RawAdsterraStatsSchema = new mongoose.Schema(
 
     domain: {
       type: String,
-      required: true,
       index: true,
     },
 
@@ -89,6 +88,16 @@ const RawAdsterraStatsSchema = new mongoose.Schema(
       default: 0,
     },
 
+    impressionPercent: {
+      type: Number,
+      default: 0,
+    },
+
+    cpmPercent: {
+      type: Number,
+      default: 0,
+    },
+
     date: {
       type: String,
       default: null,
@@ -98,10 +107,6 @@ const RawAdsterraStatsSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// 🔥 Unique combination (duplicate avoid)
-RawAdsterraStatsSchema.index(
-  { domain: 1, placement: 1, country: 1, date: 1 },
-  { unique: true }
-);
+
 
 module.exports = mongoose.model("RawAdsterraStats", RawAdsterraStatsSchema);

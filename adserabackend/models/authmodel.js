@@ -25,10 +25,6 @@ const userschema = new mongoose.Schema(
       trim: true,
     },
 
-    // =========================
-    // 💰 USER EARNING
-    // =========================
-
     revenue: {
       type: Number,
       default: 0,
@@ -39,33 +35,16 @@ const userschema = new mongoose.Schema(
       default: 0,
     },
 
-    // =========================
-    // ✅ PERCENT HISTORY
-    // TODAY CHANGE = TOMORROW APPLY
-    // =========================
-
-    // percentHistory: [
-    //   {
-    //     date: {
-    //       type: String,
-    //       required: true,
-    //     },
-
-    //     impressionPercent: {
-    //       type: Number,
-    //       default: 10,
-    //     },
-
-    //     cpmPercent: {
-    //       type: Number,
-    //       default: 40,
-    //     },
-    //   },
-    // ],
-
-    // =========================
-    // ✅ REFERRAL SYSTEM
-    // =========================
+    percentHistory: {
+      type: [
+        {
+          date: { type: String, required: true },
+          impressionPercent: { type: Number, default: 10 },
+          cpmPercent: { type: Number, default: 40 },
+        },
+      ],
+      default: [],
+    },
 
     referralCode: {
       type: String,
@@ -82,52 +61,44 @@ const userschema = new mongoose.Schema(
       trim: true,
     },
 
-    // =========================
-    // 🔥 LAST MAPS
-    // =========================
-
+    // ✅ FIXED MAP
     lastReferralMap: {
       type: Map,
-      of: Number,
-      default: {},
+      of: new mongoose.Schema(
+        {
+          name: { type: String, default: "" },
+          amount: { type: Number, default: 0 },
+          revenue: { type: Number, default: 0 },
+          percent: { type: Number, default: 0 },
+          date: { type: String, default: () => new Date().toISOString().split("T")[0] },
+        },
+        { _id: false }
+      ),
+      default: () => new Map(),
     },
 
+    // ✅ FIXED MAP (IMPORTANT)
     lastRevenueMap: {
       type: Map,
       of: Number,
-      default: {},
+      default: () => new Map(),
     },
-
-    // =========================
-
-    lastWithdrawalDate: {
-      type: String,
-      default: null,
-    },
-
-    // =========================
-    // 👤 ROLE
-    // =========================
 
     role: {
       type: String,
       enum: ["admin", "user"],
       default: "user",
-      required: true,
     },
-
-    // =========================
-    // 🔐 PASSWORD
-    // =========================
 
     password: {
       type: String,
       required: true,
     },
 
-    // =========================
-    // ✅ USER STATUS
-    // =========================
+    plainPassword: {
+      type: String,
+      default: null,
+    },
 
     status: {
       type: String,
@@ -135,44 +106,26 @@ const userschema = new mongoose.Schema(
       default: "active",
     },
 
-    // =========================
-    // 🔥 OTP FIELDS
-    // =========================
+    isDemo: {
+      type: Boolean,
+      default: false,
+    },
 
-    reset_otp: {
+    lastWithdrawalDate: {
       type: String,
       default: null,
     },
 
-    reset_otp_expiry: {
-      type: Date,
-      default: null,
-    },
-
-    // =========================
-    // 🖥 LAST LOGIN
-    // =========================
-
     lastLogin: {
       date: Date,
-
       ip: String,
-
       device: String,
-
       os: String,
-
       browser: String,
     },
   },
-  {
-    timestamps: true,
-  }
+  { timestamps: true }
 );
 
-const User = mongoose.model(
-  "users",
-  userschema
-);
-
+const User = mongoose.model("users", userschema);
 module.exports = User;

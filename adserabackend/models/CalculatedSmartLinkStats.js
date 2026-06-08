@@ -2,24 +2,43 @@
 
 const mongoose = require("mongoose");
 
+// =====================================================
+// STATS ITEM SCHEMA
+// =====================================================
+
 const calculatedStatsItemSchema =
   new mongoose.Schema(
     {
-      placement: String,
+      placement: {
+        type: String,
+        default: "",
+        index: true,
+      },
 
-      domain: String,
+      domain: {
+        type: String,
+        default: "",
+      },
 
       country: {
         type: String,
         default: "ALL",
+        index: true,
       },
 
+      // =================================================
       // DATE
+      // =================================================
+
       date: {
         type: String,
         required: true,
         index: true,
       },
+
+      // =================================================
+      // STATS
+      // =================================================
 
       impressions: {
         type: Number,
@@ -46,6 +65,10 @@ const calculatedStatsItemSchema =
         default: 0,
       },
 
+      // =================================================
+      // USER PERCENT
+      // =================================================
+
       impressionPercent: {
         type: Number,
         default: 0,
@@ -61,6 +84,10 @@ const calculatedStatsItemSchema =
     }
   );
 
+// =====================================================
+// MAIN SCHEMA
+// =====================================================
+
 const CalculatedSmartLinkStatsSchema =
   new mongoose.Schema(
     {
@@ -74,6 +101,10 @@ const CalculatedSmartLinkStatsSchema =
 
         index: true,
       },
+
+      // ===============================================
+      // DEVICE
+      // ===============================================
 
       device: {
         type: String,
@@ -93,7 +124,10 @@ const CalculatedSmartLinkStatsSchema =
         default: "",
       },
 
+      // ===============================================
       // MAIN DOC DATE
+      // ===============================================
+
       date: {
         type: String,
 
@@ -102,16 +136,26 @@ const CalculatedSmartLinkStatsSchema =
         index: true,
       },
 
-      stats: [
-        calculatedStatsItemSchema,
-      ],
+      // ===============================================
+      // STATS ARRAY
+      // ===============================================
+
+      stats: {
+        type: [calculatedStatsItemSchema],
+
+        default: [],
+      },
     },
     {
       timestamps: true,
     }
   );
 
-// UNIQUE
+// =====================================================
+// UNIQUE INDEX
+// ONE DOC PER USER + DEVICE + DATE
+// =====================================================
+
 CalculatedSmartLinkStatsSchema.index(
   {
     userId: 1,
@@ -123,7 +167,13 @@ CalculatedSmartLinkStatsSchema.index(
   }
 );
 
-module.exports = mongoose.model(
-  "CalculatedSmartLinkStats",
-  CalculatedSmartLinkStatsSchema
-);
+// =====================================================
+// EXPORT MODEL
+// =====================================================
+
+module.exports =
+  mongoose.models.CalculatedSmartLinkStats ||
+  mongoose.model(
+    "CalculatedSmartLinkStats",
+    CalculatedSmartLinkStatsSchema
+  );

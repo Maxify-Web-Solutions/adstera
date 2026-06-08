@@ -8,28 +8,9 @@ const withdrawalSchema = new mongoose.Schema(
       required: true,
     },
 
-    // User requested amount
     amount: {
       type: Number,
       required: true,
-    },
-
-    // ================= PLATFORM FEE =================
-
-    feePercent: {
-      type: Number,
-      default: 3,
-    },
-
-    platformFee: {
-      type: Number,
-      default: 0,
-    },
-
-    // Final amount user receives
-    finalAmount: {
-      type: Number,
-      default: 0,
     },
 
     // ✅ Payment Type
@@ -40,7 +21,6 @@ const withdrawalSchema = new mongoose.Schema(
     },
 
     // ================= BANK DETAILS =================
-
     accountHolderName: {
       type: String,
       required: function () {
@@ -70,9 +50,8 @@ const withdrawalSchema = new mongoose.Schema(
     },
 
     // ================= CRYPTO DETAILS =================
-
     cryptoType: {
-      type: String,
+      type: String, // BTC, ETH, USDT etc
       required: function () {
         return this.paymentMethod === "crypto";
       },
@@ -86,14 +65,13 @@ const withdrawalSchema = new mongoose.Schema(
     },
 
     network: {
-      type: String,
+      type: String, // TRC20, ERC20, BEP20 etc
       required: function () {
         return this.paymentMethod === "crypto";
       },
     },
 
     // ================= COMMON =================
-
     status: {
       type: String,
       enum: ["pending", "approved", "rejected"],
@@ -108,7 +86,4 @@ const withdrawalSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-module.exports = mongoose.model(
-  "withdrawals",
-  withdrawalSchema
-);
+module.exports = mongoose.model("withdrawals", withdrawalSchema);

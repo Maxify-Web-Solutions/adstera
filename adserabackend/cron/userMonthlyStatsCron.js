@@ -5,28 +5,25 @@ const {
 } = require("../controllers/userMonthlyStatsController");
 
 const {
-  fetchAndStoreAdsterraStats,
-  fetchAndStoreCountryStats,
-} = require("../controllers/adsterracontroller");
-
-const {
   RawfetchAndStoreAdsterraStats,
   RawfetchAndStoreCountryStats,
+  RawFetchAndStoreWebsiteStats,
 } = require("../controllers/Rawcontroller");
 
 const {
   calculateAndStoreAdsterraStats,
+  calculateAndStoreSmartLinkStats,
+  calculateAndStoreWebsiteStats,
 } = require("../controllers/calculateAndStoreAdsterraStats");
 
 // ======================================================
 // USER MONTHLY STATS
-// EVERY 10 MINUTES
-// RUNS AT: 00,10,20,30,40,50
+// EVERY 30 MINUTES
+// RUNS AT: 00,30
 // ======================================================
 
-cron.schedule("*/10 * * * *", async () => {
+cron.schedule("0,30 * * * *", async () => {
   try {
-
     console.log(
       "⏰ Running User Monthly Stats Cron"
     );
@@ -36,9 +33,7 @@ cron.schedule("*/10 * * * *", async () => {
     console.log(
       "✅ User Monthly Stats Done"
     );
-
   } catch (error) {
-
     console.log(
       "USER MONTHLY STATS CRON ERROR =>",
       error.message
@@ -47,111 +42,50 @@ cron.schedule("*/10 * * * *", async () => {
 });
 
 // ======================================================
-// ADSTERRA OVERALL STATS
+// RAW ADSTERRA OVERALL STATS
 // EVERY 15 MINUTES
 // RUNS AT: 05,20,35,50
 // ======================================================
 
 cron.schedule("5,20,35,50 * * * *", async () => {
   try {
+    console.log(
+      "⏰ Running Raw Adsterra Overall Stats Cron"
+    );
+
+    await RawfetchAndStoreAdsterraStats();
 
     console.log(
-      "⏰ Running Adsterra Overall Stats Cron"
+      "✅ Raw Adsterra Overall Stats Done"
     );
-
-    await fetchAndStoreAdsterraStats(
-      {
-        query: {},
-
-        headers: {
-          "user-agent": "Mozilla/5.0",
-        },
-      },
-
-      {
-        status: () => ({
-          json: (data) => {
-
-            console.log(
-              "ADSTERRA OVERALL SUCCESS =>",
-              data.message
-            );
-          },
-        }),
-      }
-    );
-
-    console.log(
-      "✅ Adsterra Overall Stats Done"
-    );
-
   } catch (error) {
-
     console.log(
-      "ADSTERRA OVERALL CRON ERROR =>",
+      "RAW ADSTERRA OVERALL CRON ERROR =>",
       error.message
     );
   }
 });
 
 // ======================================================
-// RAW ADSTERRA OVERALL STATS
+// RAW WEBSITE STATS
 // EVERY 15 MINUTES
-// RUNS AT: 08,23,38,53
-// GAP ADDED TO AVOID COLLISION
+// RUNS AT: 10,25,40,55
 // ======================================================
 
-// cron.schedule("8,23,38,53 * * * *", async () => {
-//   try {
-
-//     console.log(
-//       "⏰ Running Raw Adsterra Overall Stats Cron"
-//     );
-
-//     await RawfetchAndStoreAdsterraStats();
-
-//     console.log(
-//       "✅ Raw Adsterra Overall Stats Done"
-//     );
-
-//   } catch (error) {
-
-//     console.log(
-//       "RAW ADSTERRA OVERALL CRON ERROR =>",
-//       error.message
-//     );
-//   }
-// });
-
-// ======================================================
-// ADSTERRA COUNTRY STATS
-// EVERY 15 MINUTES
-// RUNS AT: 12,27,42,57
-// ======================================================
-
-cron.schedule("12,27,42,57 * * * *", async () => {
+cron.schedule("10,25,40,55 * * * *", async () => {
   try {
-
     console.log(
-      "⏰ Running Adsterra Country Stats Cron"
+      "⏰ Running Raw Website Stats Cron"
     );
 
-    const response =
-      await fetchAndStoreCountryStats();
+    await RawFetchAndStoreWebsiteStats();
 
     console.log(
-      "COUNTRY STATS RESPONSE =>",
-      response
+      "✅ Raw Website Stats Done"
     );
-
-    console.log(
-      "✅ Adsterra Country Stats Done"
-    );
-
   } catch (error) {
-
     console.log(
-      "COUNTRY STATS CRON ERROR =>",
+      "RAW WEBSITE STATS CRON ERROR =>",
       error.message
     );
   }
@@ -160,41 +94,86 @@ cron.schedule("12,27,42,57 * * * *", async () => {
 // ======================================================
 // RAW COUNTRY STATS
 // EVERY 15 MINUTES
-// RUNS AT: 15,30,45,00
-// GAP ADDED TO AVOID COLLISION
+// RUNS AT: 00,15,30,45
 // ======================================================
 
-// cron.schedule("0,15,30,45 * * * *", async () => {
-//   try {
+cron.schedule("0,15,30,45 * * * *", async () => {
+  try {
+    console.log(
+      "⏰ Running Raw Country Stats Cron"
+    );
 
-//     console.log(
-//       "⏰ Running Raw Country Stats Cron"
-//     );
+    await RawfetchAndStoreCountryStats();
 
-//     await RawfetchAndStoreCountryStats();
+    console.log(
+      "✅ Raw Country Stats Done"
+    );
+  } catch (error) {
+    console.log(
+      "RAW COUNTRY STATS CRON ERROR =>",
+      error.message
+    );
+  }
+});
 
-//     console.log(
-//       "✅ Raw Country Stats Done"
-//     );
+// ======================================================
+// CALCULATE SMARTLINK STATS
+// EVERY 15 MINUTES
+// RUNS AT: 02,17,32,47
+// ======================================================
 
-//   } catch (error) {
+cron.schedule("2,17,32,47 * * * *", async () => {
+  try {
+    console.log(
+      "⏰ Running Calculate SmartLink Stats Cron"
+    );
 
-//     console.log(
-//       "RAW COUNTRY STATS CRON ERROR =>",
-//       error.message
-//     );
-//   }
-// });
+    await calculateAndStoreSmartLinkStats();
+
+    console.log(
+      "✅ Calculate SmartLink Stats Done"
+    );
+  } catch (error) {
+    console.log(
+      "CALCULATE SMARTLINK STATS CRON ERROR =>",
+      error.message
+    );
+  }
+});
+
+// ======================================================
+// CALCULATE WEBSITE STATS
+// EVERY 15 MINUTES
+// RUNS AT: 07,22,37,52
+// ======================================================
+
+cron.schedule("7,22,37,52 * * * *", async () => {
+  try {
+    console.log(
+      "⏰ Running Calculate Website Stats Cron"
+    );
+
+    await calculateAndStoreWebsiteStats();
+
+    console.log(
+      "✅ Calculate Website Stats Done"
+    );
+  } catch (error) {
+    console.log(
+      "CALCULATE WEBSITE STATS CRON ERROR =>",
+      error.message
+    );
+  }
+});
 
 // ======================================================
 // CALCULATE ADSTERRA STATS
 // EVERY 15 MINUTES
-// RUNS AT: 18,33,48,03
+// RUNS AT: 12,27,42,57
 // ======================================================
 
-cron.schedule("3,18,33,48 * * * *", async () => {
+cron.schedule("12,27,42,57 * * * *", async () => {
   try {
-
     console.log(
       "⏰ Running Calculate Adsterra Stats Cron"
     );
@@ -204,9 +183,7 @@ cron.schedule("3,18,33,48 * * * *", async () => {
     console.log(
       "✅ Calculate Adsterra Stats Done"
     );
-
   } catch (error) {
-
     console.log(
       "CALCULATE ADSTERRA STATS CRON ERROR =>",
       error.message

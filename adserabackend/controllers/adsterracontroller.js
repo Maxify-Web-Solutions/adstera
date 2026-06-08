@@ -2,12 +2,15 @@ const axios = require("axios");
 const mongoose = require("mongoose");
 const UAParser = require("ua-parser-js");
 const SmartLink = require("../models/SmartLink");
+const DemoReport = require("../models/DemoReport");
 const AdsterraStats = require("../models/CalculatedAdsterraStats");
-const SmartLinkStats = require("../models/SmartLinkStats");
+const SmartLinkStats = require("../models/CalculatedSmartLinkStats");
 const User = require("../models/authmodel");
 const Config = require("../models/Config");
-const StatsConfig =require("../models/StatsConfig");
-const UserStatsSummary =require("../models/UserStatsSummary");
+const StatsConfig = require("../models/StatsConfig");
+const UserStatsSummary = require("../models/UserStatsSummary");
+const CalculatedWebsite =
+  require("../models/CalculatedWebsite");
 
 
 
@@ -578,7 +581,7 @@ exports.fetchAndStoreAdsterraStats = async (req, res) => {
       message:
         "All users stats updated successfully",
 
-      totalUsers,
+      // totalUsers,
 
       totalLinks,
 
@@ -727,7 +730,6 @@ exports.fetchAndStoreCountryStats =
                   },
                 }
               );
-              
 
             const apiData =
               response?.data
@@ -821,7 +823,7 @@ exports.fetchAndStoreCountryStats =
                     (impressions /
                       1000) *
                     cpm
-                  ).toFixed(4)
+                  ).toFixed(6)
                 );
 
               // FIND EXISTING
@@ -888,7 +890,7 @@ exports.fetchAndStoreCountryStats =
           apiError
           ) {
             console.log(
-              "API ERROR:",
+              "API 1 ERROR:",
               apiError.message
             );
           }
@@ -908,7 +910,7 @@ exports.fetchAndStoreCountryStats =
         message:
           "Country Stats Saved Successfully",
         totalUpdated,
-      }; 
+      };
     } catch (error) {
       return {
         success: false,
@@ -920,15 +922,28 @@ exports.fetchAndStoreCountryStats =
 
 
 
-  
 
-exports.getAdsterraStatsFromDB =
+
+
+  exports.getAdsterraStatsFromDB =
   async (req, res) => {
     try {
+
+      // =================================================
+      // AUTH USER
+      // =================================================
 
       const userId =
         req.user?.id;
 
+      const user = await User.findById(userId);
+
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          message: "User not found",
+        });
+      }
       const {
         start_date,
         end_date,
@@ -937,18 +952,6 @@ exports.getAdsterraStatsFromDB =
         placement,
         country,
       } = req.query;
-
-      // =================================================
-      // AUTH
-      // =================================================
-
-      if (!userId) {
-        return res.status(401).json({
-          success: false,
-          message:
-            "Unauthorized",
-        });
-      }
 
       // =================================================
       // NO CACHE HEADERS
@@ -987,7 +990,6 @@ exports.getAdsterraStatsFromDB =
       const normalizeDate = (
         d
       ) => {
-
         if (!d) return null;
 
         if (
@@ -1019,7 +1021,7 @@ exports.getAdsterraStatsFromDB =
         perPage;
 
       // =================================================
-      // OVERALL FILTER
+      // FILTER
       // =================================================
 
       const overallFilter = {
@@ -1027,12 +1029,22 @@ exports.getAdsterraStatsFromDB =
           new mongoose.Types.ObjectId(
             userId
           ),
-
-        country: "ALL",
       };
 
       // =================================================
-      // DATE FILTER FIXED
+      // COUNTRY FILTER
+      // =================================================
+
+      if (
+        country &&
+        country !== "ALL"
+      ) {
+        overallFilter.country =
+          country;
+      }
+
+      // =================================================
+      // DATE FILTER
       // =================================================
 
       if (
@@ -1044,7 +1056,6 @@ exports.getAdsterraStatsFromDB =
           {};
 
         if (start_date) {
-
           overallFilter.date.$gte =
             normalizeDate(
               start_date
@@ -1052,7 +1063,6 @@ exports.getAdsterraStatsFromDB =
         }
 
         if (end_date) {
-
           overallFilter.date.$lte =
             normalizeDate(
               end_date
@@ -1065,34 +1075,153 @@ exports.getAdsterraStatsFromDB =
       // =================================================
 
       if (placement) {
-
         overallFilter.placement =
           String(placement);
       }
 
+      console.log(
+        "OVERALL FILTER =>",
+        overallFilter
+      );
+
       // =================================================
-      // GET OVERALL DATA
+      // GET USER DATA
       // =================================================
 
+      const StatsModel = user.isDemo
+        ? DemoReport
+        : AdsterraStats;
+
       const overallStatsRaw =
-        await AdsterraStats.find(
+        await StatsModel.find(
           overallFilter
         )
           .sort({
-            date: -1,
-            updatedAt: -1,
-            createdAt: -1,
+            date: 1,
+            updatedAt: 1,
+            createdAt: 1,
           })
-          .skip(skip)
-          .limit(perPage)
           .lean()
           .exec();
 
+      console.log(
+        "RAW RECORDS =>",
+        overallStatsRaw.length
+      );
+
       // =================================================
-      // FORMAT OVERALL DATA
+      // CALCULATED SMARTLINK STATS
       // =================================================
 
-      const overallStats =
+      const calculatedFilter = {
+        userId: new mongoose.Types.ObjectId(userId),
+      };
+
+      if (start_date || end_date) {
+        calculatedFilter.date = {};
+
+        if (start_date) {
+          calculatedFilter.date.$gte =
+            normalizeDate(start_date);
+        }
+
+        if (end_date) {
+          calculatedFilter.date.$lte =
+            normalizeDate(end_date);
+        }
+      }
+
+      const calculatedDocs =
+        await SmartLinkStats.find(
+          calculatedFilter
+        )
+          .sort({
+            date: 1,
+          })
+          .lean()
+          .exec();
+
+      console.log(
+        "CALCULATED DOCS =>",
+        calculatedDocs.length
+      );
+
+      let calculatedStats = [];
+
+      for (const doc of calculatedDocs) {
+        for (const stat of doc.stats || []) {
+          if (
+            placement &&
+            placement !== "ALL" &&
+            stat.placement !== placement
+          ) {
+            continue;
+          }
+
+          if (
+            country &&
+            country !== "ALL" &&
+            stat.country !== country
+          ) {
+            continue;
+          }
+
+          calculatedStats.push({
+            device: doc.device,
+            date: doc.date,
+
+            placement:
+              stat.placement || "",
+
+            domain:
+              stat.domain || "",
+
+            country:
+              stat.country || "ALL",
+
+            impressions:
+              fixed6(
+                stat.impressions
+              ),
+
+            clicks:
+              fixed6(
+                stat.clicks
+              ),
+
+            revenue:
+              fixed6(
+                stat.revenue
+              ),
+
+            ctr: fixed6(stat.ctr),
+
+            cpm: fixed6(stat.cpm),
+
+            impressionPercent:
+              fixed6(
+                stat.impressionPercent
+              ),
+
+            cpmPercent:
+              fixed6(
+                stat.cpmPercent
+              ),
+          });
+        }
+      }
+
+      console.log(
+        "CALCULATED STATS =>",
+        calculatedStats.length
+      );
+
+
+      // =================================================
+      // FORMAT DATA
+      // =================================================
+
+      const formattedStats =
         overallStatsRaw.map(
           (item) => ({
             ...item,
@@ -1120,513 +1249,298 @@ exports.getAdsterraStatsFromDB =
           })
         );
 
+
       // =================================================
-      // AGGREGATE TOTALS
+      // GENERATE DATE RANGE
       // =================================================
 
-      const overallTotalsAgg =
-        await AdsterraStats.aggregate([
-          {
-            $match:
-              overallFilter,
-          },
+      const generateDateRange =
+        (
+          startDate,
+          endDate
+        ) => {
 
-          {
-            $group: {
-              _id: null,
+          const dates = [];
 
-              totalImpressions:
-              {
-                $sum:
-                  "$impressions",
-              },
+          const current =
+            new Date(startDate);
 
-              totalClicks: {
-                $sum:
-                  "$clicks",
-              },
+          const end =
+            new Date(endDate);
 
-              totalRevenue: {
-                $sum:
-                  "$revenue",
-              },
-            },
-          },
-        ]);
+          while (
+            current <= end
+          ) {
 
-      const overallTotals =
-        overallTotalsAgg[0] || {
-          totalImpressions: 0,
-          totalClicks: 0,
-          totalRevenue: 0,
+            dates.push(
+              current
+                .toISOString()
+                .split("T")[0]
+            );
+
+            current.setDate(
+              current.getDate() +
+              1
+            );
+          }
+
+          return dates;
         };
 
       // =================================================
-      // CALCULATED CTR
+      // MERGE SAME DATE DATA
       // =================================================
 
-      const overallCtr =
-        Number(
-          overallTotals.totalImpressions
-        ) > 0
-          ? (
-              Number(
-                overallTotals.totalClicks
-              ) /
-              Number(
-                overallTotals.totalImpressions
-              )
-            ) * 100
-          : 0;
-
-      // =================================================
-      // CALCULATED CPM
-      // =================================================
-
-      const overallCpm =
-        Number(
-          overallTotals.totalImpressions
-        ) > 0
-          ? (
-              Number(
-                overallTotals.totalRevenue
-              ) /
-              Number(
-                overallTotals.totalImpressions
-              )
-            ) * 1000
-          : 0;
-
-      // =================================================
-      // FINAL SUMMARY DATA
-      // =================================================
-
-      const finalSummaryData = {
-        totalImpressions:
-          fixed6(
-            overallTotals.totalImpressions
-          ),
-
-        totalClicks:
-          fixed6(
-            overallTotals.totalClicks
-          ),
-
-        totalRevenue:
-          fixed6(
-            overallTotals.totalRevenue
-          ),
-
-        ctr:
-          fixed6(overallCtr),
-
-        cpm:
-          fixed6(overallCpm),
-      };
-
-      // =================================================
-      // FIND SUMMARY
-      // =================================================
-
-      let savedSummary =
-        await UserStatsSummary.findOne(
-          {
-            userId,
-          }
-        );
-
-      let dataSource =
-        "database";
-
-      // =================================================
-      // CREATE SUMMARY
-      // =================================================
-
-      if (!savedSummary) {
-
-        dataSource = "created";
-
-        savedSummary =
-          await UserStatsSummary.create(
-            {
-              userId,
-
-              totalImpressions:
-                fixed6(
-                  finalSummaryData.totalImpressions
-                ),
-
-              totalClicks:
-                fixed6(
-                  finalSummaryData.totalClicks
-                ),
-
-              totalRevenue:
-                fixed6(
-                  finalSummaryData.totalRevenue
-                ),
-
-              ctr:
-                fixed6(
-                  finalSummaryData.ctr
-                ),
-
-              cpm:
-                fixed6(
-                  finalSummaryData.cpm
-                ),
-            }
-          );
-
-      } else {
-
-        const oldRevenue =
-          fixed6(
-            savedSummary.totalRevenue
-          );
-
-        const oldImpressions =
-          fixed6(
-            savedSummary.totalImpressions
-          );
-
-        const oldClicks =
-          fixed6(
-            savedSummary.totalClicks
-          );
-
-        const newRevenue =
-          fixed6(
-            finalSummaryData.totalRevenue
-          );
-
-        const newImpressions =
-          fixed6(
-            finalSummaryData.totalImpressions
-          );
-
-        const newClicks =
-          fixed6(
-            finalSummaryData.totalClicks
-          );
-
-        const finalRevenue =
-          fixed6(
-            Math.max(
-              oldRevenue,
-              newRevenue
-            )
-          );
-
-        const finalImpressions =
-          fixed6(
-            Math.max(
-              oldImpressions,
-              newImpressions
-            )
-          );
-
-        const finalClicks =
-          fixed6(
-            Math.max(
-              oldClicks,
-              newClicks
-            )
-          );
-
-        const finalCtr =
-          fixed6(
-            finalSummaryData.ctr
-          );
-
-        const finalCpm =
-          fixed6(
-            finalSummaryData.cpm
-          );
-
-        const isChanged =
-          fixed6(oldRevenue) !==
-            fixed6(
-              finalRevenue
-            ) ||
-
-          fixed6(oldImpressions) !==
-            fixed6(
-              finalImpressions
-            ) ||
-
-          fixed6(oldClicks) !==
-            fixed6(
-              finalClicks
-            );
-
-        if (isChanged) {
-
-          dataSource =
-            "updated";
-
-          savedSummary =
-            await UserStatsSummary.findOneAndUpdate(
-              {
-                userId,
-              },
-
-              {
-                $set: {
-                  totalImpressions:
-                    fixed6(
-                      finalImpressions
-                    ),
-
-                  totalClicks:
-                    fixed6(
-                      finalClicks
-                    ),
-
-                  totalRevenue:
-                    fixed6(
-                      finalRevenue
-                    ),
-
-                  ctr:
-                    fixed6(
-                      finalCtr
-                    ),
-
-                  cpm:
-                    fixed6(
-                      finalCpm
-                    ),
-                },
-              },
-
-              {
-                new: true,
-              }
-            );
-        }
-      }
-
-      // =================================================
-      // TOTAL RECORDS
-      // =================================================
-
-      const totalRecords =
-        await AdsterraStats.countDocuments(
-          overallFilter
-        );
-
-      // =================================================
-      // COUNTRY FILTER
-      // =================================================
-
-      const countryFilter = {
-        userId:
-          new mongoose.Types.ObjectId(
-            userId
-          ),
-      };
-
-      // =================================================
-      // COUNTRY DATE FILTER FIXED
-      // =================================================
+      let mergedData = [];
 
       if (
-        start_date ||
+        start_date &&
         end_date
       ) {
 
-        countryFilter.date =
-          {};
+        const allDates =
+          generateDateRange(
+            start_date,
+            end_date
+          );
 
-        if (start_date) {
+        mergedData =
+          allDates.map((date) => {
 
-          countryFilter.date.$gte =
-            normalizeDate(
-              start_date
-            );
-        }
+            const sameDateData =
+              formattedStats.filter(
+                (x) =>
+                  String(x.date) ===
+                  String(date)
+              );
 
-        if (end_date) {
+            // =============================================
+            // NO DATA
+            // =============================================
 
-          countryFilter.date.$lte =
-            normalizeDate(
-              end_date
-            );
-        }
-      }
+            if (
+              !sameDateData.length
+            ) {
 
-      // =================================================
-      // GET COUNTRY DOCS
-      // =================================================
+              return {
+                date,
 
-      const countryDocs =
-        await SmartLinkStats.find(
-          countryFilter
-        )
-          .sort({
-            date: -1,
-            updatedAt: -1,
-            createdAt: -1,
-          })
-          .lean();
+                impressions: 0,
 
-      // =================================================
-      // FORMAT COUNTRY DATA
-      // =================================================
+                clicks: 0,
 
-      let finalCountryData =
-        [];
+                revenue: 0,
 
-      for (const doc of countryDocs) {
+                ctr: 0,
 
-        const stats =
-          Array.isArray(
-            doc.stats
-          )
-            ? doc.stats
-            : [];
+                cpm: 0,
 
-        for (const item of stats) {
+                country:
+                  country ||
+                  "ALL",
 
-          if (
-            country &&
-            String(
-              item.country
-            ).toUpperCase() !==
-              String(
-                country
-              ).toUpperCase()
-          ) {
-            continue;
-          }
+                placement:
+                  placement ||
+                  "ALL",
+              };
+            }
 
-          if (
-            placement &&
-            String(
-              item.placement
-            ) !==
-              String(
-                placement
-              )
-          ) {
-            continue;
-          }
+            // =============================================
+            // MERGE VALUES
+            // =============================================
 
-          finalCountryData.push({
-            date:
-              doc.date,
+            let impressions = 0;
 
-            placement:
-              item.placement,
+            let clicks = 0;
 
-            country:
-              item.country,
+            let revenue = 0;
 
-            domain:
-              item.domain,
+            // =============================================
+            // UNIQUE REVENUE FIX
+            // =============================================
 
-            device:
-              doc.device,
+            const uniqueRevenueMap =
+              new Map();
 
-            osName:
-              doc.osName,
+            for (const item of sameDateData) {
 
-            browserName:
-              doc.browserName,
+              impressions += Number(
+                item.impressions || 0
+              );
 
-            impressions:
-              fixed6(
-                item.impressions
-              ),
+              clicks += Number(
+                item.clicks || 0
+              );
 
-            clicks:
-              fixed6(
-                item.clicks
-              ),
+              // =========================================
+              // UNIQUE KEY
+              // =========================================
 
-            revenue:
-              fixed6(
-                item.revenue
-              ),
+              const revenueKey = [
+                item.userId?.toString() || "",
+                item.date || "",
+                item.placement || "",
+                item.domain || "",
+                item.country || "",
+              ].join("_");
 
-            ctr:
-              fixed6(item.ctr),
+              // =========================================
+              // ADD ONLY ONCE
+              // =========================================
 
-            cpm:
-              fixed6(item.cpm),
+              if (
+                !uniqueRevenueMap.has(
+                  revenueKey
+                )
+              ) {
+
+                uniqueRevenueMap.set(
+                  revenueKey,
+                  true
+                );
+
+                revenue += Number(
+                  item.revenue || 0
+                );
+              }
+            }
+
+            // =============================================
+            // RECALCULATE CTR / CPM
+            // =============================================
+
+            const ctr =
+              impressions > 0
+                ? (
+                  clicks /
+                  impressions
+                ) * 100
+                : 0;
+
+            const cpm =
+              impressions > 0
+                ? (
+                  revenue /
+                  impressions
+                ) * 1000
+                : 0;
+
+            return {
+              date,
+
+              impressions:
+                fixed6(
+                  impressions
+                ),
+
+              clicks:
+                fixed6(
+                  clicks
+                ),
+
+              revenue:
+                fixed6(
+                  revenue
+                ),
+
+              ctr:
+                fixed6(ctr),
+
+              cpm:
+                fixed6(cpm),
+
+              country:
+                country ||
+                "ALL",
+
+              placement:
+                placement ||
+                "ALL",
+            };
           });
-        }
+
+      } else {
+
+        // =============================================
+        // NO DATE FILTER
+        // =============================================
+
+        mergedData =
+          formattedStats;
       }
 
-      // =================================================
-      // SORT COUNTRY DATA
-      // =================================================
-
-      finalCountryData.sort(
-        (a, b) =>
-          new Date(b.date) -
-          new Date(a.date)
+      console.log(
+        "MERGED DATA =>",
+        mergedData.length
       );
 
       // =================================================
-      // COUNTRY TOTALS
+      // PAGINATION
+      // =================================================
+
+      const totalRecords =
+        mergedData.length;
+
+      const paginatedData =
+        mergedData.slice(
+          skip,
+          skip + perPage
+        );
+
+      // =================================================
+      // TOTALS
       // =================================================
 
       let totalImpressions = 0;
+
       let totalClicks = 0;
+
       let totalRevenue = 0;
 
-      for (const item of finalCountryData) {
+      for (const item of mergedData) {
 
-        totalImpressions +=
-          Number(
-            item.impressions || 0
-          );
+        totalImpressions += Number(
+          item.impressions || 0
+        );
 
-        totalClicks +=
-          Number(
-            item.clicks || 0
-          );
+        totalClicks += Number(
+          item.clicks || 0
+        );
 
-        totalRevenue +=
-          Number(
-            item.revenue || 0
-          );
+        totalRevenue += Number(
+          item.revenue || 0
+        );
       }
 
-      const countryTotals = {
-        totalImpressions:
-          fixed6(
+      // =================================================
+      // FINAL CTR / CPM
+      // =================================================
+
+      const totalCtr =
+        totalImpressions > 0
+          ? (
+            totalClicks /
             totalImpressions
-          ),
-
-        totalClicks:
-          fixed6(
-            totalClicks
-          ),
-
-        totalRevenue:
-          fixed6(
-            totalRevenue
-          ),
-      };
-
-      const countryCtr =
-        totalImpressions > 0
-          ? (
-              totalClicks /
-              totalImpressions
-            ) * 100
+          ) * 100
           : 0;
 
-      const countryCpm =
+      const totalCpm =
         totalImpressions > 0
           ? (
-              totalRevenue /
-              totalImpressions
-            ) * 1000
+            totalRevenue /
+            totalImpressions
+          ) * 1000
           : 0;
+
+      console.log(
+        "FINAL API TOTAL REVENUE =>",
+        fixed6(totalRevenue)
+      );
+
+      console.log(
+        "FINAL API TOTAL IMPRESSIONS =>",
+        fixed6(totalImpressions)
+      );
 
       // =================================================
       // RESPONSE
@@ -1634,12 +1548,9 @@ exports.getAdsterraStatsFromDB =
 
       return res.status(200).json({
         success: true,
+        isDemo: user.isDemo,
 
-        source:
-          dataSource,
-
-        serverTime:
-          new Date(),
+        serverTime: new Date(),
 
         filters: {
           placement:
@@ -1656,18 +1567,11 @@ exports.getAdsterraStatsFromDB =
         },
 
         pagination: {
-          page:
-            currentPage,
-
-          limit:
-            perPage,
-
-          totalPages:
-            Math.ceil(
-              totalRecords /
-                perPage
-            ),
-
+          page: currentPage,
+          limit: perPage,
+          totalPages: Math.ceil(
+            totalRecords / perPage
+          ),
           totalRecords,
         },
 
@@ -1675,68 +1579,28 @@ exports.getAdsterraStatsFromDB =
           totals: {
             totalImpressions:
               fixed6(
-                savedSummary.totalImpressions
+                totalImpressions
               ),
 
             totalClicks:
               fixed6(
-                savedSummary.totalClicks
+                totalClicks
               ),
 
             totalRevenue:
               fixed6(
-                savedSummary.totalRevenue
+                totalRevenue
               ),
 
-            ctr:
-              fixed6(
-                savedSummary.ctr
-              ),
+            ctr: fixed6(totalCtr),
 
-            cpm:
-              fixed6(
-                savedSummary.cpm
-              ),
+            cpm: fixed6(totalCpm),
           },
 
-          data:
-            overallStats,
+          data: paginatedData,
         },
 
-        country: {
-          totals: {
-            totalImpressions:
-              fixed6(
-                countryTotals.totalImpressions
-              ),
-
-            totalClicks:
-              fixed6(
-                countryTotals.totalClicks
-              ),
-
-            totalRevenue:
-              fixed6(
-                countryTotals.totalRevenue
-              ),
-
-            ctr:
-              fixed6(
-                countryCtr
-              ),
-
-            cpm:
-              fixed6(
-                countryCpm
-              ),
-          },
-
-          totalRecords:
-            finalCountryData.length,
-
-          data:
-            finalCountryData,
-        },
+        calculatedStats,
       });
 
     } catch (error) {
