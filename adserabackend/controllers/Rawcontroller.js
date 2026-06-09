@@ -14,6 +14,782 @@ const RawWebsite = require("../models/RawWebsitemodel"); // stats save
 
 
 
+// exports.RawFetchAndStoreWebsiteStats =
+//   async (req = null, res = null) => {
+//     try {
+
+//       // ============================================
+//       // QUERY
+//       // ============================================
+
+//       const start_date =
+//         req?.query?.start_date || null;
+
+//       const end_date =
+//         req?.query?.end_date || null;
+
+//       // ============================================
+//       // USERS
+//       // ============================================
+
+//       const users = await User.find({});
+
+//       if (!users.length) {
+
+//         const responseData = {
+//           success: false,
+//           message: "No users found",
+//         };
+
+//         if (res) {
+//           return res
+//             .status(404)
+//             .json(responseData);
+//         }
+
+//         return responseData;
+//       }
+
+//       // ============================================
+//       // DATE HELPERS
+//       // ============================================
+
+//       const today = new Date();
+
+//       const normalizeDate = (d) => {
+
+//         if (!d) {
+//           return today
+//             .toISOString()
+//             .split("T")[0];
+//         }
+
+//         if (typeof d === "string") {
+
+//           return d.includes("T")
+//             ? d.split("T")[0]
+//             : d;
+//         }
+
+//         if (d instanceof Date) {
+
+//           return d
+//             .toISOString()
+//             .split("T")[0];
+//         }
+
+//         return today
+//           .toISOString()
+//           .split("T")[0];
+//       };
+
+//       const currentDate =
+//         normalizeDate(new Date());
+
+//       const oldDate = new Date();
+
+//       oldDate.setDate(
+//         oldDate.getDate() - 15
+//       );
+
+//       const finalStartDate =
+//         start_date ||
+//         normalizeDate(oldDate);
+
+//       const finalEndDate =
+//         end_date || currentDate;
+
+//       // ============================================
+//       // TOTALS
+//       // ============================================
+
+//       let totalUsers = 0;
+
+//       let totalWebsites = 0;
+
+//       let totalRevenue = 0;
+
+//       // ============================================
+//       // LOOP USERS
+//       // ============================================
+
+//       for (const user of users) {
+
+//         try {
+
+//           const userId = user._id;
+
+//           // ========================================
+//           // PERCENT HISTORY
+//           // ========================================
+
+//           const percentHistory =
+//             Array.isArray(
+//               user.percentHistory
+//             )
+//               ? user.percentHistory
+//               : [];
+
+//           // ========================================
+//           // GET WEBSITES
+//           // ========================================
+
+//           const websites =
+//             await Website.find({
+//               userId,
+//             });
+
+//           if (!websites.length) {
+//             continue;
+//           }
+
+//           totalUsers += 1;
+
+//           totalWebsites +=
+//             websites.length;
+
+//           // ========================================
+//           // LOOP WEBSITE
+//           // ========================================
+
+//           for (const websiteData of websites) {
+
+//             try {
+
+//               const domain = String(
+//                 websiteData.website || ""
+//               ).trim();
+
+//               if (!domain) {
+//                 continue;
+//               }
+
+//               // ====================================
+//               // WEBSITE API KEY
+//               // ====================================
+
+//               const websiteApiKey =
+//                 String(
+//                   websiteData?.apiKey || ""
+//                 ).trim();
+
+//               if (!websiteApiKey) {
+
+//                 console.log(
+//                   "NO API KEY FOUND =>",
+//                   domain
+//                 );
+
+//                 continue;
+//               }
+
+//               const placements =
+//                 Array.isArray(
+//                   websiteData.placements
+//                 )
+//                   ? websiteData.placements
+//                   : [];
+
+//               if (!placements.length) {
+//                 continue;
+//               }
+
+//               // ====================================
+//               // LOOP PLACEMENTS
+//               // ====================================
+
+//               for (const p of placements) {
+
+//                 try {
+
+//                   const placementId =
+//                     String(
+//                       p?.placementId || ""
+//                     ).trim();
+
+//                   if (!placementId) {
+//                     continue;
+//                   }
+
+//                   console.log(
+//                     "FETCHING =>",
+//                     placementId
+//                   );
+
+//                   // ====================================
+//                   // FETCH STATS
+//                   // ====================================
+
+//                   let allItems = [];
+
+//                   try {
+
+//                     console.log(
+//                       "USING WEBSITE API KEY =>",
+//                       placementId
+//                     );
+
+//                     const response =
+//                       await axios.get(
+//                         "https://api3.adsterratools.com/publisher/stats.json",
+//                         {
+//                           params: {
+//                             placement:
+//                               placementId,
+
+//                             start_date:
+//                               finalStartDate,
+
+//                             finish_date:
+//                               finalEndDate,
+
+//                             group_by:
+//                               "date",
+//                           },
+
+//                           headers: {
+//                             Accept:
+//                               "application/json",
+
+//                             "X-API-Key":
+//                               websiteApiKey,
+
+//                             "User-Agent":
+//                               "Mozilla/5.0",
+//                           },
+
+//                           timeout: 30000,
+//                         }
+//                       );
+
+//                     // ================================
+//                     // ITEMS
+//                     // ================================
+
+//                     const items =
+//                       Array.isArray(
+//                         response?.data
+//                           ?.items
+//                       )
+//                         ? response.data
+//                           .items
+//                         : [];
+
+//                     console.log(
+//                       "ITEMS =>",
+//                       items.length
+//                     );
+
+//                     if (items.length) {
+//                       allItems.push(
+//                         ...items
+//                       );
+//                     }
+
+//                   } catch (apiError) {
+
+//                     console.log(
+//                       "API KEY FAILED =>",
+//                       apiError?.response
+//                         ?.data ||
+//                       apiError.message
+//                     );
+
+//                     continue;
+//                   }
+
+//                   // ====================================
+//                   // REMOVE DUPLICATE DATES
+//                   // ====================================
+
+//                   const uniqueItemsMap =
+//                     new Map();
+
+//                   for (const item of allItems) {
+
+//                     const itemDate =
+//                       String(
+//                         normalizeDate(
+//                           item?.date
+//                         )
+//                       ).trim();
+
+//                     if (!itemDate) {
+//                       continue;
+//                     }
+
+//                     if (
+//                       !uniqueItemsMap.has(
+//                         itemDate
+//                       )
+//                     ) {
+//                       uniqueItemsMap.set(
+//                         itemDate,
+//                         item
+//                       );
+//                     }
+//                   }
+
+//                   const finalItems =
+//                     Array.from(
+//                       uniqueItemsMap.values()
+//                     );
+
+//                   // ====================================
+//                   // CHECK DATA
+//                   // ====================================
+
+//                   if (
+//                     !finalItems.length
+//                   ) {
+
+//                     console.log(
+//                       "NO DATA FOUND =>",
+//                       placementId
+//                     );
+
+//                     continue;
+//                   }
+
+//                   console.log(
+//                     "TOTAL FINAL ITEMS =>",
+//                     finalItems.length
+//                   );
+
+//                   // ====================================
+//                   // LOOP FINAL ITEMS
+//                   // ====================================
+
+//                   for (const item of finalItems) {
+
+//                     try {
+
+//                       const impressions =
+//                         Number(
+//                           item?.impression
+//                         ) || 0;
+
+//                       const clicks =
+//                         Number(
+//                           item?.clicks
+//                         ) || 0;
+
+//                       const revenue =
+//                         Number(
+//                           item?.revenue
+//                         ) || 0;
+
+//                       const ctr =
+//                         impressions > 0
+//                           ? Number(
+//                             (
+//                               (clicks /
+//                                 impressions) *
+//                               100
+//                             ).toFixed(2)
+//                           )
+//                           : 0;
+
+//                       const cpm =
+//                         Number(
+//                           item?.cpm
+//                         ) || 0;
+
+//                       // ============================
+//                       // DATE
+//                       // ============================
+
+//                       const adsterraDate =
+//                         String(
+//                           normalizeDate(
+//                             item?.date
+//                           )
+//                         ).trim();
+
+//                       if (
+//                         !adsterraDate
+//                       ) {
+//                         continue;
+//                       }
+
+//                       // ============================
+//                       // DEFAULT %
+//                       // ============================
+
+//                       let impressionPercent = 0;
+
+//                       let cpmPercent = 0;
+
+//                       // ============================
+//                       // MATCH HISTORY
+//                       // ============================
+
+//                       const matchedHistory =
+//                         percentHistory
+//                           .filter((h) => {
+
+//                             if (!h?.date) {
+//                               return false;
+//                             }
+
+//                             const historyDate =
+//                               new Date(
+//                                 h.date
+//                               );
+
+//                             if (
+//                               isNaN(
+//                                 historyDate.getTime()
+//                               )
+//                             ) {
+//                               return false;
+//                             }
+
+//                             historyDate.setUTCDate(
+//                               historyDate.getUTCDate() +
+//                               1
+//                             );
+
+//                             const applyDate =
+//                               historyDate
+//                                 .toISOString()
+//                                 .split("T")[0];
+
+//                             return (
+//                               applyDate <=
+//                               adsterraDate
+//                             );
+//                           })
+//                           .sort(
+//                             (a, b) =>
+//                               new Date(
+//                                 b.date
+//                               ) -
+//                               new Date(
+//                                 a.date
+//                               )
+//                           )[0];
+
+//                       // ============================
+//                       // APPLY %
+//                       // ============================
+
+//                       if (
+//                         matchedHistory
+//                       ) {
+
+//                         impressionPercent =
+//                           Number(
+//                             matchedHistory.impressionPercent
+//                           ) || 0;
+
+//                         cpmPercent =
+//                           Number(
+//                             matchedHistory.cpmPercent
+//                           ) || 0;
+//                       }
+
+//                       totalRevenue +=
+//                         revenue;
+
+//                       // ============================
+//                       // FIND DOC
+//                       // ============================
+
+//                       let existingDoc =
+//                         await RawWebsite.findOne(
+//                           {
+//                             userId,
+
+//                             website:
+//                               domain,
+
+//                             date: {
+//                               $eq:
+//                                 adsterraDate,
+//                             },
+//                           }
+//                         );
+
+//                       // ============================
+//                       // CREATE DOC
+//                       // ============================
+
+//                       if (
+//                         !existingDoc
+//                       ) {
+
+//                         existingDoc =
+//                           await RawWebsite.create(
+//                             {
+//                               userId,
+
+//                               website:
+//                                 domain,
+
+//                               status:
+//                                 websiteData.status,
+
+//                               websiteCategory:
+//                                 websiteData.websiteCategory,
+
+//                               showAdultAds:
+//                                 websiteData.showAdultAds,
+
+//                               adFormat:
+//                                 websiteData.adFormat,
+
+//                               date:
+//                                 adsterraDate,
+
+//                               placements:
+//                                 [],
+//                             }
+//                           );
+
+//                         console.log(
+//                           "NEW DATE OBJECT CREATED =>",
+//                           adsterraDate
+//                         );
+//                       }
+
+//                       // ============================
+//                       // FIND PLACEMENT
+//                       // ============================
+
+//                       const existingPlacement =
+//                         existingDoc.placements.find(
+//                           (pl) =>
+//                             String(
+//                               pl?.placementId ||
+//                               ""
+//                             ).trim() ===
+//                             placementId
+//                         );
+
+//                       // ============================
+//                       // PLACEMENT DATA
+//                       // ============================
+
+//                       const placementData = {
+//                         type:
+//                           p?.type || "",
+
+//                         placementId,
+
+//                         adName:
+//                           p?.adName || "",
+
+//                         adUrl:
+//                           p?.adUrl || "",
+
+//                         isActive:
+//                           p?.isActive ||
+//                           false,
+
+//                         impressions,
+
+//                         clicks,
+
+//                         ctr,
+
+//                         cpm,
+
+//                         revenue,
+
+//                         impressionPercent,
+
+//                         cpmPercent,
+//                       };
+
+//                       // ============================
+//                       // UPDATE / PUSH
+//                       // ============================
+
+//                       if (
+//                         existingPlacement
+//                       ) {
+
+//                         existingPlacement.type =
+//                           placementData.type;
+
+//                         existingPlacement.adName =
+//                           placementData.adName;
+
+//                         existingPlacement.adUrl =
+//                           placementData.adUrl;
+
+//                         existingPlacement.isActive =
+//                           placementData.isActive;
+
+//                         existingPlacement.impressions =
+//                           placementData.impressions;
+
+//                         existingPlacement.clicks =
+//                           placementData.clicks;
+
+//                         existingPlacement.ctr =
+//                           placementData.ctr;
+
+//                         existingPlacement.cpm =
+//                           placementData.cpm;
+
+//                         existingPlacement.revenue =
+//                           placementData.revenue;
+
+//                         existingPlacement.impressionPercent =
+//                           placementData.impressionPercent;
+
+//                         existingPlacement.cpmPercent =
+//                           placementData.cpmPercent;
+
+//                         console.log(
+//                           "PLACEMENT UPDATED =>",
+//                           placementId,
+//                           adsterraDate
+//                         );
+
+//                       } else {
+
+//                         existingDoc.placements.push(
+//                           placementData
+//                         );
+
+//                         console.log(
+//                           "NEW PLACEMENT ADDED =>",
+//                           placementId,
+//                           adsterraDate
+//                         );
+//                       }
+
+//                       // ============================
+//                       // SAVE
+//                       // ============================
+
+//                       existingDoc.markModified(
+//                         "placements"
+//                       );
+
+//                       await existingDoc.save();
+
+//                       console.log(
+//                         "SAVED =>",
+//                         placementId,
+//                         adsterraDate
+//                       );
+
+//                     } catch (itemError) {
+
+//                       console.log(
+//                         "ITEM ERROR =>",
+//                         itemError.message
+//                       );
+
+//                       continue;
+//                     }
+//                   }
+
+//                 } catch (placementError) {
+
+//                   console.log(
+//                     "PLACEMENT ERROR =>",
+//                     placementError.message
+//                   );
+
+//                   continue;
+//                 }
+//               }
+
+//             } catch (websiteError) {
+
+//               console.log(
+//                 "WEBSITE ERROR =>",
+//                 websiteError.message
+//               );
+
+//               continue;
+//             }
+//           }
+
+//         } catch (userError) {
+
+//           console.log(
+//             "USER ERROR =>",
+//             userError.message
+//           );
+
+//           continue;
+//         }
+//       }
+
+//       // ============================================
+//       // FINAL RESPONSE
+//       // ============================================
+
+//       const responseData = {
+//         success: true,
+
+//         message:
+//           "Website stats stored successfully",
+
+//         totalUsers,
+
+//         totalWebsites,
+
+//         totalRevenue:
+//           Number(
+//             totalRevenue.toFixed(6)
+//           ),
+
+//         start_date:
+//           finalStartDate,
+
+//         end_date:
+//           finalEndDate,
+//       };
+
+//       if (res) {
+
+//         return res
+//           .status(200)
+//           .json(responseData);
+//       }
+
+//       console.log(
+//         "RAW WEBSITE STATS SUCCESS"
+//       );
+
+//       return responseData;
+
+//     } catch (error) {
+
+//       const errorResponse = {
+//         success: false,
+
+//         message:
+//           "Failed to fetch website stats",
+
+//         error:
+//           error?.response?.data ||
+//           error.message,
+//       };
+
+//       if (res) {
+
+//         return res
+//           .status(500)
+//           .json(errorResponse);
+//       }
+
+//       console.log(
+//         "RAW WEBSITE STATS CRON ERROR =>",
+//         errorResponse.error
+//       );
+
+//       return errorResponse;
+//     }
+//   };
+
 exports.RawFetchAndStoreWebsiteStats =
   async (req = null, res = null) => {
     try {
@@ -567,25 +1343,37 @@ exports.RawFetchAndStoreWebsiteStats =
                             placementId
                         );
 
+
+                      // ============================
+                      // CLEAN AD URL
+                      // ============================
+
+                      const rawAdUrl = String(
+                        p?.adUrl || ""
+                      ).trim();
+
+                      const srcMatch = rawAdUrl.match(
+                        /src=["']([^"']+)["']/i
+                      );
+
+                      const cleanAdUrl = srcMatch
+                        ? srcMatch[1]
+                        : rawAdUrl;
+
                       // ============================
                       // PLACEMENT DATA
                       // ============================
 
                       const placementData = {
-                        type:
-                          p?.type || "",
+                        type: p?.type || "",
 
                         placementId,
 
-                        adName:
-                          p?.adName || "",
+                        adName: p?.adName || "",
 
-                        adUrl:
-                          p?.adUrl || "",
+                        adUrl: cleanAdUrl,
 
-                        isActive:
-                          p?.isActive ||
-                          false,
+                        isActive: p?.isActive || false,
 
                         impressions,
 
